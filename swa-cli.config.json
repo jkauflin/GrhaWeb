@@ -1,0 +1,9 @@
+{
+  "$schema": "https://aka.ms/azure/static-web-apps-cli/schema",
+  "configurations": {
+    "grhaweb": {
+      "appLocation": "src",
+      "outputLocation": "src"
+    }
+  }
+}
