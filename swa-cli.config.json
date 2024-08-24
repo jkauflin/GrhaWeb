@@ -3,7 +3,8 @@
   "configurations": {
     "grhaweb": {
       "appLocation": "src",
-      "outputLocation": "src"
+      "outputLocation": "src",
+      "apiLocation": "api"
     }
   }
 }
