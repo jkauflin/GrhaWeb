@@ -1,0 +1,27 @@
+{
+    "trailingSlash": "auto",
+    "routes": [
+      {
+        "route": "/hoadb*",
+        "allowedRoles": ["hoadbadmin"]
+      }
+    ],
+    "responseOverrides": {
+      "401": {
+        "redirect": "/.auth/login/aad?post_login_redirect_uri=.referrer",
+        "statusCode": 302
+      }
+    },
+    "navigationFallback": {
+      "rewrite": "/index.html"
+    },
+    "mimeTypes": {
+      ".json": "text/json"
+    },
+    "globalHeaders": {
+      "Referrer-Policy": "strict-origin-when-cross-origin"
+    },
+    "platform": {
+        "apiRuntime": "dotnet-isolated:8.0"
+    }
+}

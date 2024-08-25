@@ -1,3 +1,9 @@
 node_modules/
 /test-results/
 
+# 2024-08-25 JJK
+src/Media
+src/paypal*.*
+src/*.log
+src/error_log
+src/LOG_FILE

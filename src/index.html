@@ -1,17 +1,686 @@
-<!DOCTYPE html>
-<html lang="en">
+<!doctype html>
+<html class="no-js" lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="styles.css">
-  <title>Vanilla JavaScript App</title>
+    <meta charset="utf-8">
+	<meta http-equiv="x-ua-compatible" content="ie=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>GRHA</title>
+    <meta name="keywords" content="quail hollow, willow glen, grha, gander rd, gander rd homewowners association, gander road, dayton, ohio" />
+    <meta name="description" content="This is the web site for the Gander Road Homeowners Association in Quail Hollow, Dayton, OH" />
+    <meta name="Author" content="John J Kauflin" />
+    <meta property="og:url" content="https://grha-dayton.org" />
+    <meta property="og:type" content="article" />
+    <meta property="og:title" content="Gander Road Homeowners Association" />
+    <meta property="og:description" content="This is the web site for the Gander Road Homeowners Association" />
+    <meta property="og:image" content="https://grha-dayton.org/Media/images/qh-sign.jpg" />
+    
+    <!-- Place favicon.ico in the root directory -->
+    <link rel="icon" href="favicon.ico?ver=1.003">
+
+    <!-- Bootstrap core CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" 
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
+        integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
+
+    <link rel="stylesheet" href="css/main.css">
 </head>
 
 <body>
-  <main>
-    <h1>GRHA Main page</h1>
-  </main>
-</body>
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark" role="navigation">
+    <a class="navbar-brand p-0 mx-2" href="/"><img class="m-0 p-0" id="header-image" alt="Brand logo photo" src="Media/images/logo-photo.jpg"></a>
+    <a class="navbar-brand d-lg-none" data-bs-toggle="modal" href="#aboutModal">Gander Rd HOA</a>
+    <a class="navbar-brand d-none d-lg-block" data-bs-toggle="modal" href="#aboutModal">Gander Road Homeowners Association</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <!-- Navbar links -->
+    <div class="collapse navbar-collapse justify-content-end mx-2" id="collapsibleNavbar">
+        <ul class="nav navbar-nav">
+            <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#HomePage" >
+                <i class="fa fa-home"></i> Home</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#ContactsPage" role="tab">
+                <i class="fa fa-phone"></i> Contact Us</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#DuesPage" role="tab">
+                <i class="fa fa-dollar"></i> Dues</a></li>
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#CommitteesPage" role="tab">
+                <i class="fa fa-group"></i> Committees</a></li>
+        </ul>
+    </div>
+</nav>
 
+<div class="container-fluid">
+<div class="tab-content">
+	<div class="tab-pane show active" role="tabpanel" id="HomePage">
+        <div class="row">
+            <div class="col-sm-4 col-lg-3">
+                <div id="DisplayWidth"></div>
+                <h4 class="d-none d-sm-block">Home</h4>
+                <div class="d-none d-sm-block">
+                    <img id="HomePhoto" class="rounded mb-2 ml-2" src="Media/images/Home/QH-sign.JPG" alt="Quail Hollow sign" width="65%" />
+                </div>
+                President: <a href="mailto:president@grha-dayton.org?subject=GRHA Business">
+                    Diana Schaefer</a> (937) 684-5530 <br>email: <b>president@grha-dayton.org</b>
+                <br>Treasurer: <a href="mailto:treasurer@grha-dayton.org?subject=GRHA Business">
+                    Misty Wilker</a> (937) 554-9414 <br>email: <b>treasurer@grha-dayton.org</b>
+                <a data-bs-toggle="modal" href="#MapModal" class="d-none d-sm-block"> 
+                    <img src="Media/images/grhamap.jpg" width="80%"/>
+                </a>
+            </div><!-- End of col 1 -->
+
+            <div class="col-sm-4 col-lg-6">
+                <a class="btn btn-danger mt-2 link-tile" href="#realtorModal" data-bs-toggle="modal">
+                    <i class="fa fa-home fa-2x float-start"></i> Realtors and <br> Title Agents</a>
+                <button class="btn btn-success mt-2 link-tile link-tile-tab" data-dir="Dues" type="button" role="button">
+                    <i class="fa fa-dollar fa-2x float-start"></i> Dues and <br> Liens</button>
+                <button class="btn btn-primary mt-2 link-tile media-page" data-dir="Docs/Quail%20Call%20(newsletter)/2024" type="button" role="button">
+                    <i class="fa fa-file-text-o fa-2x float-start"></i> Quail Call <br>newsletter</button>
+                <a class="btn btn-warning mt-2 link-tile" href="Media/Docs/GRHA%20Welcome%20Letter.pdf" target="_blank">
+                    <i class="fa fa-info fa-2x float-start"></i> Welcome <br>message</a>
+                <a class="btn btn-info mt-2 link-tile" href="#meetingModal" data-bs-toggle="modal">
+                    <i class="fa fa-group fa-2x float-start"></i> Monthly <br>meetings</a>
+                <button class="btn btn-success mt-2 link-tile media-page" data-dir="Docs" type="button" role="button">
+                    <i class="fa fa-legal fa-2x float-start"></i> Covenants <br>and By Laws</button>
+                <button class="btn btn-danger mt-2 link-tile media-page" data-dir="Docs" type="button" role="button">
+                    <i class="fa fa-bank fa-2x float-start"></i> Architecture <br>and Zoning</button>
+                <a class="btn btn-primary mt-2 link-tile" href="#eventModal" data-bs-toggle="modal">
+                    <i class="fa fa-calendar fa-2x float-start"></i> Events / <br>Calendar</a>
+                <button class="btn btn-warning mt-2 link-tile link-tile-tab" data-dir="Contacts" type="button" role="button">
+                    <i class="fa fa-phone fa-2x float-start"></i> Contact <br>us</button>
+                
+                <!--
+                <div class="float-start m-2">
+                    The 2021 GRHA Christmas decorating contest winners are:
+                    <h6>1st Place - 6062 Pine Glen</h6>
+                    <h6>2nd Place - 4525 Falcon</h6>
+                    <h6>3rd Place - 4473 Willow Mist</h6>
+                </div>
+                <div class="float-start m-2">
+                    The 2022 GRHA Christmas decorating contest winners are:
+                    <h6>1st Place - 4403 Summit Ridge</h6>
+                    <h6>2nd Place - 6140 Gander Rd East</h6>
+                    <h6>3rd Place - 4525 Falcon Circle</h6>
+                </div>
+                <div class="float-start">
+                    <img class="mr-1" alt="Christmas winner 1st place" src="Media/images/Christmas/1.jpg" width="30%">
+                    <img class="mr-1" alt="Christmas winner 2nd place" src="Media/images/Christmas/2.jpg" width="30%">
+                    <img class="mr-1" alt="Christmas winner 34d place" src="Media/images/Christmas/3.jpg" width="30%">
+                </div>
+                
+                <h6 class="my-2">2023 Easter Egg Hunt Event</h6>
+                <div class="float-start">
+                    <img class="mr-1" alt="Easter Egg Hunt 1" src="Media/images/Easter/1.jpg" width="30%">
+                    <img class="mr-1" alt="Easter Egg Hunt 2" src="Media/images/Easter/2.jpg" width="30%">
+                    <img class="mr-1" alt="Easter Egg Hunt 3" src="Media/images/Easter/3.jpg" width="30%">
+                </div>
+                -->
+
+                <!--
+                <div class="float-start d-none d-sm-block my-3">
+                    <i class="fa fa-home fa-4x float-start"></i>
+                    <h4>
+                    The Gander Road Homeowners Association spring Garage Sale is this Saturday (5/18/2024) from 9:00am-to-03:00pm.
+                </h4>
+                </div>
+                -->
+
+                <div class="float-start d-none d-sm-block my-3">
+                    You have found the web site of the Gander Road Homeowners Association.
+                    Our association is a combination of the subdivisions of Quail Hollow
+                    and Willow Glen, located in the northeast corner of Dayton, OH.
+                </div>
+
+                <div class="float-start my-2">
+                    The GRHA Board of Trustees meets the 2nd Thursday of every month
+                    at 7:00pm at the city of Dayton Fire Station #12 on Brandt Pike (just south of Needmore).
+                    This meeting is open to all members of the GRHA.
+                    <a href="https://www.google.com/maps/place/Dayton+Fire+Station+12/@39.8128367,-84.1327829,17.92z/data=!4m5!3m4!1s0x88408292a3ee62af:0xc779418e7a93efd7!8m2!3d39.8136226!4d-84.1325705?hl=en" target="_blank">
+                        <b>(Click here for map to Fire Station #12)</b>
+                    </a>
+                    <h6>Meeting Minutes can be found in the Quail Call newsletter</h6>
+                </div>
+
+            </div> <!-- End of col 2 -->
+
+            <div class="col-sm-4 col-lg-3">
+                <div class="d-none d-sm-block">
+                    <img id="CurrentPhoto" src="Media/images/Current/2012-07-10 092.JPG" class="rounded float-start m-2"  width="80%" alt="gander road current photo"/>
+                </div>
+                <div>
+                    <!--
+                    -->
+                    <iframe class="d-none d-sm-block m-2"
+                    src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d24513.756036534407!2d-84.10968!3d39.824496!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x884082af06f73537%3A0xa54a509114e629c1!2s5001%20Gander%20Rd%20W%2C%20Dayton%2C%20OH%2045424!5e0!3m2!1sen!2sus!4v1653571086503!5m2!1sen!2sus" 
+                    width="85%" frameborder="0" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                </div>
+
+                <h6><i class="fa fa-copyright"></i>2024 Gander Road Homeowners Association</h6>
+                <p>
+                <a data-bs-toggle="modal" href="#PrivacyModal"><i class="fa fa-briefcase"></i> privacy policy</a>
+                </p>
+                <a target="_blank" class="mt-1" href="http://www.facebook.com/GanderRoadHomeownersAssoc">
+                    <img alt="Find us on facebook" src="Media/images/Facebook.png" width="45%"></a>
+                <a target="_blank" class="mt-1" href="https://nextdoor.com/invite/skbhbhwcackpbjrwkuhd">
+                    <img alt="Find us on nextdoor" src="Media/images/nextdoor-badge.png" width="45%"></a>
+
+                <a class="btn btn-sm btn-primary float-start mt-2 mr-2 link-tile-sm d-block d-lg-none" href="#eventModal"data-bs-toggle="modal">
+                    <i class="fa fa-calendar fa-2x float-start"></i> Events / <br>Calendar</a>
+            </div><!-- End of col 3 -->
+
+        </div><!-- end of row -->
+	</div><!-- end of Home tab -->
+
+    <div class="tab-pane" role="tabpanel"  id="ContactsPage">
+        <div class="m-2">
+            All questions regarding the status of dues payments and/or liens on
+            a particular property should be directed to our Treasurer,
+            <a href="mailto:treasurer@grha-dayton.org?subject=GRHA Business">
+                <b>Misty Wilker</b></a>, (937) 554-9414, email: <b>treasurer@grha-dayton.org</b>
+            <br>
+            Email contact is preferred and usually the best way to get her. Like most of the board,
+            she has a full time day job, so don't expect an answer immediately.
+    
+            <div class="card bg-light m-2 " style="max-width: 20rem;">
+                <div class="card-body">
+                        Gander Road Homeowners Association </br>P.O. Box 24763 </br>Dayton, OH 45424-4763
+                </div>
+            </div>
+    
+        </div>
+
+        <h5 class="mt-3">Board of Trustees</h5>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card bg-light mb-2">
+                    <div class="card-body">
+                        <img class="float-start rounded mx-2" src="Media/images/TrusteePhotos/Diana-headshot.jpg" width="100" />
+                        <h5>Diana Schaefer - President</h5>
+                        <h6>937-684-5530</h6>
+                        <h6><a href="mailto:president@grha-dayton.org?subject=GRHA Business">president@grha-dayton.org</a></h6>
+                        Diana is the President and member of the Nominating Committee.  Contact for Architectural control Guidelines 
+                        Volunteer opportunities, and Resident concerns
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light mb-2">
+                    <div class="card-body">
+                        <i class="fa fa-user fa-5x mx-2 float-start"></i>
+                        <h5>Chris Keppler - Vice-President</h5>
+                        <h6>314-910-1193</h6>
+                        <h6><a href="mailto:vp@grha-dayton.org?subject=GRHA Business">vp@grha-dayton.org</a></h6>
+                        Chair of the Public Relations Committee - Contact regarding any GRHA sponsored events including 
+                        the Easter Event, Garage Sale, Christmas decorating contest, and Halloween Event
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light mb-2">
+                    <div class="card-body">
+                        <i class="fa fa-user fa-5x mx-2 "></i>
+                        <h5>Open position - Secretary</h5>
+                        <h6></h6>
+                        <!--
+                        <h6><a href="mailto:secretary@grha-dayton.org?subject=GRHA Business">secretary@grha-dayton.org</a></h6>
+                        -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card bg-light mb-2">
+                    <div class="card-body">
+                        <img class="float-start rounded mx-2" src="Media/images/TrusteePhotos/Misty-headshot.jpg"
+                            width="100" />
+                        <h5>Misty Wilker - Treasurer</h5>
+                        <h6>937-554-9414</h6>
+                        <h6><a href="mailto:treasurer@grha-dayton.org?subject=GRHA Business">treasurer@grha-dayton.org</a></h6>
+                        Misty is our Non-Trustee Treasurer who takes care of dues and liens
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light mb-2">
+                    <div class="card-body">
+                        <img class="float-start rounded mx-2" src="Media/images/TrusteePhotos/Gordon-headshot.jpg" width="100" />
+                        <h5>Gordon Carlson - Trustee</h5>
+                        <h6>937-236-1927</h6>
+                        <h6><a href="mailto:gordon@grha-dayton.org?subject=GRHA Business">gordon@grha-dayton.org</a></h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light mb-2">
+                    <div class="card-body">
+                        <i class="fa fa-user fa-5x mx-2 float-start"></i>
+                        <h5>Cassie Ward - Trustee</h5>
+                        <h6>919-753-8437</h6>
+                        <h6><a href="mailto:cassie@grha-dayton.org?subject=GRHA Business">cassie@grha-dayton.org</a></h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card bg-light mb-2">
+                    <div class="card-body">
+                        <i class="fa fa-user fa-5x mx-2 float-start"></i>
+                        <h5>Jeff Blair - Trustee</h5>
+                        <h6><a href="mailto:jeff@grha-dayton.org?subject=GRHA Business">jeff@grha-dayton.org</a></h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light mb-2">
+                    <div class="card-body">
+                        <i class="fa fa-user fa-5x mx-2 float-start"></i>
+                        <h5>Cheryl Wills - Trustee</h5>
+                        <h6><a href="mailto:cheryl@grha-dayton.org?subject=GRHA Business">cheryl@grha-dayton.org</a></h6>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card bg-light mb-2">
+                    <div class="card-body">
+                        <i class="fa fa-user fa-5x mx-2 float-start"></i>
+                        <h5>Jesse Loney - Trustee</h5>
+                        <h6><a href="mailto:jesse@grha-dayton.org?subject=GRHA Business">jesse@grha-dayton.org</a></h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card bg-light mb-2">
+                    <div class="card-body">
+                        <i class="fa fa-user fa-5x mx-2 float-start"></i>
+                        <h5>Andrea Loney - Trustee</h5>
+                        <h6><a href="mailto:andrea@grha-dayton.org?subject=GRHA Business">andrea@grha-dayton.org</a></h6>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div><!-- end of Contacts tab -->
+
+    <div class="tab-pane" role="tabpanel"  id="DuesPage">
+        <a class="btn btn-success mt-2" href="Media/Docs/Why%20do%20I%20have%20to%20pay%20dues.pdf" target="_blank">
+            <i class="fa fa-dollar "></i> Why do I have to pay dues</a>
+        <a class="btn btn-success mt-2" href="Media/Docs/GRHA%20Dues%20and%20Liens.pdf" target="_blank">
+            <i class="fa fa-dollar "></i> Dues and Lien info</a>
+
+        <div class="row">
+            <div class="col-sm-4 col-md-3">
+                <h5>Dues Checker</h5>
+                <div id="DuesSearchInput">
+                    <form id="InputValues" action="#">
+                        <input id="address" type="text" class="form-control" placeholder="Address" aria-describedby="addressHelp">
+                        <div id="addressHelpBlock" class="form-text">
+                            Property Address (or just house number)
+                        </div>
+                    </form>
+                    <button id="DuesSearchButton" type="button" class="btn btn-primary my-2">Search</button>
+                    <button data-bs-toggle="modal" href="#duesHelpModal" class="btn btn-danger m-2">HELP</button>
+                </div>
+            </div>
+            <div class="col-sm-8 col-md-9">
+                <h5>Properties List</h5>
+                <table id="PropertyListDisplay" class="table table-striped table-sm">
+                    <tbody>
+                    </tbody>
+                </table>
+                <div id="MessageDisplay" class="m-2"></div>
+            </div>
+        </div>
+    </div><!-- end of Dues tab -->
+
+    <div class="tab-pane" role="tabpanel"  id="CommitteesPage">
+        <h5 class="mt-3">Public Relations</h5>
+        The Public Relations Committee takes care of the various events that the GRHA hosts. We have an Easter Event,
+        a Spring Garage Sale, a Halloween Event, Halloween Donut stations, and a Christmas decorating contest.
+        
+        <h5 class="mt-3">Architectural Control</h5>
+        Our neighborhood has an Architectural Control Committee put in place by the Board of Trustees in accordance with our
+        DECLARATION
+        OF COVENANTS. A set of Architectural Guidelines has been developed. In accordance with the Declaration ALL external
+        construction
+        on any lot must be submitted to the Architectural Control Committee for approval before the construction begins.
+        This includes but is not limited to: fences, decks, patio rooms, and sheds. Properties are also subject to the City of
+        Dayton
+        Zoning Code, which may require permits for building.
+        
+        <h5 class="mt-3">Green Areas</h5>
+        The Green Areas of the GRHA are 7 different park areas totaling approximately 36 acres of space. Several of the Green
+        Areas include
+        playground equipment and there are also 2 with basketball courts and one with a soccer field. Some of the areas are only
+        grasslands
+        with trees and bushes. All of these areas are for the usage and enjoyment of all of the members of the association. As
+        the single
+        biggest asset of the association, the Green Areas take up much of the board's energy and time to administer.
+        
+        <h5 class="mt-3">Welcoming</h5>
+        The Welcoming committee maintains the welcome packages that we deliver to new members when we get notice of sales on
+        properties.
+        
+        <h5 class="mt-3">Quail Call Newsletter</h5>
+        The Quail Call newsletter is the primary communication method of the Gander Road Homeowners Association. We do a Quail
+        Call every
+        month except January and it is printed and hand delivered to all 543 members of the GRHA. In the newsletter we do a
+        President's
+        message, calendar of events, meeting minutes from mothly board meetings, neighborhood news and happenings, helpful tips,
+        member
+        classified ads, paid ads, and a list of Trustee and Committee contacts.
+        
+        <h5 class="mt-3">Nominating</h5>
+        The GRHA is managed by volunteer trustees who are elected at the annual meeting of the general membership. GRHA trustees
+        receive no
+        monetary compensation for their efforts, but authorized expenses are reimbursed. However, trustees help our neighborhood
+        tremendously and have opportunities to work with their neighbors and community leaders.
+        <br> Nominees must be a member, in good standing, of the Gander Road Homeowners Association.
+    </div><!-- end of Comittees tab -->
+
+</div><!-- end of main tab content -->
+</div><!-- end of main container -->
+
+
+<!-- Modal -->
+<div class="modal fade" id="aboutModal" role="dialog" tabindex="-1">
+	<div class="modal-dialog modal-lg">
+		<div class="modal-content">
+			<div class="modal-header">
+                <h5 class="modal-title">
+                    <img class="rounded float-start m-2" src="Media/images/logo-photo.jpg">
+                    Gander Road Homeowners Association
+                </h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+			</div>
+            <div class="modal-body">
+                You have found the web site of the Gander Road Homeowners
+                Association. Our association is a combination of the subdivisions
+                of Quail Hollow and Willow Glen, located in the northeast corner of
+                Dayton, OH. This site is intended primarily as a means of communication
+                between the Board of Trustees and the homeowners of the
+                association. <br> 
+                <a href="Media/images/grhamap.jpg" target="_blank">
+                    <img src="Media/images/grhamap.jpg" width="49%" />
+                </a>
+
+                <iframe
+                src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d24513.756036534407!2d-84.10968!3d39.824496!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x884082af06f73537%3A0xa54a509114e629c1!2s5001%20Gander%20Rd%20W%2C%20Dayton%2C%20OH%2045424!5e0!3m2!1sen!2sus!4v1653571086503!5m2!1sen!2sus" 
+                width="49%" frameborder="0" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+
+            </div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+		</div>
+	</div>
+</div>
+
+<div class="modal fade" id="MapModal" role="dialog" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <img class="rounded float-start m-2" src="Media/images/logo-photo.jpg">
+                    GRHA Map
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <a href="Media/images/grhamap.jpg" target="_blank">
+                    <img class="img-fluid" src="Media/images/grhamap.jpg"/>
+                </a>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+    <div class="modal fade" id="realtorModal" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <img class="mr-1" src="Media/images/logo-photo.jpg"> Treasurer info for Realtors and Title Agents
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+    
+                <div class="modal-body">
+                    All questions regarding the status of dues payments and/or liens on
+                    a particular property should be directed to our Treasurer, <a
+                        href="mailto:treasurer@grha-dayton.org?subject=GRHA Business"><b>Misty
+                            Wilker</b></a>, (937) 554-9414, email: <b>treasurer@grha-dayton.org</b> <br>
+                    <br> Email contact is preferred and usually the best way to
+                    get her. Like most of the board, she has a full time day job, so
+                    don't expect an answer immediately. <br>
+                    <br> Click <b>Contact Us</b> on the top menu for the contact
+                    information of the entire GRHA Board of Trustees.
+                    <div class="card bg-light m-3" style="max-width: 20rem;">
+                        <div class="card-body">
+                            Gander Road Homeowners Association </br>P.O. Box 24763 </br>Dayton, OH 45424-4763
+                        </div>
+                    </div>
+                </div>
+    
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="meetingModal" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <img class="mr-1" src="Media/images/logo-photo.jpg"> Monthly Trustee meetings
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    The GRHA Board of Trustees meets the 2nd Thursday of every month
+                    at 7:00pm at the city of Dayton Fire Station #12 on Brandt Pike (just south of Needmore).
+                    This meeting is open to all members of the GRHA.
+                    <a href="https://goo.gl/maps/HbumuiUgeiA6DEnm7" target="_blank">
+                        <b>(Click here for map to Fire Station #12)</b>
+                    </a>
+                    <h5>Meeting Minutes can be found in the Quail Call newsletter</h5>
+                    <!--
+                    <h5>*** Due to COVID-19, Public Meetings have been cancelled ***</h5>
+                    <h6 class="m-3">The Board will continue to meet virtually and post messages on this website and Facebook</h6>
+                    -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+        <div class="modal fade" id="eventModal" role="dialog" tabindex="-1">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <img class="mr-1" src="Media/images/logo-photo.jpg"> Events / Calendar
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        The GRHA hosts the following events during the year.  In addition we sometimes schedule 
+                        volunteer events for cleanup or special projects.
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Event</th>
+                                <th>Day</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Easter Event</td>
+                                <td>Saturday, usually the week before Easter</td>
+                            </tr>
+                            <tr>
+                                <td>Neighborhood Garage Sale</td>
+                                <td>Saturday, usually 2nd week in May</td>
+                            </tr>
+                            <tr>
+                                <td>Annual Meeting</td>
+                                <td>Wednesday, 3rd week in September</td>
+                            </tr>
+                            <tr>
+                                <td>Halloween Event</td>
+                                <td>Saturday, usually the week before Halloween</td>
+                            </tr>
+                            <tr>
+                                <td>Halloween Donut Stations</td>
+                                <td>Halloween Day</td>
+                            </tr>
+                            <tr>
+                                <td>Christmas Decorating Contest</td>
+                                <td>Tuesday, Wednesday, Thursday, usually 2nd week in December</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    <div class="modal fade" id="duesHelpModal" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <img style="margin-top: -10px; margin-right: 5px;"
+                            src="Media/images/logo-photo.jpg"> Dues Help Information
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Enter your address (or just house number) in the box that
+                        says Property Address, and hit Enter or click Search</h6>
+                    <h6>Click on the green "Dues Statement" button for your
+                        property to check your outstanding amount</h6>
+                    <h6>The PayPal button will be on the statement for you to pay
+                        online as long as the only outstanding amount is the current
+                        year's dues. You do not need a PayPal account to use the online payment service
+                        but the GRHA adds a $4.50 service fee to cover processing fees from Paypal.
+                    </h6>
+                    <h6 class="btn-warning">
+                        IF you have liens and/or past due assessments:
+                    </h6>
+                    <h6>Please contact the treasurer at treasurer@grha-dayton.org
+                        for a PayPal invoice if you would like to pay outstanding dues online, however
+                        there is a processing fee added by PayPal for this special invoice
+                    </h6>
+                    <h6>Contact the treasurer to halt additional interest for
+                        accruing if you will be mailing in a check for payment (payment
+                        amount is good for 30 days, then interest begins to accrue again)</h6>
+                </div>
+    
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="duesStatementModal" class="modal fade" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <img class="m-2" src="Media/images/logo-photo.jpg"> GRHA Dues Statement
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div id="DuesStatementContent" class="modal-body">
+                    <div id="DuesStatementDownloadLinks" class="float-right"></div>
+                    <table id="DuesStatementPropertyTable" class="table table-striped table-sm">
+                        <tbody>
+                        </tbody>
+                    </table>
+    
+                    <div class="row">
+                        <div class="col-sm-4"></div>
+                        <div class="col-sm-3">
+                            <div id="PayDues"></div>
+                        </div>
+                        <div class="col-sm-5">
+                            <div id="PayDuesInstructions"></div>
+                        </div>
+                    </div>
+    
+                    <h5>Total Due calculation details</h5>
+                    <table id="DuesStatementCalculationTable" class="table table-striped table-sm">
+                        <tbody>
+                        </tbody>
+                    </table>
+    
+                    <h5>Payment history</h5>
+                    <table id="DuesStatementAssessmentsTable" class="table table-striped table-sm">
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /DuesStatementPage -->
+
+    <div class="modal fade" id="PrivacyModal" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <img class="mr-1" src="Media/images/logo-photo.jpg"> Privacy Policy
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>
+                        No data will be shared with any other entity except for the purposes of administration of the HOA.
+                    </p>
+                    <p>
+                        User data will not be shared.
+                    </p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Bootstrap core JavaScript ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!-- Bootstrap 5 JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script src="js/main.js" type="module"></script>
+
+</body>
 </html>
