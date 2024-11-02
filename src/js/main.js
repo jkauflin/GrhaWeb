@@ -26,6 +26,7 @@
  * 2024-08-25 JJK   Updated to be a js module and moved other js code to here
  *============================================================================*/
 
+var addressInput = document.getElementById("address");
 
 // Keep track of the state of the navbar collapse (shown or hidden)
 var navbarCollapseShown = false;
@@ -45,94 +46,95 @@ document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click
     }
 }))
 
-
 // Respond to click on a link-tile-tab button by finding the correct TAB and switching/showing it
 // (These link-tile-tab's also have media-page for creating the Menu, but these handled from the listener on that class)
-/*
-document.querySelectorAll(".link-tile-tab-solar").forEach(el => el.addEventListener("click", function (event) {
-    //console.log("link-tile-tab-solar click ")
-
-    // Get the target tab based on the the MediaType specified, and use the new Bootstrap v5.2 js for showing the tab
-    // the link ('a') with the correct MediaType, within the ".navbar-nav" list
-    let targetTabElement = document.querySelector(`.navbar-nav a[href="#SolarPage"]`);
-
+document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("click", function (event) {
+    //console.log("link-tile-tab click ")
+    let targetTab = event.target.getAttribute("data-dir")
+    let targetTabPage = targetTab + 'Page';
+    let targetTabElement = document.querySelector(`.navbar-nav a[href="#${targetTabPage}"]`);
     // If the target tab element is found, create a Tab object and call the show() method
     if (typeof targetTabElement !== "undefined" && targetTabElement !== null) {
         bootstrap.Tab.getOrCreateInstance(targetTabElement).show();
     }
 }))
-*/
 
-    // Add listeners to all link-tile-tab's so click will remove the active from the current tab, 
-    // show the new tab and make it active
-    var linkTileTabList = document.getElementsByClassName("link-tile-tab");
-    // document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("click", function (event) {
-    for (var i = 0; i < linkTileTabList.length; i++) {
-        linkTileTabList[i].addEventListener("click", function (event) {
-            event.preventDefault();
-            // Display the tab specified in the data-dir attribute
-            displayTabPage(event.target.getAttribute("data-dir"));
-        })
-    }
     
     // Check if a Tab name is passed as a parameter on the URL and navigate to it
+    /*
     var results = new RegExp('[\?&]tab=([^&#]*)').exec(window.location.href);
     if (results != null) {
         let tabName = results[1] || 0;
         displayTabPage(tabName);
     }
+    */
 
-    // Function to programmically display a specified tab
-    function displayTabPage(targetTab) {
-        let targetTabPage = targetTab + 'Page';
-        // Remove the active class on the current active tab
-        document.querySelector(".nav-link.active").classList.remove("active");
-        // Show the target tab page
-        let targetTabElement = document.querySelector(`.navbar-nav a[href="#${targetTabPage}"]`);
-        new bootstrap.Tab(targetTabElement).show();
-        // Make the target tab page active (by adding the class)
-        targetTabElement.classList.add("active");
+document.body.addEventListener("click", function (event) {
+    if (event.target && event.target.classList.contains("DuesStatement")) {
+        getDuesStatement(event.target);
     }
+})
 
+document.getElementById("InputValues").addEventListener("keypress", function(event) {
+    if (event.key === "Enter") {
+        // Cancel the default action, if needed
+        event.preventDefault()
+        fetchPropertiesData()
+    }
+})
 
+document.getElementById("DuesSearchButton").addEventListener("click", function () {
+    fetchPropertiesData()
+})
 
-    document.getElementById("InputValues").addEventListener("keypress", function(event) {
-        if (event.key === "Enter") {
-            // Cancel the default action, if needed
-            event.preventDefault();
-            // Trigger the button element with a click
-            document.getElementById("DuesSearchButton").click();
+// Remove all child nodes from an element
+function empty(node) {
+    while (node.firstChild) {
+        node.removeChild(node.firstChild)
+    }
+}
+
+//Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
+var nonMoneyCharsStr = "[\x01-\x2D\x2F\x3A-\x7F]";
+//"g" global so it does more than 1 substitution
+var regexNonMoneyChars = new RegExp(nonMoneyCharsStr, "g");
+function formatMoney(inAmount) {
+    let inAmountStr = '' + inAmount;
+    inAmountStr = inAmountStr.replace(regexNonMoneyChars, '');
+    return parseFloat(inAmountStr).toFixed(2);
+}
+
+function setCheckbox(checkVal) {
+    var tempStr = '';
+    if (checkVal == 1) {
+        tempStr = 'checked=true';
+    }
+    return '<input type="checkbox" ' + tempStr + ' disabled="disabled">';
+}
+
+async function fetchPropertiesData() {
+    const endpoint = "/api/GetPropertyList2";
+    try {
+        const response = await fetch(endpoint, {
+            method: "POST",
+            //headers: { "Content-Type": "application/json" },
+            body: addressInput.value
+        })
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
         }
-    });
-
-    document.getElementById("DuesSearchButton").addEventListener("click", function () {
-        let url = 'hoadb/getHoaPropertiesList2.php';
-        let urlParamStr = util.getParamDatafromInputs('InputValues', null, false);
-        //console.log(`>>> in FetchData url = ${url}, urlParamStr = ${urlParamStr}`);
-        fetch(url+urlParamStr)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Response was not OK');
-            }
-            return response.json();
-        })
-        .then(data => {
-            displayPropertyList(data);
-        })
-        .catch((err) => {
-            console.error(`Error in Fetch to ${url}, ${err}`);
-            document.getElementById("MessageDisplay").textContent = "Fetch data FAILED - check log";
-        });
-    });
-
-
-    //=================================================================================================================
-	// Module methods
-
-    function displayPropertyList(hoaPropertyRecList) {
+        const data = await response.json();
+        displayPropertyList(data)
+    } catch (err) {
+        console.error(`Error in Fetch to ${endpoint}, ${err}`)
+        document.getElementById("MessageDisplay").textContent = "Fetch data FAILED - check log"
+    }
+}
+    
+function displayPropertyList(hoaPropertyRecList) {
         let propertyListDisplay = document.getElementById("PropertyListDisplay")
         let tbody = propertyListDisplay.getElementsByTagName("tbody")[0]
-        util.empty(tbody)
+        empty(tbody)
 
         if (hoaPropertyRecList == null || hoaPropertyRecList.length == 0) {
             let tr = document.createElement('tr')
@@ -168,45 +170,42 @@ document.querySelectorAll(".link-tile-tab-solar").forEach(el => el.addEventListe
                 tbody.appendChild(tr)
             }
         }
+}
+
+async function getDuesStatement(element) {
+    const endpoint = "/api/GetHoaRec2";
+    try {
+        const response = await fetch(endpoint, {
+            method: "POST",
+            //headers: { "Content-Type": "application/json" },
+            body: element.getAttribute("data-parcelId")
+        })
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        formatDuesStatementResults(data);
+        new bootstrap.Modal(document.getElementById('duesStatementModal')).show();
+    } catch (err) {
+        console.error(`Error in Fetch to ${endpoint}, ${err}`)
+        document.getElementById("MessageDisplay").textContent = "Fetch data FAILED - check log"
     }
+}
 
-    function getDuesStatement(element) {
-        let url = "hoadb/getHoaDbData2.php";
-        let paramMap = new Map();
-        paramMap.set('parcelId', element.getAttribute("data-parcelId"));
-
-        let urlParamStr = util.getParamDatafromInputs(null, paramMap, false);
-        fetch(url+urlParamStr)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Response was not OK');
-            }
-            return response.json();
-        })
-        .then(data => {
-            formatDuesStatementResults(data);
-            new bootstrap.Modal(document.getElementById('duesStatementModal')).show();
-        })
-        .catch((err) => {
-            console.error(`Error in Fetch to ${url}, ${err}`);
-            document.getElementById("MessageDisplay").textContent = "Fetch data FAILED - check log";
-        })
-    }
-
-    function formatDuesStatementResults(hoaRec) {
-        let duesStatementPropertyTable = document.getElementById("DuesStatementPropertyTable")
-        let payDues = document.getElementById("PayDues")
-        let payDuesInstructions = document.getElementById("PayDuesInstructions")
+function formatDuesStatementResults(hoaRec) {
+    let duesStatementPropertyTable = document.getElementById("DuesStatementPropertyTable")
+    let payDues = document.getElementById("PayDues")
+    let payDuesInstructions = document.getElementById("PayDuesInstructions")
         
-        util.empty(payDues)
-        util.empty(payDuesInstructions)
+    empty(payDues)
+    empty(payDuesInstructions)
 
-        let tbody = duesStatementPropertyTable.getElementsByTagName("tbody")[0]
-        util.empty(tbody)
+    let tbody = duesStatementPropertyTable.getElementsByTagName("tbody")[0]
+    empty(tbody)
 
-        let tr = document.createElement('tr')
-        let th = document.createElement("th"); th.textContent = "Parcel Id: "; tr.appendChild(th)
-        let td = document.createElement("td"); td.textContent = hoaRec.Parcel_ID; tr.appendChild(td)
+    let tr = document.createElement('tr')
+    let th = document.createElement("th"); th.textContent = "Parcel Id: "; tr.appendChild(th)
+    let td = document.createElement("td"); td.textContent = hoaRec.Parcel_ID; tr.appendChild(td)
         tbody.appendChild(tr)
         tr = document.createElement('tr')
         th = document.createElement("th"); th.textContent = "Lot No: "; tr.appendChild(th)
@@ -225,11 +224,11 @@ document.querySelectorAll(".link-tile-tab-solar").forEach(el => el.addEventListe
         th = document.createElement("th"); th.textContent = "Total Due: "; tr.appendChild(th)
         td = document.createElement("td")
         let tempTotalDue = '' + hoaRec.TotalDue;
-        td.textContent = util.formatMoney(tempTotalDue)
+        td.textContent = formatMoney(tempTotalDue)
         tr.appendChild(td)
         tbody.appendChild(tr)
 
-        var tempDuesAmt = util.formatMoney(hoaRec.assessmentsList[0].DuesAmt);
+        var tempDuesAmt = formatMoney(hoaRec.assessmentsList[0].DuesAmt);
 
         // If enabled, payment button and instructions will have values, else they will be blank if online payment is not allowed
         if (hoaRec.TotalDue > 0) {
@@ -251,7 +250,7 @@ document.querySelectorAll(".link-tile-tab-solar").forEach(el => el.addEventListe
 
         let duesStatementCalculationTable = document.getElementById("DuesStatementCalculationTable")
         tbody = duesStatementCalculationTable.getElementsByTagName("tbody")[0]
-        util.empty(tbody)
+        empty(tbody)
 
         // Display the dues calculation lines
         if (hoaRec.totalDuesCalcList != null && hoaRec.totalDuesCalcList.length > 0) {
@@ -282,32 +281,32 @@ document.querySelectorAll(".link-tile-tab-solar").forEach(el => el.addEventListe
 
         let duesStatementAssessmentsTable = document.getElementById("DuesStatementAssessmentsTable")
         tbody = duesStatementAssessmentsTable.getElementsByTagName("tbody")[0]
-        util.empty(tbody)
+        empty(tbody)
 
-        // Display the assessment lines
-        if (hoaRec.assessmentsList != null && hoaRec.assessmentsList.length > 0) {
+    // Display the assessment lines
+    if (hoaRec.assessmentsList != null && hoaRec.assessmentsList.length > 0) {
+        tr = document.createElement('tr')
+        th = document.createElement("th"); th.textContent = 'Year'; tr.appendChild(th)
+        th = document.createElement("th"); th.textContent = 'Dues Amt'; tr.appendChild(th)
+        th = document.createElement("th"); th.textContent = 'Date Due'; tr.appendChild(th)
+        th = document.createElement("th"); th.textContent = 'Paid'; tr.appendChild(th)
+        th = document.createElement("th"); th.textContent = 'Date Paid'; tr.appendChild(th)
+        tbody.appendChild(tr)
+
+        let tempDuesAmt = '';
+        for (let index in hoaRec.assessmentsList) {
+            let rec = hoaRec.assessmentsList[index]
+
+            tempDuesAmt = '' + rec.DuesAmt;
             tr = document.createElement('tr')
-            th = document.createElement("th"); th.textContent = 'Year'; tr.appendChild(th)
-            th = document.createElement("th"); th.textContent = 'Dues Amt'; tr.appendChild(th)
-            th = document.createElement("th"); th.textContent = 'Date Due'; tr.appendChild(th)
-            th = document.createElement("th"); th.textContent = 'Paid'; tr.appendChild(th)
-            th = document.createElement("th"); th.textContent = 'Date Paid'; tr.appendChild(th)
+            td = document.createElement("td"); td.textContent = rec.FY ; tr.appendChild(td)
+            td = document.createElement("td"); td.textContent = formatMoney(tempDuesAmt); tr.appendChild(td)
+            td = document.createElement("td"); td.textContent = rec.DateDue.substring(0, 10); tr.appendChild(td)
+            td = document.createElement("td"); td.innerHTML = setCheckbox(rec.Paid); tr.appendChild(td)
+            td = document.createElement("td"); td.textContent = rec.DatePaid.substring(0, 10); tr.appendChild(td)
             tbody.appendChild(tr)
-
-            let tempDuesAmt = '';
-            for (let index in hoaRec.assessmentsList) {
-                let rec = hoaRec.assessmentsList[index]
-
-                tempDuesAmt = '' + rec.DuesAmt;
-                tr = document.createElement('tr')
-                td = document.createElement("td"); td.textContent = rec.FY ; tr.appendChild(td)
-                td = document.createElement("td"); td.textContent = util.formatMoney(tempDuesAmt); tr.appendChild(td)
-                td = document.createElement("td"); td.textContent = rec.DateDue.substring(0, 10); tr.appendChild(td)
-                td = document.createElement("td"); td.innerHTML = util.setCheckbox(rec.Paid); tr.appendChild(td)
-                td = document.createElement("td"); td.textContent = rec.DatePaid.substring(0, 10); tr.appendChild(td)
-                tbody.appendChild(tr)
-            }
         }
+    }
 
-    } // End of function formatDuesStatementResults(hoaRec){
+} // End of function formatDuesStatementResults(hoaRec){
 

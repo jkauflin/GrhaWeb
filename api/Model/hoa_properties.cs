@@ -17,6 +17,12 @@ namespace GrhaWeb.Function.Model
         public string Property_City { get; set; }
         public string Property_State { get; set; }
         public string Property_Zip { get; set; }
+        public int OwnerID { get; set; }
+        public string Owner_Name1 { get; set; }
+        public string Owner_Name2 { get; set; }
+        public string Mailing_Name { get; set; }
+        public string Owner_Phone { get; set; }
+        public string Alt_Address_Line1 { get; set; }
         public int Member { get; set; }
         public int Vacant { get; set; }
         public int Rental { get; set; }
