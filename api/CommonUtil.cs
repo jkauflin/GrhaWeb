@@ -5,14 +5,117 @@ DESCRIPTION:  Common utility functions for Web API's
 --------------------------------------------------------------------------------
 Modification History
 2024-08-28 JJK  Initial version (converted from older PHP code)
+2024-11-04 JJK  Finished stringToMoney and CalcCompoundInterest
 ================================================================================*/
 
+using System;
 using GrhaWeb.Function.Model;
+using Microsoft.Azure.Functions.Worker;
 
 namespace GrhaWeb.Function
 {
     public class CommonUtil
     {
+        public decimal stringToMoney(string moneyString) {
+            // Remove the dollar sign and parse the string to a decimal
+            decimal moneyValue = decimal.Parse(moneyString.TrimStart('$'));
+            // Round down to 2 decimal places
+            moneyValue = Math.Floor(moneyValue * 100) / 100;
+            return moneyValue;
+        }
+
+        public decimal CalcCompoundInterest(decimal principal, DateTime startDate) {
+			/*
+				 A = the future value of the investment/loan, including interest
+				 P = the principal investment amount (the initial deposit or loan amount)
+				 r = the annual interest rate (decimal)
+				 n = the number of times that interest is compounded per year
+				 t = the number of years the money is invested or borrowed for
+				 A = P(1+r/n)^nt
+			*/
+
+            double interestAmount;
+
+            // Annaul percentage rate (i.e. 6%)
+            double rate = 0.06;
+            // Frequency of compounding (1 = yearly, 12 = monthly)
+            double annualFrequency = 12.0;
+
+            DateTime currDate = DateTime.Now;
+            TimeSpan diff = currDate - startDate;
+
+            // Time in fractional years
+            double timeInYears = Math.Abs(diff.Days) / 365.0;
+            double P = (double) principal;
+            double A = P * Math.Pow(1.0+(rate/annualFrequency), annualFrequency*timeInYears);
+            interestAmount = A - P;
+            // Round down to 2 decimal places
+            interestAmount = Math.Floor(interestAmount * 100) / 100;
+
+            /*
+            if ($startDate != null && $startDate != '' && $startDate != '0000-00-00') {
+
+                // Convert the 1st start date string token (i.e. till space) into a DateTime object (to check the date)
+                if ($startDateTime = date_create( strtok($startDate," ") )) {
+
+                    // Difference between passed date and current system date
+                    $diff = date_diff($startDateTime,date_create(),true);
+
+                    // Time in fractional years
+                    $time = floatval($diff->days) / 365.0;
+
+                    $A = floatval($principal) * pow((1+($rate/$annualFrequency)),($annualFrequency*$time));
+                    // Subtract the original principal to get just the interest
+                    $interestAmount = round(($A - $principal),2);
+
+                } else {
+                    // Error in date_create
+                    error_log(date('[Y-m-d H:i:s] '). "Problem with StartDate = " . $startDate . PHP_EOL, 3, "jjk-commonUtil.log");
+                }
+            }
+            */
+
+            return (decimal)interestAmount;
+        }
+
+        /*
+        public DateTime parseDateTime(string inDateStr) {
+            DateTime outDateTime;
+            string dateStr = inDateStr.Trim();
+            int spacePos = dateStr.IndexOf(' ');
+            if (spacePos > -1) {
+                dateStr = dateStr.Substring(0, spacePos);
+            }
+
+            if (!DateTime.TryParse(dateStr, out outDateTime)) {
+                // problem with date
+            }
+
+                                //if (DateTime.TryParseExact(dateStr, dateFormat, null, System.Globalization.DateTimeStyles.None, out outDateTime))
+                    // Modified to assume that the datetime in the filename format (from iPhone iOS) is a UTC datetime - this will make sure the datetime gets
+                    // converted to local datetime for an accurate datetime of when the photo was taken
+                    if (DateTime.TryParseExact(dateStr, dateFormat, null, System.Globalization.DateTimeStyles.AssumeUniversal, out outDateTime))
+                    {
+                        //log($"{fileName}, date: {dateStr}, format: {dateFormat}, DateTime: {outDateTime}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{fileName}, date: {dateStr}, format: {dateFormat}, *** PARSE FAILED ***");
+                    }
+
+            return outDateTime;
+        }
+        */
+
+                        //  "DateDue": "10/1/2006 0:00:00",
+                        //     "DateDue": "10/1/2014 0:00:00",
+                        //   "DateDue": "10/1/2015",
+                        // "DateDue": "2024-10-01",
+                        //item.DateDue
+
+                        // util function for a common date - take both formats, check for a space
+                        //        if ($startDateTime = date_create( strtok($startDate," ") )) {
+
 
 // Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
 /*
@@ -143,65 +246,6 @@ function stringToMoney($inAmountStr) {
 }
 */
 
-
-        public decimal CalcCompoundInterest(decimal principal, string startDate) {
-			/*
-				 A = the future value of the investment/loan, including interest
-				 P = the principal investment amount (the initial deposit or loan amount)
-				 r = the annual interest rate (decimal)
-				 n = the number of times that interest is compounded per year
-				 t = the number of years the money is invested or borrowed for
-				 A = P(1+r/n)^nt
-			*/
-
-            decimal interestAmount = 35.0m;
-
-            // Annaul percentage rate (i.e. 6%)
-            decimal rate = 0.06m;
-            // Starting principal value
-            // Frequency of compounding (1 = yearly, 12 = monthly)
-            decimal annualFrequency = 12.0m;
-    /*
-	if ($startDate != null && $startDate != '' && $startDate != '0000-00-00') {
-
-		// Convert the 1st start date string token (i.e. till space) into a DateTime object (to check the date)
-		if ($startDateTime = date_create( strtok($startDate," ") )) {
-			// Difference between passed date and current system date
-			$diff = date_diff($startDateTime,date_create(),true);
-
-			// Time in fractional years
-			$time = floatval($diff->days) / 365.0;
-
-			$A = floatval($principal) * pow((1+($rate/$annualFrequency)),($annualFrequency*$time));
-			// Subtract the original principal to get just the interest
-			$interestAmount = round(($A - $principal),2);
-
-		} else {
-			// Error in date_create
-			error_log(date('[Y-m-d H:i:s] '). "Problem with StartDate = " . $startDate . PHP_EOL, 3, "jjk-commonUtil.log");
-		}
-	}
-    */
-
-				/*
-//Monthly
-	for ($time = 1; $time <= 10; $time++) {
-		$interestAmount = round($principal * pow((1+($rate/$annualFrequency)),($annualFrequency*$time)),2,PHP_ROUND_HALF_DOWN);
-		//echo "<br>Year = $time ($principal * pow((1+($rate/$annualFrequency)),($annualFrequency*$time)) = " . $principalWithInterest;
-	}
-
-				$annualFrequency = 1.0;
-				echo "<br><br>Compounded Yearly";
-				for ($time = 1; $time <= 10; $time++) {
-					$principalWithInterest = round($principal * pow((1+($rate/$annualFrequency)),($annualFrequency*$time)),2,PHP_ROUND_HALF_DOWN);
-					echo "<br>Year = $time ($principal * pow((1+($rate/$annualFrequency)),($annualFrequency*$time)) = " . $principalWithInterest;
-				}
-				*/
-
-
-
-            return interestAmount;
-        }
 
     } // public class CommonUtil
 } // namespace GrhaWeb.Function

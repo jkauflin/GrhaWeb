@@ -15,6 +15,7 @@ namespace GrhaWeb.Function.Model
         public int FY { get; set; }             // Unique key:  /OwnerID,/Parcel_ID,/FY
         public string DuesAmt { get; set; }
         public string DateDue { get; set; }
+        public bool DuesDue { get; set; }
         public int Paid { get; set; }
         public int NonCollectible { get; set; }
         public string DatePaid { get; set; }

@@ -36,6 +36,7 @@
  * 2024-09-14 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
  *                  js module, and move from PHP/MySQL to Azure SWA
  * 2024-09-16 JJK   Added set and use of detailPageTab to show the tab page
+ * 2024-11-05 JJK   Completed getHoaRec, working on detail display
  *============================================================================*/
 
 import {empty} from './util.js';
