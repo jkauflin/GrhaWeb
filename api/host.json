@@ -8,7 +8,7 @@
             "enableLiveMetricsFilters": true
         },
         "logLevels": {
-            "default": "Warning"
+            "default": "Informational"
         }
     }
 }

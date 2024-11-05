@@ -215,7 +215,7 @@ namespace GrhaWeb.Function
                 return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
             }
 
-            //log.LogInformation(">>> User is authorized ");
+            log.LogInformation(">>> User is authorized ");
 
             // >>>>>>>>>>>> where does the logging show up in Azure ????????????    App Insights??? <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -382,9 +382,11 @@ namespace GrhaWeb.Function
                         //item.DateDue = DateTime.Parse(item.DateDue).ToString("yyyy-MM-dd");
 
                         if (item.Paid == 1) {
+                            /*
                             if (item.DatePaid.Equals("")) {
                                 item.DatePaid = item.DateDue;
                             }
+                            */
                             dateTime = DateTime.Parse(item.DatePaid);
                             item.DatePaid = dateTime.ToString("yyyy-MM-dd");
                         }
