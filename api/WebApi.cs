@@ -12,36 +12,91 @@ Modification History
 2024-08-27 JJK  Added GetPropertyList2 function for getting property list for
                 public web page dues lookup
 2024-08-28 JJK  Added GetHoaRec2 function for getting data for dues statement
-
+2024-11-07 JJK  Converted functions to run as dotnet-isolated in .net8.0, 
+                and added configuration to get environment variables and 
+                logging extension
 ================================================================================*/
 using System;
 using System.IO;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
+
+//using Microsoft.Azure.WebJobs;
+//using Microsoft.Azure.WebJobs.Extensions.Http;
+
+//Your isolated worker model application should not reference any packages in the Microsoft.Azure.WebJobs.* namespaces or Microsoft.Azure.Functions.Extensions.
+// *** all in .Worker now ???
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+
+using Microsoft.AspNetCore.Http;    // for HttpRequest
+using Microsoft.AspNetCore.Mvc;     // for IActionResult
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using GrhaWeb.Function.Model;
-using Microsoft.AspNetCore.JsonPatch.Helpers;
+
+//using Microsoft.AspNetCore.JsonPatch.Helpers;
 
 namespace GrhaWeb.Function
 {
-    public static class WebApi
+
+    
+    public class WebApi
     {
-        [FunctionName("GetPropertyList")]
-        public static async Task<IActionResult> GetPropertyList(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
-            [CosmosDB(Connection = "API_COSMOS_DB_CONN_STR")] CosmosClient cosmosClient,
-            ILogger log,
-            ClaimsPrincipal claimsPrincipal)
+        private readonly ILogger<WebApi> log;
+        private readonly IConfiguration config;
+        private readonly string? apiCosmosDbConnStr;
+
+        public WebApi(ILogger<WebApi> logger, IConfiguration configuration)
         {
+            log = logger;
+            config = configuration;
+            apiCosmosDbConnStr = config["API_COSMOS_DB_CONN_STR"];
+        }
+
+        /*
+        [Function("HttpTrigger1")]
+        public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
+            return new OkObjectResult("Welcome to Azure Functions!");
+        }
+        */
+        //private static readonly CosmosClient cosmosClient = new CosmosClient("API_COSMOS_DB_CONN_STR"); 
+
+/*
+        [Function("MyFunction")]
+        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestData req, FunctionContext executionContext)
+        {
+            var logger = executionContext.GetLogger("MyFunction");
+            var mySetting = _configuration["MY_ENV_VARIABLE"];
+
+                        return new OkObjectResult(hoaProperty2List);
+
+        }
+*/
+
+        //[FunctionName("GetPropertyList")]
+        [Function("GetPropertyList")]
+        public async Task<IActionResult> GetPropertyList(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+            //FunctionContext executionContext, IConfiguration configuration)
+            /*
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+            //[CosmosDB(Connection = "API_COSMOS_DB_CONN_STR")] CosmosClient cosmosClient,
+            ILogger log)
+            //ClaimsPrincipal claimsPrincipal)
+            */
+        {
+            //var log = executionContext.GetLogger("GetPropertyList");
+
+            /*
             bool userAuthorized = false;
             if (req.Host.ToString().Equals("localhost:4280")) {
                 // If local DEV look for Admin
@@ -60,6 +115,7 @@ namespace GrhaWeb.Function
             if (!userAuthorized) {
                 return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
             }
+            */
 
             //log.LogInformation(">>> User is authorized ");
 
@@ -140,7 +196,9 @@ namespace GrhaWeb.Function
             string containerId = "hoa_properties";
             List<HoaProperty> hoaPropertyList = new List<HoaProperty>();
             HoaProperty hoaProperty = new HoaProperty();
+
             try {
+                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
                 Database db = cosmosClient.GetDatabase(databaseId);
                 Container container = db.GetContainer(containerId);
 
@@ -189,13 +247,17 @@ namespace GrhaWeb.Function
         // Main details lookup service to get data from all the containers for a specific property and populate
         // the HoaRec object.  It also calculates the total Dues due with interest, and gets emails and sales info
         //==============================================================================================================
-        [FunctionName("GetHoaRec")]
-        public static async Task<IActionResult> GetHoaRec(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
-            [CosmosDB(Connection = "API_COSMOS_DB_CONN_STR")] CosmosClient cosmosClient,
+        [Function("GetHoaRec")]
+        public async Task<IActionResult> GetHoaRec(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req)
+            /*
+            //[CosmosDB(Connection = "API_COSMOS_DB_CONN_STR")] CosmosClient cosmosClient,
             ILogger log,
             ClaimsPrincipal claimsPrincipal)
+            */
         {
+            //var log = executionContext.GetLogger("GetHoaRec");
+            /*
             bool userAuthorized = false;
             if (req.Host.ToString().Equals("localhost:4280")) {
                 // If local DEV look for Admin
@@ -214,8 +276,9 @@ namespace GrhaWeb.Function
             if (!userAuthorized) {
                 return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
             }
+            */
 
-            log.LogInformation(">>> User is authorized ");
+            //log.LogInformation(">>> User is authorized ");
 
             // >>>>>>>>>>>> where does the logging show up in Azure ????????????    App Insights??? <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
@@ -268,6 +331,7 @@ namespace GrhaWeb.Function
             CommonUtil util = new CommonUtil();
 
             try {
+                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
                 Database db = cosmosClient.GetDatabase(databaseId);
                 Container configContainer = db.GetContainer("hoa_config");
 
@@ -569,15 +633,14 @@ namespace GrhaWeb.Function
         }
 
 
-
         // Public access for website Dues page
-        [FunctionName("GetPropertyList2")]
-        public static async Task<IActionResult> GetPropertyList2(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
-            [CosmosDB(Connection = "API_COSMOS_DB_CONN_STR")] CosmosClient cosmosClient,
-            ILogger log,
-            ClaimsPrincipal claimsPrincipal)
+        [Function("GetPropertyList2")]
+        public async Task<IActionResult> GetPropertyList2(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
+            //var log = executionContext.GetLogger("GetPropertyList2");
+            log.LogInformation("JJK test log - in GetPropertyList2");
+
             // Get the content string from the HTTP request body
             string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -592,6 +655,8 @@ namespace GrhaWeb.Function
             HoaProperty2 hoaProperty2 = new HoaProperty2();
 
             try {
+                //var mySetting = _configuration["MY_ENV_VARIABLE"];
+                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
                 Database db = cosmosClient.GetDatabase(databaseId);
                 Container container = db.GetContainer(containerId);
 
@@ -629,13 +694,11 @@ namespace GrhaWeb.Function
         }
 
         // Public access for website Dues page
-        [FunctionName("GetHoaRec2")]
-        public static async Task<IActionResult> GetHoaRec2(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
-            [CosmosDB(Connection = "API_COSMOS_DB_CONN_STR")] CosmosClient cosmosClient,
-            ILogger log,
-            ClaimsPrincipal claimsPrincipal)
+        [Function("GetHoaRec2")]
+        public async Task<IActionResult> GetHoaRec2(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req)
         {
+            //var log = executionContext.GetLogger("GetHoaRec2");
             // Get the content string from the HTTP request body
             string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -665,6 +728,7 @@ namespace GrhaWeb.Function
             HoaProperty2 hoaProperty2 = new HoaProperty2();
 
             try {
+                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
                 Database db = cosmosClient.GetDatabase(databaseId);
                 Container container = db.GetContainer(containerId);
 
