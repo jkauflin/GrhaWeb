@@ -9,10 +9,10 @@ namespace GrhaWeb.Function.Model
 {
     public class hoa_config
     {
-        public string id { get; set; }
-        public string ConfigName { get; set; }
-        public string ConfigDesc { get; set; }
-        public string ConfigValue { get; set; }
+        public string? id { get; set; }
+        public string? ConfigName { get; set; }
+        public string? ConfigDesc { get; set; }
+        public string? ConfigValue { get; set; }
         public override string ToString()
         {
             return JsonConvert.SerializeObject(this);

@@ -237,7 +237,7 @@ namespace GrhaWeb.Function
                 var response = await feed.ReadNextAsync();
                 foreach (var item in response)
                 {
-                    configVal = item.ConfigValue;
+                    configVal = item.ConfigValue ?? "";
                 }
             }
             return configVal;
@@ -372,10 +372,10 @@ namespace GrhaWeb.Function
                         if (item.CurrentOwner == 1) {
                             // Current Owner fields are already part of the properties record (including property.OwnerID)
                             hoaRec.duesEmailAddr = item.EmailAddr;
-                            if (!item.EmailAddr.Equals("")) {
+                            if (!string.IsNullOrWhiteSpace(item.EmailAddr)) {
                                 hoaRec.emailAddrList.Add(item.EmailAddr);
                             }
-                            if (!item.EmailAddr2.Equals("")) {
+                            if (!string.IsNullOrWhiteSpace(item.EmailAddr2)) {
                                 hoaRec.emailAddrList.Add(item.EmailAddr2);
                             }
                         }
@@ -398,7 +398,7 @@ namespace GrhaWeb.Function
                     foreach (var item in response)
                     {
                         cnt++;
-                        if (!item.payer_email.Equals("")) {
+                        if (!string.IsNullOrWhiteSpace(item.payer_email)) {
                             // If there is an email from the last electronic payment, for the current Owner,
 				            // add it to the email list (if not already in the array)
                             string compareStr = item.payer_email.ToLower();
@@ -770,19 +770,19 @@ namespace GrhaWeb.Function
     } // public static class WebApi
 
     public class HoaProperty {
-        public string parcelId { get; set; }
+        public string? parcelId { get; set; }
         public int lotNo { get; set; }
         public int subDivParcel { get; set; }
-        public string parcelLocation { get; set; }
-	    public string ownerName { get; set; }
-	    public string ownerPhone { get; set; }
+        public string? parcelLocation { get; set; }
+	    public string? ownerName { get; set; }
+	    public string? ownerPhone { get; set; }
     }
 
     public class HoaProperty2 {
-        public string parcelId { get; set; }
+        public string? parcelId { get; set; }
         public int lotNo { get; set; }
         public int subDivParcel { get; set; }
-        public string parcelLocation { get; set; }
+        public string? parcelLocation { get; set; }
     }
 
 }
