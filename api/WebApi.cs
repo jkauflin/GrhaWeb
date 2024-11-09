@@ -12,9 +12,9 @@ Modification History
 2024-08-27 JJK  Added GetPropertyList2 function for getting property list for
                 public web page dues lookup
 2024-08-28 JJK  Added GetHoaRec2 function for getting data for dues statement
-2024-11-07 JJK  Converted functions to run as dotnet-isolated in .net8.0, 
-                and added configuration to get environment variables and 
-                logging extension
+2024-11-09 JJK  Converted functions to run as dotnet-isolated in .net8.0, 
+                logger (connected to App Insights), and added configuration 
+                to get environment variables for the Cosmos DB connection str
 ================================================================================*/
 using System;
 using System.IO;
@@ -22,11 +22,8 @@ using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Collections.Generic;
 
-//using Microsoft.Azure.WebJobs;
-//using Microsoft.Azure.WebJobs.Extensions.Http;
-
 //Your isolated worker model application should not reference any packages in the Microsoft.Azure.WebJobs.* namespaces or Microsoft.Azure.Functions.Extensions.
-// *** all in .Worker now ???
+// *** all in .Worker now
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -58,41 +55,10 @@ namespace GrhaWeb.Function
             apiCosmosDbConnStr = config["API_COSMOS_DB_CONN_STR"];
         }
 
-        /*
-        [Function("HttpTrigger1")]
-        public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequest req)
-        {
-            _logger.LogInformation("C# HTTP trigger function processed a request.");
-            return new OkObjectResult("Welcome to Azure Functions!");
-        }
-        */
-        //private static readonly CosmosClient cosmosClient = new CosmosClient("API_COSMOS_DB_CONN_STR"); 
-
-/*
-        [Function("MyFunction")]
-        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestData req, FunctionContext executionContext)
-        {
-            var logger = executionContext.GetLogger("MyFunction");
-            var mySetting = _configuration["MY_ENV_VARIABLE"];
-
-                        return new OkObjectResult(hoaProperty2List);
-
-        }
-*/
-
-        //[FunctionName("GetPropertyList")]
         [Function("GetPropertyList")]
         public async Task<IActionResult> GetPropertyList(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
-            //FunctionContext executionContext, IConfiguration configuration)
-            /*
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
-            //[CosmosDB(Connection = "API_COSMOS_DB_CONN_STR")] CosmosClient cosmosClient,
-            ILogger log)
-            //ClaimsPrincipal claimsPrincipal)
-            */
         {
-            //var log = executionContext.GetLogger("GetPropertyList");
 
             /*
             bool userAuthorized = false;
@@ -248,11 +214,6 @@ namespace GrhaWeb.Function
         [Function("GetHoaRec")]
         public async Task<IActionResult> GetHoaRec(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req)
-            /*
-            //[CosmosDB(Connection = "API_COSMOS_DB_CONN_STR")] CosmosClient cosmosClient,
-            ILogger log,
-            ClaimsPrincipal claimsPrincipal)
-            */
         {
             //var log = executionContext.GetLogger("GetHoaRec");
             /*
@@ -640,9 +601,8 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetPropertyList2(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            //var log = executionContext.GetLogger("GetPropertyList2");
-            log.LogInformation("JJK test log - in GetPropertyList2");
-            log.LogWarning("JJK are you sure you know what you are doing");
+            //log.LogInformation("JJK test log - in GetPropertyList2");
+            //log.LogWarning("JJK are you sure you know what you are doing");
 
             // Get the content string from the HTTP request body
             string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
