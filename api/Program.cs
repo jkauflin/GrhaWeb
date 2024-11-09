@@ -8,10 +8,13 @@ var host = new HostBuilder()
     .ConfigureAppConfiguration((context, config) => {
         config.AddEnvironmentVariables();
     })
+    .Build();
+
+/* >>>>> ONLY if you want to write to App Insights directly, instead of going through host logging
     .ConfigureServices(services => {
         services.AddApplicationInsightsTelemetryWorkerService();
         services.ConfigureFunctionsApplicationInsights();
     })
-    .Build();
+*/
 
 host.Run();

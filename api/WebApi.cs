@@ -45,8 +45,6 @@ using GrhaWeb.Function.Model;
 
 namespace GrhaWeb.Function
 {
-
-    
     public class WebApi
     {
         private readonly ILogger<WebApi> log;
@@ -389,7 +387,7 @@ namespace GrhaWeb.Function
                 // Override email address to use if we get the last email used to make an electronic payment
                 // 10/15/2022 JJK Modified to only look for payments within the last year (because of renter issue)
                 //--------------------------------------------------------------------------------------------------
-                sql = $"SELECT * FROM c WHERE c.OwnerID = {hoaRec.property.OwnerID} AND c.Parcel_ID = '{parcelId}' AND c.payment_date > DateTimeAdd('yy', -1, GetCurrentDateTime()) ";
+                sql = $"SELECT * FROM c WHERE c.OwnerID = {hoaRec.property!.OwnerID} AND c.Parcel_ID = '{parcelId}' AND c.payment_date > DateTimeAdd('yy', -1, GetCurrentDateTime()) ";
                 var paymentsFeed = paymentsContainer.GetItemQueryIterator<hoa_payments>(sql);
                 cnt = 0;
                 while (paymentsFeed.HasMoreResults)
@@ -440,17 +438,19 @@ namespace GrhaWeb.Function
                             continue;
                         }
 
-                        dateDue = DateTime.Parse(item.DateDue);
+                        if (item.DateDue is null) {
+                            dateDue = DateTime.Parse((item.FY-1).ToString()+"-10-01");
+                        } else {
+                            dateDue = DateTime.Parse(item.DateDue);
+                        }
                         item.DateDue = dateDue.ToString("yyyy-MM-dd");
                         // If you don't need the DateTime object, you can do it in 1 line
                         //item.DateDue = DateTime.Parse(item.DateDue).ToString("yyyy-MM-dd");
 
                         if (item.Paid == 1) {
-                            /*
-                            if (item.DatePaid.Equals("")) {
+                            if (string.IsNullOrWhiteSpace(item.DatePaid)) {
                                 item.DatePaid = item.DateDue;
                             }
-                            */
                             dateTime = DateTime.Parse(item.DatePaid);
                             item.DatePaid = dateTime.ToString("yyyy-MM-dd");
                         }
@@ -470,7 +470,8 @@ namespace GrhaWeb.Function
                                 item.DuesDue = true;
                             } 
 
-                            duesAmt = util.stringToMoney(item.DuesAmt);
+                            string duesAmtStr = item.DuesAmt ?? "";
+                            duesAmt = util.stringToMoney(duesAmtStr);
                             
                             hoaRec.totalDue += duesAmt;
 
@@ -543,7 +544,8 @@ namespace GrhaWeb.Function
                         } //  if (item.Paid == 1 && item.InterestNotPaid == 1) {
 
 				        // If there is an Open Lien (not Paid, Released, or Closed)
-                        if (item.Lien == 1 && item.Disposition.Equals("Open") && item.NonCollectible != 1) {
+                        string dispositionStr = item.Disposition ?? "";
+                        if (item.Lien == 1 && dispositionStr.Equals("Open") && item.NonCollectible != 1) {
                             
 					        // calc interest - start date   WHEN TO CALC INTEREST
 					        // unpaid fee amount and interest since the Filing Date
@@ -640,6 +642,7 @@ namespace GrhaWeb.Function
         {
             //var log = executionContext.GetLogger("GetPropertyList2");
             log.LogInformation("JJK test log - in GetPropertyList2");
+            log.LogWarning("JJK are you sure you know what you are doing");
 
             // Get the content string from the HTTP request body
             string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
