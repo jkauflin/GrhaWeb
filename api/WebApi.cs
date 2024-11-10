@@ -37,6 +37,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using GrhaWeb.Function.Model;
+using System.Text;
 
 //using Microsoft.AspNetCore.JsonPatch.Helpers;
 
@@ -59,6 +60,22 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetPropertyList(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
+
+            // Access a specific header value
+            if (req.Headers.TryGetValues("X-MS-CLIENT-PRINCIPAL", out var headerValues))
+            {
+                var headerValue = headerValues.FirstOrDefault();
+                log.LogInformation($"Header value: {headerValue}");
+                var decoded = Convert.FromBase64String(headerValue);
+                var json = Encoding.UTF8.GetString(decoded);
+
+
+            }
+            else
+            {
+                log.LogInformation("Header not found.");
+            }
+
 
             /*
             bool userAuthorized = false;
