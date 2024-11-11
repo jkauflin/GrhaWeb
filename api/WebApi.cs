@@ -56,6 +56,18 @@ namespace GrhaWeb.Function
             apiCosmosDbConnStr = config["API_COSMOS_DB_CONN_STR"];
         }
 
+/*
+    [Function("MyFunction")]
+    public static async Task<HttpResponseData> Run(
+        [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestData req,
+        FunctionContext context)
+    {
+        var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
+        await response.WriteStringAsync("Hello, authorized user!");
+        return response;
+    }
+*/
+
         [Function("GetPropertyList")]
         public async Task<IActionResult> GetPropertyList(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
@@ -65,7 +77,7 @@ namespace GrhaWeb.Function
             if (req.Headers.TryGetValues("X-MS-CLIENT-PRINCIPAL", out var headerValues))
             {
                 var headerValue = headerValues.FirstOrDefault();
-                log.LogInformation($"Header value: {headerValue}");
+                //log.LogInformation($"Header value: {headerValue}");
                 var decoded = Convert.FromBase64String(headerValue);
                 var json = Encoding.UTF8.GetString(decoded);
 
