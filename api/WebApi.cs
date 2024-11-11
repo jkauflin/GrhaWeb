@@ -15,6 +15,7 @@ Modification History
 2024-11-09 JJK  Converted functions to run as dotnet-isolated in .net8.0, 
                 logger (connected to App Insights), and added configuration 
                 to get environment variables for the Cosmos DB connection str
+2024-11-11 JJK  Modified to check user role from function context for auth
 ================================================================================*/
 using System;
 using System.IO;
@@ -30,7 +31,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-using Microsoft.AspNetCore.Http;    // for HttpRequest
+//using Microsoft.AspNetCore.Http;    // for HttpRequest
 using Microsoft.AspNetCore.Mvc;     // for IActionResult
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
@@ -49,29 +50,25 @@ namespace GrhaWeb.Function
         private readonly IConfiguration config;
         private readonly string? apiCosmosDbConnStr;
 
+        private readonly ClaimsPrincipalParser claimsPrincipalParser;
+        private readonly CommonUtil util;
+
         public WebApi(ILogger<WebApi> logger, IConfiguration configuration)
         {
             log = logger;
             config = configuration;
             apiCosmosDbConnStr = config["API_COSMOS_DB_CONN_STR"];
-        }
 
-/*
-    [Function("MyFunction")]
-    public static async Task<HttpResponseData> Run(
-        [HttpTrigger(AuthorizationLevel.Function, "get", Route = null)] HttpRequestData req,
-        FunctionContext context)
-    {
-        var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-        await response.WriteStringAsync("Hello, authorized user!");
-        return response;
-    }
-*/
+            claimsPrincipalParser= new ClaimsPrincipalParser();
+            util = new CommonUtil();
+        }
 
         [Function("GetPropertyList")]
         public async Task<IActionResult> GetPropertyList(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
+
+            //claimsPrincipalParser.Parse(req);
 
             // Access a specific header value
             if (req.Headers.TryGetValues("X-MS-CLIENT-PRINCIPAL", out var headerValues))
@@ -79,13 +76,8 @@ namespace GrhaWeb.Function
                 var headerValue = headerValues.FirstOrDefault();
                 //log.LogInformation($"Header value: {headerValue}");
                 var decoded = Convert.FromBase64String(headerValue);
-                var json = Encoding.UTF8.GetString(decoded);
-
-
-            }
-            else
-            {
-                log.LogInformation("Header not found.");
+                var jsonStr = Encoding.UTF8.GetString(decoded);
+                log.LogWarning($">>> JJK, CLIENT-PRINCIPAL, json: {jsonStr}");
             }
 
 
@@ -242,7 +234,7 @@ namespace GrhaWeb.Function
         //==============================================================================================================
         [Function("GetHoaRec")]
         public async Task<IActionResult> GetHoaRec(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
             //var log = executionContext.GetLogger("GetHoaRec");
             /*
@@ -316,7 +308,6 @@ namespace GrhaWeb.Function
             hoaRec.totalDuesCalcList = new List<TotalDuesCalcRec>();
             hoaRec.emailAddrList = new List<string>();
 
-            CommonUtil util = new CommonUtil();
 
             try {
                 CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
@@ -633,6 +624,16 @@ namespace GrhaWeb.Function
             //log.LogInformation("JJK test log - in GetPropertyList2");
             //log.LogWarning("JJK are you sure you know what you are doing");
 
+            if (req.Headers.TryGetValues("X-MS-CLIENT-PRINCIPAL", out var headerValues))
+            {
+                var headerValue = headerValues.FirstOrDefault();
+                //log.LogInformation($"Header value: {headerValue}");
+                var decoded = Convert.FromBase64String(headerValue);
+                var jsonStr = Encoding.UTF8.GetString(decoded);
+                log.LogWarning($">>> JJK, CLIENT-PRINCIPAL, json: {jsonStr}");
+            }
+
+
             // Get the content string from the HTTP request body
             string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -688,7 +689,7 @@ namespace GrhaWeb.Function
         // Public access for website Dues page
         [Function("GetHoaRec2")]
         public async Task<IActionResult> GetHoaRec2(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
             //var log = executionContext.GetLogger("GetHoaRec2");
             // Get the content string from the HTTP request body

@@ -8,9 +8,11 @@ var host = new HostBuilder()
     .ConfigureAppConfiguration((context, config) => {
         config.AddEnvironmentVariables();
     })
+    /*
     .ConfigureFunctionsWorkerDefaults(worker => { 
         worker.UseMiddleware<AuthMiddleware>(); 
     })
+    */
     .Build();
 
 /* >>>>> ONLY if you want to write to App Insights directly, instead of going through host logging

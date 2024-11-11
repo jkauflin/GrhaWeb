@@ -5,9 +5,10 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.AspNetCore.Http;
+//using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Functions.Worker.Http;
 
-public static class ClaimsPrincipalParser
+public class ClaimsPrincipalParser
 {
     private class ClientPrincipalClaim
     {
@@ -19,26 +20,48 @@ public static class ClaimsPrincipalParser
 
     private class ClientPrincipal
     {
+        [JsonPropertyName("userId")]
+        public string userId { get; set; }
+        [JsonPropertyName("userRoles")]
+        public string[] userRoles { get; set; }
+        [JsonPropertyName("identityProvider")]
+        public string identityProvider { get; set; }
+        [JsonPropertyName("userDetails")]
+        public string userDetails { get; set; }
+        
         [JsonPropertyName("auth_typ")]
         public string IdentityProvider { get; set; }
         [JsonPropertyName("name_typ")]
         public string NameClaimType { get; set; }
         [JsonPropertyName("role_typ")]
         public string RoleClaimType { get; set; }
+        
         [JsonPropertyName("claims")]
         public IEnumerable<ClientPrincipalClaim> Claims { get; set; }
     }
 
-    public static ClaimsPrincipal Parse(HttpRequest req)
+/*
+ClaimsIdentity userIdentity = new ClaimsIdentity(
+  new Claim[] {
+    new Claim("Id", "1"),
+    new Claim("Username", "Bert")
+  },
+  "Bearer"
+);
+//userIdentity.IsAuthenticated == true since we passed "Bearer" as AuthenticationType.
+*/
+
+    public ClaimsPrincipal Parse(HttpRequestData req)
     {
         var principal = new ClientPrincipal();
 
-        if (req.Headers.TryGetValue("x-ms-client-principal", out var header))
+        if (req.Headers.TryGetValues("x-ms-client-principal", out var headerValues))
         {
-            var data = header[0];
-            var decoded = Convert.FromBase64String(data);
-            var json = Encoding.UTF8.GetString(decoded);
-            principal = JsonSerializer.Deserialize<ClientPrincipal>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            var headerValue = headerValues.FirstOrDefault();
+            var decoded = Convert.FromBase64String(headerValue);
+            var jsonStr = Encoding.UTF8.GetString(decoded);
+            // {"userId":"b2754551a423931bca428d692f2cad2b","userRoles":["anonymous","authenticated","hoadbadmin"],"identityProvider":"aad","userDetails":"jkauflin"}
+            principal = JsonSerializer.Deserialize<ClientPrincipal>(jsonStr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         }
 
         /** 
@@ -53,7 +76,6 @@ public static class ClaimsPrincipalParser
 
         var identity = new ClaimsIdentity(principal.IdentityProvider, principal.NameClaimType, principal.RoleClaimType);
         identity.AddClaims(principal.Claims.Select(c => new Claim(c.Type, c.Value)));
-        
         return new ClaimsPrincipal(identity);
     }
 }
