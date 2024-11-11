@@ -50,7 +50,8 @@ namespace GrhaWeb.Function
         private readonly IConfiguration config;
         private readonly string? apiCosmosDbConnStr;
 
-        private readonly ClaimsPrincipalParser claimsPrincipalParser;
+        private readonly AuthorizationCheck authCheck;
+        private readonly string userAdminRole;
         private readonly CommonUtil util;
 
         public WebApi(ILogger<WebApi> logger, IConfiguration configuration)
@@ -59,7 +60,8 @@ namespace GrhaWeb.Function
             config = configuration;
             apiCosmosDbConnStr = config["API_COSMOS_DB_CONN_STR"];
 
-            claimsPrincipalParser= new ClaimsPrincipalParser();
+            authCheck = new AuthorizationCheck();
+            userAdminRole = "hoadbadmin";   // add to config ???
             util = new CommonUtil();
         }
 
@@ -67,40 +69,10 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetPropertyList(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-
-            //claimsPrincipalParser.Parse(req);
-
-            // Access a specific header value
-            if (req.Headers.TryGetValues("X-MS-CLIENT-PRINCIPAL", out var headerValues))
-            {
-                var headerValue = headerValues.FirstOrDefault();
-                //log.LogInformation($"Header value: {headerValue}");
-                var decoded = Convert.FromBase64String(headerValue);
-                var jsonStr = Encoding.UTF8.GetString(decoded);
-                log.LogWarning($">>> JJK, CLIENT-PRINCIPAL, json: {jsonStr}");
-            }
-
-
-            /*
-            bool userAuthorized = false;
-            if (req.Host.ToString().Equals("localhost:4280")) {
-                // If local DEV look for Admin
-                foreach (Claim claim in claimsPrincipal.Claims)
-                {
-                    //log.LogInformation("CLAIM TYPE: " + claim.Type + "; CLAIM VALUE: " + claim.Value + "</br>");
-                    if (claim.Value.Equals("Admin")) {
-                        userAuthorized = true;
-                    }
-                }
-            } else {
-                // In PROD, make sure user is in correct role to make updates
-                userAuthorized = claimsPrincipal.IsInRole("hoadbadmin");
-            }
-
-            if (!userAuthorized) {
+            string userName = "";
+            if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
                 return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
             }
-            */
 
             //log.LogInformation(">>> User is authorized ");
 
@@ -236,6 +208,10 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetHoaRec(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
+            string userName = "";
+            if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
+                return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+            }
             //var log = executionContext.GetLogger("GetHoaRec");
             /*
             bool userAuthorized = false;
@@ -623,16 +599,6 @@ namespace GrhaWeb.Function
         {
             //log.LogInformation("JJK test log - in GetPropertyList2");
             //log.LogWarning("JJK are you sure you know what you are doing");
-
-            if (req.Headers.TryGetValues("X-MS-CLIENT-PRINCIPAL", out var headerValues))
-            {
-                var headerValue = headerValues.FirstOrDefault();
-                //log.LogInformation($"Header value: {headerValue}");
-                var decoded = Convert.FromBase64String(headerValue);
-                var jsonStr = Encoding.UTF8.GetString(decoded);
-                log.LogWarning($">>> JJK, CLIENT-PRINCIPAL, json: {jsonStr}");
-            }
-
 
             // Get the content string from the HTTP request body
             string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
