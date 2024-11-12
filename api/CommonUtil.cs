@@ -8,14 +8,20 @@ Modification History
 2024-11-04 JJK  Finished stringToMoney and CalcCompoundInterest
 ================================================================================*/
 
-using System;
 using GrhaWeb.Function.Model;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
 
 namespace GrhaWeb.Function
 {
     public class CommonUtil
     {
+        private readonly ILogger log;
+        public CommonUtil(ILogger logger)
+        {
+            log = logger;
+        }
+
         public decimal stringToMoney(string moneyString) {
             // Remove the dollar sign and parse the string to a decimal
             decimal moneyValue = decimal.Parse(moneyString.TrimStart('$'));

@@ -28,9 +28,6 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 using GrhaWeb.Function.Model;
-using System.Text;
-
-//using Microsoft.AspNetCore.JsonPatch.Helpers;
 
 namespace GrhaWeb.Function
 {
@@ -52,7 +49,7 @@ namespace GrhaWeb.Function
 
             authCheck = new AuthorizationCheck(log);
             userAdminRole = "hoadbadmin";   // add to config ???
-            util = new CommonUtil();
+            util = new CommonUtil(log);
         }
 
         [Function("GetPropertyList")]
@@ -64,7 +61,7 @@ namespace GrhaWeb.Function
                 return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
             }
 
-            log.LogInformation($">>> User is authorized - userName: {userName}");
+            //log.LogInformation($">>> User is authorized - userName: {userName}");
 
             // Construct the query from the query parameters
             string sql = $"";
