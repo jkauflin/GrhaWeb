@@ -199,31 +199,9 @@ namespace GrhaWeb.Function
             if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
                 return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
             }
-            //var log = executionContext.GetLogger("GetHoaRec");
-            /*
-            bool userAuthorized = false;
-            if (req.Host.ToString().Equals("localhost:4280")) {
-                // If local DEV look for Admin
-                foreach (Claim claim in claimsPrincipal.Claims)
-                {
-                    //log.LogInformation("CLAIM TYPE: " + claim.Type + "; CLAIM VALUE: " + claim.Value + "</br>");
-                    if (claim.Value.Equals("Admin")) {
-                        userAuthorized = true;
-                    }
-                }
-            } else {
-                // In PROD, make sure user is in correct role to make updates
-                userAuthorized = claimsPrincipal.IsInRole("hoadbadmin");
-            }
-
-            if (!userAuthorized) {
-                return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-            }
-            */
 
             //log.LogInformation(">>> User is authorized ");
 
-            // >>>>>>>>>>>> where does the logging show up in Azure ????????????    App Insights??? <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
             // Get the content string from the HTTP request body
             string content = await new StreamReader(req.Body).ReadToEndAsync();
@@ -693,6 +671,10 @@ namespace GrhaWeb.Function
             catch (Exception ex) {
                 return new BadRequestObjectResult($"Exception in DB query to {containerId}, message = {ex.Message}");
             }
+
+
+            // >>>>> finish rest 11/12/2024
+
 
             return new OkObjectResult(hoaProperty2List);
 

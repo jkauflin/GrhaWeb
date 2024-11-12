@@ -24,6 +24,7 @@
  * 2022-06-26 JJK   Converted the rest of the JQuery to vanilla javascript
  *                  (to remove the dependance and load of JQuery library)
  * 2024-08-25 JJK   Updated to be a js module and moved other js code to here
+ * 2024-11-12 JJK   Updates for migration to Azure SWA
  *============================================================================*/
 
 var addressInput = document.getElementById("address");
