@@ -1,11 +1,13 @@
 /*==============================================================================
 (C) Copyright 2024 John J Kauflin, All rights reserved.
 --------------------------------------------------------------------------------
-DESCRIPTION:  A
+DESCRIPTION:  Functions to parse a request context and look for authentication
+              and authorization information in the x-ms-client-principal 
+              header
+
 --------------------------------------------------------------------------------
 Modification History
-2024-11-11 JJK  Initial version (
-2024-11-11 JJK  Modified to check user role from function context for auth
+2024-11-11 JJK  Initial version (check user role from function context for auth)
 ================================================================================*/
 using System;
 using System.Collections.Generic;
@@ -16,50 +18,65 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
 
 public class AuthorizationCheck
 {
+
+        private readonly ILogger log;
+
+
+        public AuthorizationCheck(ILogger logger)
+        {
+            log = logger;
+        }
+
+
+
     private class ClientPrincipalClaim
     {
         [JsonPropertyName("typ")]
-        public string Type { get; set; }
+        public string? Type { get; set; }
         [JsonPropertyName("val")]
-        public string Value { get; set; }
+        public string? Value { get; set; }
     }
 
     private class ClientPrincipal
     {
         [JsonPropertyName("userId")]
-        public string userId { get; set; }
+        public string? userId { get; set; }
         [JsonPropertyName("userRoles")]
-        public string[] userRoles { get; set; }
+        public string[]? userRoles { get; set; }
         [JsonPropertyName("identityProvider")]
-        public string identityProvider { get; set; }
+        public string? identityProvider { get; set; }
         [JsonPropertyName("userDetails")]
-        public string userDetails { get; set; }
+        public string? userDetails { get; set; }
         
 
         [JsonPropertyName("auth_typ")]
-        public string IdentityProvider { get; set; }
+        public string? IdentityProvider { get; set; }
         [JsonPropertyName("name_typ")]
-        public string NameClaimType { get; set; }
+        public string? NameClaimType { get; set; }
         [JsonPropertyName("role_typ")]
-        public string RoleClaimType { get; set; }
+        public string? RoleClaimType { get; set; }
         
 
         [JsonPropertyName("claims")]
-        public IEnumerable<ClientPrincipalClaim> Claims { get; set; }
+        public IEnumerable<ClientPrincipalClaim>? Claims { get; set; }
     }
 
     public bool UserAuthorizedForRole(HttpRequestData req, string userRoleToCheck, out string userName)
     {
         bool userAuthorized = false;
         userName = "";
+
+        try {
+            log.LogWarning(">>> JJK test Warning in UserAuthorizedForRole");
         ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal();
 
         if (req.Headers.TryGetValues("x-ms-client-principal", out var headerValues))
         {
-            var headerValue = headerValues.FirstOrDefault();
+            var headerValue = headerValues.FirstOrDefault() ?? "";
             var decoded = Convert.FromBase64String(headerValue);
             var jsonStr = Encoding.UTF8.GetString(decoded);
             var clientPrincipal = JsonSerializer.Deserialize<ClientPrincipal>(jsonStr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
@@ -87,6 +104,13 @@ public class AuthorizationCheck
             }
 
         }
+
+        } 
+            catch (Exception ex) {
+            log.LogWarning($"Exception in UserAuthorizedForRole, message: {ex.Message} {ex.StackTrace}");
+        }
+
+
 
         return userAuthorized;
     }

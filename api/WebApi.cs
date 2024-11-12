@@ -50,7 +50,7 @@ namespace GrhaWeb.Function
             config = configuration;
             apiCosmosDbConnStr = config["API_COSMOS_DB_CONN_STR"];
 
-            authCheck = new AuthorizationCheck();
+            authCheck = new AuthorizationCheck(log);
             userAdminRole = "hoadbadmin";   // add to config ???
             util = new CommonUtil();
         }
@@ -648,29 +648,8 @@ namespace GrhaWeb.Function
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
 
-            string userName = "";
-            if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
-                return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-            }
-
-
-            //var log = executionContext.GetLogger("GetHoaRec2");
             // Get the content string from the HTTP request body
             string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
-
-	        //$parcelId = getParamVal("parcelId");
-
-    /*
-	$conn = getConn($host, $dbadmin, $password, $dbname);
-	$hoaRec = getHoaRec2($conn,$parcelId);
-	
-	$conn->close();
-	
-	echo json_encode($hoaRec);
-    */
-
-            CommonUtil util = new CommonUtil();
-            //util.CalcCompoundInterest(principal, startdate);
 
 
             //------------------------------------------------------------------------------------------------------------------
