@@ -294,17 +294,20 @@ function formatDuesStatementResults(hoaRec) {
         tbody.appendChild(tr)
 
         let tempDuesAmt = '';
+        let maxPaymentHistoryLines = 6;
         for (let index in hoaRec.assessmentsList) {
             let rec = hoaRec.assessmentsList[index]
-
-            tempDuesAmt = '' + rec.DuesAmt;
-            tr = document.createElement('tr')
-            td = document.createElement("td"); td.textContent = rec.FY ; tr.appendChild(td)
-            td = document.createElement("td"); td.textContent = formatMoney(tempDuesAmt); tr.appendChild(td)
-            td = document.createElement("td"); td.textContent = rec.DateDue.substring(0, 10); tr.appendChild(td)
-            td = document.createElement("td"); td.innerHTML = setCheckbox(rec.Paid); tr.appendChild(td)
-            td = document.createElement("td"); td.textContent = rec.DatePaid.substring(0, 10); tr.appendChild(td)
-            tbody.appendChild(tr)
+            // 2024-11-08 JJK - new logic to limit display of historical PAID (or Non-Collectible)
+            if ((!rec.Paid && !rec.NonCollectible) || index < maxPaymentHistoryLines) {
+                tempDuesAmt = '' + rec.DuesAmt;
+                tr = document.createElement('tr')
+                td = document.createElement("td"); td.textContent = rec.FY ; tr.appendChild(td)
+                td = document.createElement("td"); td.textContent = formatMoney(tempDuesAmt); tr.appendChild(td)
+                td = document.createElement("td"); td.textContent = rec.DateDue.substring(0, 10); tr.appendChild(td)
+                td = document.createElement("td"); td.innerHTML = setCheckbox(rec.Paid); tr.appendChild(td)
+                td = document.createElement("td"); td.textContent = rec.DatePaid.substring(0, 10); tr.appendChild(td)
+                tbody.appendChild(tr)
+            }
         }
     }
 
