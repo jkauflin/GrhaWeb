@@ -4,7 +4,7 @@
         "logLevel": {
             "default": "Information",
             "Host": "Warning",
-            "Function": "Warning",
+            "Function": "Information",
             "Host.Aggregator": "Information"
         },
         "applicationInsights": {

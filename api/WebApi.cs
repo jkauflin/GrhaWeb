@@ -17,21 +17,11 @@ Modification History
                 to get environment variables for the Cosmos DB connection str
 2024-11-11 JJK  Modified to check user role from function context for auth
 ================================================================================*/
-using System;
-using System.IO;
-using System.Threading.Tasks;
-using System.Security.Claims;
-using System.Collections.Generic;
-
-//Your isolated worker model application should not reference any packages in the Microsoft.Azure.WebJobs.* namespaces or Microsoft.Azure.Functions.Extensions.
-// *** all in .Worker now
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-
-//using Microsoft.AspNetCore.Http;    // for HttpRequest
 using Microsoft.AspNetCore.Mvc;     // for IActionResult
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
@@ -74,7 +64,7 @@ namespace GrhaWeb.Function
                 return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
             }
 
-            //log.LogInformation(">>> User is authorized ");
+            log.LogInformation($">>> User is authorized - userName: {userName}");
 
             // Construct the query from the query parameters
             string sql = $"";
@@ -657,6 +647,13 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetHoaRec2(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
+
+            string userName = "";
+            if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
+                return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+            }
+
+
             //var log = executionContext.GetLogger("GetHoaRec2");
             // Get the content string from the HTTP request body
             string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
