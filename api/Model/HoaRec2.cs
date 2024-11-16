@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 
 namespace GrhaWeb.Function.Model
 {
-    public class HoaRec
+    public class HoaRec2
     {
         //public string id { get; set; }
 
@@ -30,13 +30,5 @@ namespace GrhaWeb.Function.Model
             return JsonConvert.SerializeObject(this);
         }
     }
-
-    /*
-    public class TotalDuesCalcRec
-    {
-        public string? calcDesc { get; set; }
-        public string? calcValue { get; set; }
-    }
-    */
 
 }

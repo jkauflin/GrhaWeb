@@ -562,9 +562,6 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetPropertyList2(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            //log.LogInformation("JJK test log - in GetPropertyList2");
-            //log.LogWarning("JJK are you sure you know what you are doing");
-
             // Get the content string from the HTTP request body
             string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
 
@@ -623,9 +620,13 @@ namespace GrhaWeb.Function
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
 
+            // 11/16/2024 = do I need an HoaRec2 with a more limited set of fields for public use?
+            // If I used the de-serialization from the Cosmos DB document, yes, I will need limited classes?  for ALL the classes???
+            // or is there a better way to do this
+
+
             // Get the content string from the HTTP request body
             string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
-
 
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
