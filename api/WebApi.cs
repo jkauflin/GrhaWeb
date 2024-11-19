@@ -70,11 +70,11 @@ namespace GrhaWeb.Function
             string content = await new StreamReader(req.Body).ReadToEndAsync();
             // Deserialize the JSON string into a generic JSON object
             JObject jObject = JObject.Parse(content);
+            JToken? jToken;
 
-            if (jObject.TryGetValue("searchStr", out JToken jToken)) {
-                string searchStr = (string)jToken;
+            if (jObject.TryGetValue("searchStr", out jToken)) {
+                string searchStr = jToken.ToString();
                 searchStr = searchStr.Trim().ToUpper();
-                
                 sql = $"SELECT * FROM c WHERE "
                         +$"CONTAINS(UPPER(c.Parcel_ID),'{searchStr}') "
                         +$"OR CONTAINS(UPPER(c.LotNo),'{searchStr}') "
@@ -83,6 +83,8 @@ namespace GrhaWeb.Function
                         +$"ORDER BY c.id";
             }
             else {
+                sql = $"SELECT * FROM c "
+                        +$"ORDER BY c.id";
                 /*
                 >>>>> get search by these specific values working (IF NEEDED)
 
@@ -199,18 +201,18 @@ namespace GrhaWeb.Function
             string fy = "";
             string saleDate = "";
 
-            JToken jToken;
+            JToken? jToken;
             if (jObject.TryGetValue("parcelId", out jToken)) {
-                parcelId = (string)jToken;
+                parcelId = jToken.ToString();
             }
             if (jObject.TryGetValue("ownerId", out jToken)) {
-                ownerId = (string)jToken;
+                ownerId = jToken.ToString();
             }
             if (jObject.TryGetValue("fy", out jToken)) {
-                fy = (string)jToken;
+                fy = jToken.ToString();
             }
             if (jObject.TryGetValue("saleDate", out jToken)) {
-                saleDate = (string)jToken;
+                saleDate = jToken.ToString();
             }
 
             //------------------------------------------------------------------------------------------------------------------
@@ -371,7 +373,7 @@ namespace GrhaWeb.Function
                                 onlyCurrYearDue = false;
                             }
 
-                            // check dates
+                            // check dates (if NOT PAID)
                             if (currDate > dateDue) {
                                 item.DuesDue = true;
                             } 
@@ -393,10 +395,7 @@ namespace GrhaWeb.Function
                             //      In addition, a $10 a month late fee will be added to any unpaid assessments
                             //          *** Starting on 11/1/2024, Do it for every unpaid assessment (per year) for number of months from 11/1/FY-1
                             //          FY > 2024
-                            //
                             //          if months > 10, use 10 ($100) - show a LATE FEE for every unpaid assessment
-                            //
-                            // $hoaAssessmentRec->DuesDue is set to TRUE if current date is past the $hoaAssessmentRec->DateDue
                             //================================================================================================================================
                             //if ($hoaAssessmentRec->Lien && $hoaAssessmentRec->Disposition == 'Open') {
                             if (item.DuesDue) {
@@ -405,6 +404,8 @@ namespace GrhaWeb.Function
                                 if (item.StopInterestCalc != 1) {
                                     item.AssessmentInterest = util.CalcCompoundInterest(duesAmt, dateDue);
                                 }
+
+                                hoaRec.totalDue += item.AssessmentInterest;
 
                                 totalDuesCalcRec = new TotalDuesCalcRec();
                                 totalDuesCalcRec.calcDesc = "%6 Interest on FY " + item.FY.ToString() + " Assessment (since " + item.DateDue + ")";

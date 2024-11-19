@@ -197,7 +197,7 @@ namespace GrhaWeb.Function
                                 onlyCurrYearDue = false;
                             }
 
-                            // check dates
+                            // check dates (if NOT PAID)
                             if (currDate > dateDue) {
                                 item.DuesDue = true;
                             } 
@@ -219,10 +219,7 @@ namespace GrhaWeb.Function
                             //      In addition, a $10 a month late fee will be added to any unpaid assessments
                             //          *** Starting on 11/1/2024, Do it for every unpaid assessment (per year) for number of months from 11/1/FY-1
                             //          FY > 2024
-                            //
                             //          if months > 10, use 10 ($100) - show a LATE FEE for every unpaid assessment
-                            //
-                            // $hoaAssessmentRec->DuesDue is set to TRUE if current date is past the $hoaAssessmentRec->DateDue
                             //================================================================================================================================
                             //if ($hoaAssessmentRec->Lien && $hoaAssessmentRec->Disposition == 'Open') {
                             if (item.DuesDue) {
@@ -231,6 +228,8 @@ namespace GrhaWeb.Function
                                 if (item.StopInterestCalc != 1) {
                                     item.AssessmentInterest = util.CalcCompoundInterest(duesAmt, dateDue);
                                 }
+
+                                hoaRec2.totalDue += item.AssessmentInterest;
 
                                 totalDuesCalcRec = new TotalDuesCalcRec();
                                 totalDuesCalcRec.calcDesc = "%6 Interest on FY " + item.FY.ToString() + " Assessment (since " + item.DateDue + ")";

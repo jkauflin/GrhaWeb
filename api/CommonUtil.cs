@@ -58,31 +58,10 @@ namespace GrhaWeb.Function
             double P = (double) principal;
             double A = P * Math.Pow(1.0+(rate/annualFrequency), annualFrequency*timeInYears);
             interestAmount = A - P;
-            // Round down to 2 decimal places
-            interestAmount = Math.Floor(interestAmount * 100) / 100;
+            // Round to 2 decimal places
+            interestAmount = Math.Round(interestAmount,2);
 
-            /*
-            if ($startDate != null && $startDate != '' && $startDate != '0000-00-00') {
-
-                // Convert the 1st start date string token (i.e. till space) into a DateTime object (to check the date)
-                if ($startDateTime = date_create( strtok($startDate," ") )) {
-
-                    // Difference between passed date and current system date
-                    $diff = date_diff($startDateTime,date_create(),true);
-
-                    // Time in fractional years
-                    $time = floatval($diff->days) / 365.0;
-
-                    $A = floatval($principal) * pow((1+($rate/$annualFrequency)),($annualFrequency*$time));
-                    // Subtract the original principal to get just the interest
-                    $interestAmount = round(($A - $principal),2);
-
-                } else {
-                    // Error in date_create
-                    error_log(date('[Y-m-d H:i:s] '). "Problem with StartDate = " . $startDate . PHP_EOL, 3, "jjk-commonUtil.log");
-                }
-            }
-            */
+            //log.LogWarning($">>> timeInYears: {timeInYears}, P: {P}, A: {A}, interestAmount: {interestAmount}");
 
             return (decimal)interestAmount;
         }
