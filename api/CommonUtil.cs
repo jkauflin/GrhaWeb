@@ -6,11 +6,14 @@ DESCRIPTION:  Common utility functions for Web API's
 Modification History
 2024-08-28 JJK  Initial version (converted from older PHP code)
 2024-11-04 JJK  Finished stringToMoney and CalcCompoundInterest
+2024-11-18 JJK  Added getConfigVal
 ================================================================================*/
 
-using GrhaWeb.Function.Model;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Cosmos;
+
+using GrhaWeb.Function.Model;
 
 namespace GrhaWeb.Function
 {
@@ -83,6 +86,22 @@ namespace GrhaWeb.Function
 
             return (decimal)interestAmount;
         }
+
+        public async Task<string> getConfigVal(Database db, Container container, string configName) {
+            string configVal = "";
+            string sql = $"SELECT * FROM c WHERE c.ConfigName = '{configName}' ";
+            var feed = container.GetItemQueryIterator<hoa_config>(sql);
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    configVal = item.ConfigValue ?? "";
+                }
+            }
+            return configVal;
+        }
+
 
         /*
         public DateTime parseDateTime(string inDateStr) {

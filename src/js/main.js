@@ -25,6 +25,7 @@
  *                  (to remove the dependance and load of JQuery library)
  * 2024-08-25 JJK   Updated to be a js module and moved other js code to here
  * 2024-11-12 JJK   Updates for migration to Azure SWA
+ * 2024-11-18 JJK   Got the api calls and Dues Statement working
  *============================================================================*/
 
 var addressInput = document.getElementById("address");
@@ -206,40 +207,41 @@ function formatDuesStatementResults(hoaRec) {
 
     let tr = document.createElement('tr')
     let th = document.createElement("th"); th.textContent = "Parcel Id: "; tr.appendChild(th)
-    let td = document.createElement("td"); td.textContent = hoaRec.Parcel_ID; tr.appendChild(td)
+    let td = document.createElement("td"); td.textContent = hoaRec.property.parcel_ID; tr.appendChild(td)
         tbody.appendChild(tr)
         tr = document.createElement('tr')
         th = document.createElement("th"); th.textContent = "Lot No: "; tr.appendChild(th)
-        td = document.createElement("td"); td.textContent = hoaRec.LotNo; tr.appendChild(td)
+        td = document.createElement("td"); td.textContent = hoaRec.property.lotNo; tr.appendChild(td)
         tbody.appendChild(tr)
         tr = document.createElement('tr')
         th = document.createElement("th"); th.textContent = "Location: "; tr.appendChild(th)
-        td = document.createElement("td"); td.textContent = hoaRec.Parcel_Location; tr.appendChild(td)
+        td = document.createElement("td"); td.textContent = hoaRec.property.parcel_Location; tr.appendChild(td)
         tbody.appendChild(tr)
         tr = document.createElement('tr')
         th = document.createElement("th"); th.textContent = "City State Zip: "; tr.appendChild(th)
-        td = document.createElement("td"); td.textContent = hoaRec.Property_City + ', ' + hoaRec.Property_State + ' ' + hoaRec.Property_Zip
+        td = document.createElement("td"); td.textContent = hoaRec.property.property_City + ', ' + hoaRec.property.property_State + ' ' + hoaRec.property.property_Zip
         tr.appendChild(td)
         tbody.appendChild(tr)
         tr = document.createElement('tr')
         th = document.createElement("th"); th.textContent = "Total Due: "; tr.appendChild(th)
         td = document.createElement("td")
-        let tempTotalDue = '' + hoaRec.TotalDue;
+        let tempTotalDue = '' + hoaRec.totalDue;
         td.textContent = formatMoney(tempTotalDue)
         tr.appendChild(td)
         tbody.appendChild(tr)
 
-        var tempDuesAmt = formatMoney(hoaRec.assessmentsList[0].DuesAmt);
+        //var tempDuesAmt = formatMoney(hoaRec.assessmentsList[0].DuesAmt);
+        var tempDuesAmt = formatMoney(hoaRec.assessmentsList[0].duesAmt);
 
         // If enabled, payment button and instructions will have values, else they will be blank if online payment is not allowed
-        if (hoaRec.TotalDue > 0) {
+        if (hoaRec.totalDue > 0) {
             // Only offer online payment if total due is just the current assessment (i.e. prior year due needs to contact the Treasurer)
-            if (tempDuesAmt == hoaRec.TotalDue) {
+            if (tempDuesAmt == hoaRec.totalDue) {
                 let i = document.createElement("i");
                 i.classList.add('fa','fa-usd','float-start','mr-1')
                 i.textContent = ' Click HERE to make payment online'
                 let a = document.createElement("a")
-                a.href = "payDues.html?parcelId=" + hoaRec.Parcel_ID
+                a.href = "payDues.html?parcelId=" + hoaRec.parcel_ID
                 a.classList.add('btn','btn-success','m-2','link-tile')
                 a.appendChild(i)
                 payDues.appendChild(a)
@@ -270,11 +272,11 @@ function formatDuesStatementResults(hoaRec) {
         td = document.createElement("td"); td.textContent = "Total Due: "; tr.appendChild(td)
         td = document.createElement("td"); td.textContent = '$'; tr.appendChild(td)
         td = document.createElement("td"); td.style.textAlign = "right";
-        td.textContent = parseFloat('' + hoaRec.TotalDue).toFixed(2) ; tr.appendChild(td)
+        td.textContent = parseFloat('' + hoaRec.totalDue).toFixed(2) ; tr.appendChild(td)
         tbody.appendChild(tr)
 
         tr = document.createElement('tr')
-        td = document.createElement("td"); td.textContent = hoaRec.assessmentsList[0].LienComment; tr.appendChild(td)
+        td = document.createElement("td"); td.textContent = hoaRec.assessmentsList[0].lienComment; tr.appendChild(td)
         td = document.createElement("td"); td.textContent = ''; tr.appendChild(td)
         td = document.createElement("td"); td.style.textAlign = "right"; td.textContent = ''; tr.appendChild(td)
         tbody.appendChild(tr)
@@ -299,14 +301,16 @@ function formatDuesStatementResults(hoaRec) {
         for (let index in hoaRec.assessmentsList) {
             let rec = hoaRec.assessmentsList[index]
             // 2024-11-08 JJK - new logic to limit display of historical PAID (or Non-Collectible)
-            if ((!rec.Paid && !rec.NonCollectible) || index < maxPaymentHistoryLines) {
-                tempDuesAmt = '' + rec.DuesAmt;
+            if ((!rec.paid && !rec.nonCollectible) || index < maxPaymentHistoryLines) {
+                tempDuesAmt = '' + rec.duesAmt;
                 tr = document.createElement('tr')
-                td = document.createElement("td"); td.textContent = rec.FY ; tr.appendChild(td)
+                td = document.createElement("td"); td.textContent = rec.fy ; tr.appendChild(td)
                 td = document.createElement("td"); td.textContent = formatMoney(tempDuesAmt); tr.appendChild(td)
-                td = document.createElement("td"); td.textContent = rec.DateDue.substring(0, 10); tr.appendChild(td)
-                td = document.createElement("td"); td.innerHTML = setCheckbox(rec.Paid); tr.appendChild(td)
-                td = document.createElement("td"); td.textContent = rec.DatePaid.substring(0, 10); tr.appendChild(td)
+                //td = document.createElement("td"); td.textContent = rec.DateDue.substring(0, 10); tr.appendChild(td)
+                td = document.createElement("td"); td.textContent = rec.dateDue; tr.appendChild(td)
+                td = document.createElement("td"); td.innerHTML = setCheckbox(rec.paid); tr.appendChild(td)
+                //td = document.createElement("td"); td.textContent = rec.DatePaid.substring(0, 10); tr.appendChild(td)
+                td = document.createElement("td"); td.textContent = rec.datePaid; tr.appendChild(td)
                 tbody.appendChild(tr)
             }
         }
