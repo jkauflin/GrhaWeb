@@ -53,27 +53,27 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetPropertyList(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            string userName = "";
-            if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
-                return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-            }
-
-            //log.LogInformation($">>> User is authorized - userName: {userName}");
-
-            // Get the content string from the HTTP request body
-            string content = await new StreamReader(req.Body).ReadToEndAsync();
-            // Deserialize the JSON string into a generic JSON object
-            JObject jObject = JObject.Parse(content);
-            JToken? jToken;
-
-            string searchStr = "";
-            if (jObject.TryGetValue("searchStr", out jToken)) {
-                searchStr = jToken.ToString();
-            }
-
             List<HoaProperty> hoaPropertyList = new List<HoaProperty>();
 
             try {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+
+                //log.LogInformation($">>> User is authorized - userName: {userName}");
+
+                // Get the content string from the HTTP request body
+                string content = await new StreamReader(req.Body).ReadToEndAsync();
+                // Deserialize the JSON string into a generic JSON object
+                JObject jObject = JObject.Parse(content);
+                JToken? jToken;
+
+                string searchStr = "";
+                if (jObject.TryGetValue("searchStr", out jToken)) {
+                    searchStr = jToken.ToString();
+                }
+
                 hoaPropertyList = await hoaDbCommon.GetPropertyList(searchStr);
             }
             catch (Exception ex) {
@@ -92,43 +92,43 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetHoaRec(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            string userName = "";
-            if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
-                return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-            }
-
-            //log.LogInformation(">>> User is authorized ");
-
-            // Get the content string from the HTTP request body
-            string content = await new StreamReader(req.Body).ReadToEndAsync();
-            // Deserialize the JSON string into a generic JSON object
-            JObject jObject = JObject.Parse(content);
-    
-            // Construct the query from the query parameters
-            string parcelId = "";
-            string ownerId = "";
-            string fy = "";
-            string saleDate = "";
-
-            JToken? jToken;
-            if (jObject.TryGetValue("parcelId", out jToken)) {
-                parcelId = jToken.ToString();
-            }
-            if (jObject.TryGetValue("ownerId", out jToken)) {
-                ownerId = jToken.ToString();
-            }
-            if (jObject.TryGetValue("fy", out jToken)) {
-                fy = jToken.ToString();
-            }
-            if (jObject.TryGetValue("saleDate", out jToken)) {
-                saleDate = jToken.ToString();
-            }
-
             HoaRec hoaRec = new HoaRec();
 
             try {
-                hoaRec = await hoaDbCommon.GetHoaRec(parcelId,ownerId,fy,saleDate);
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
 
+                //log.LogInformation(">>> User is authorized ");
+
+
+                // Get the content string from the HTTP request body
+                string content = await new StreamReader(req.Body).ReadToEndAsync();
+                // Deserialize the JSON string into a generic JSON object
+                JObject jObject = JObject.Parse(content);
+        
+                // Construct the query from the query parameters
+                string parcelId = "";
+                string ownerId = "";
+                string fy = "";
+                string saleDate = "";
+
+                JToken? jToken;
+                if (jObject.TryGetValue("parcelId", out jToken)) {
+                    parcelId = jToken.ToString();
+                }
+                if (jObject.TryGetValue("ownerId", out jToken)) {
+                    ownerId = jToken.ToString();
+                }
+                if (jObject.TryGetValue("fy", out jToken)) {
+                    fy = jToken.ToString();
+                }
+                if (jObject.TryGetValue("saleDate", out jToken)) {
+                    saleDate = jToken.ToString();
+                }
+
+                hoaRec = await hoaDbCommon.GetHoaRec(parcelId,ownerId,fy,saleDate);
             }
             catch (Exception ex) {
                 log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");

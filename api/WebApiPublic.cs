@@ -40,10 +40,10 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetPropertyList2(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            // Get the content string from the HTTP request body
-            string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
             List<HoaProperty2> hoaProperty2List = new List<HoaProperty2>();
             try {
+                // Get the content string from the HTTP request body
+                string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
                 hoaProperty2List = await hoaDbCommon.GetPropertyList2(searchAddress);
             }
             catch (Exception ex) {
@@ -62,12 +62,11 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetHoaRec2(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            // Get the content string from the HTTP request body
-            string parcelId = await new StreamReader(req.Body).ReadToEndAsync();
             HoaRec2 hoaRec2 = new HoaRec2();
             try {
+                // Get the content string from the HTTP request body
+                string parcelId = await new StreamReader(req.Body).ReadToEndAsync();
                 hoaRec2 = await hoaDbCommon.GetHoaRec2(parcelId);
-
             }
             catch (Exception ex) {
                 log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");

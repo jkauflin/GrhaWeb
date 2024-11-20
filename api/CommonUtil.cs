@@ -6,6 +6,8 @@ DESCRIPTION:  Common utility functions for Web API's
 Modification History
 2024-08-28 JJK  Initial version (converted from older PHP code)
 2024-11-04 JJK  Finished stringToMoney and CalcCompoundInterest
+2024-11-20 JJK  Added CalcTotalDues as a common function for doing the 
+                calculation of total dues (& fees) based on Assessments
 ================================================================================*/
 
 using Microsoft.Extensions.Logging;
@@ -28,6 +30,174 @@ namespace GrhaWeb.Function
             // Round down to 2 decimal places
             moneyValue = Math.Floor(moneyValue * 100) / 100;
             return moneyValue;
+        }
+
+        //---------------------------------------------------------------------------------------------------
+        // Calculate the total dues amount from the property assessments information and pass back a list
+        // of the individual charge amounts and description
+        //---------------------------------------------------------------------------------------------------
+        public List<TotalDuesCalcRec> CalcTotalDues(List<hoa_assessments> assessmentsList, 
+                                                    out bool onlyCurrYearDue, 
+                                                    out decimal totalDue) {
+
+            List<TotalDuesCalcRec> totalDuesCalcList = new List<TotalDuesCalcRec>();
+            onlyCurrYearDue = false;
+            totalDue = 0.00m;
+
+            DateTime currDate = DateTime.Now;
+            DateTime dateDue;
+            string duesAmtStr;
+            bool duesDue;
+			decimal duesAmt = 0.0m;
+            decimal totalLateFees;
+            int monthsApart;
+            int prevFY;
+            string dispositionStr;
+            TotalDuesCalcRec totalDuesCalcRec;
+            int cnt = 0;
+
+            // Loop through the property assessments
+            foreach (var assessmentRec in assessmentsList)
+            {
+                cnt++;
+                dateDue = DateTime.Parse(assessmentRec.DateDue!);
+                duesDue = false;
+
+                // If NOT PAID (and still able to be collected)
+                if (assessmentRec.Paid != 1 && assessmentRec.NonCollectible != 1) {
+                    if (cnt == 1) {
+                        onlyCurrYearDue = true;
+                    } else { 
+                        onlyCurrYearDue = false;
+                    }
+
+                    // check dates (if NOT PAID)
+                    if (currDate > dateDue) {
+                        duesDue = true;
+                    } 
+
+                    duesAmtStr = assessmentRec.DuesAmt ?? "";
+                    duesAmt = stringToMoney(duesAmtStr);
+                            
+                    totalDue += duesAmt;
+
+                    totalDuesCalcRec = new TotalDuesCalcRec();
+                    totalDuesCalcRec.calcDesc = "FY " + assessmentRec.FY.ToString() + " Assessment (due " + assessmentRec.DateDue + ")";
+                    totalDuesCalcRec.calcValue = duesAmt.ToString();
+                    totalDuesCalcList.Add(totalDuesCalcRec);
+
+                    //================================================================================================================================
+                    // 2024-11-01 JJK - Updated Total Due logic according to changes specified by GRHA Board and new Treasurer
+                    //      Remove the restriction of an Open Lien to adding the interest on the unpaid assessment - it will now start adding
+                    //      interest when unpaid and past the DUE DATE.
+                    //      In addition, a $10 a month late fee will be added to any unpaid assessments
+                    //          *** Starting on 11/1/2024, Do it for every unpaid assessment (per year) for number of months from 11/1/FY-1
+                    //          FY > 2024
+                    //          if months > 10, use 10 ($100) - show a LATE FEE for every unpaid assessment
+                    //================================================================================================================================
+                    //if ($hoaAssessmentRec->Lien && $hoaAssessmentRec->Disposition == 'Open') {
+                    if (duesDue) {
+                        // Assume that if past due, there will be interest and fees (so can't just pay the curr year due)
+                        onlyCurrYearDue = false;
+                        // If still calculating interest dynamically calculate the compound interest (else just use the value from the assessment record)
+                        if (assessmentRec.StopInterestCalc != 1) {
+                            assessmentRec.AssessmentInterest = CalcCompoundInterest(duesAmt, dateDue);
+                        }
+
+                        totalDue += assessmentRec.AssessmentInterest;
+
+                        totalDuesCalcRec = new TotalDuesCalcRec();
+                        totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + assessmentRec.DateDue + ")";
+                        totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
+                        totalDuesCalcList.Add(totalDuesCalcRec);
+
+                        // Calculate monthly late fees (starting in November 2024 for the FY 2025)
+                        if (assessmentRec.FY > 2024) {
+                            // number of months between the due date and current date
+                            monthsApart = ((currDate.Year - dateDue.Year) * 12) + currDate.Month - dateDue.Month;
+                            // Ensure the number of months is non-negative
+                            monthsApart = Math.Abs(monthsApart);
+                            if (monthsApart > 10) {
+                                monthsApart = 10;
+                            }
+
+                            totalLateFees = 10.00m * monthsApart;
+                            totalDue += totalLateFees;
+
+                            prevFY = assessmentRec.FY-1;
+                            totalDuesCalcRec = new TotalDuesCalcRec();
+                            totalDuesCalcRec.calcDesc = "$10 a Month late fee on FY " + assessmentRec.FY.ToString() + " Assessment (since " + prevFY.ToString() + "-10-31)";
+                            totalDuesCalcRec.calcValue = totalLateFees.ToString();
+                            totalDuesCalcList.Add(totalDuesCalcRec);
+                        }
+
+                    } // if (duesDue) {
+
+                } // if (assessmentRec.Paid != 1 && assessmentRec.NonCollectible != 1) {
+
+                // If the Assessment was Paid but the interest was not, then add the interest to the total
+                if (assessmentRec.Paid == 1 && assessmentRec.InterestNotPaid == 1) {
+                    onlyCurrYearDue = false;
+
+                    // If still calculating interest dynamically calculate the compound interest
+                    if (assessmentRec.StopInterestCalc != 1) {
+                        assessmentRec.AssessmentInterest = CalcCompoundInterest(duesAmt, dateDue);
+                    }
+
+                    totalDue += assessmentRec.AssessmentInterest;
+
+                    totalDuesCalcRec = new TotalDuesCalcRec();
+                    totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + assessmentRec.DateDue + ")";
+                    totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
+                    totalDuesCalcList.Add(totalDuesCalcRec);
+                } //  if (assessmentRec.Paid == 1 && assessmentRec.InterestNotPaid == 1) {
+
+				// If there is an Open Lien (not Paid, Released, or Closed)
+                dispositionStr = assessmentRec.Disposition ?? "";
+                if (assessmentRec.Lien == 1 && dispositionStr.Equals("Open") && assessmentRec.NonCollectible != 1) {
+					// calc interest - start date   WHEN TO CALC INTEREST
+					// unpaid fee amount and interest since the Filing Date
+
+					// if there is a Filing Fee (on an Open Lien), then check to calc interest (or use stored value)
+                    if (assessmentRec.FilingFee > 0.0m) {
+                        totalDue += assessmentRec.FilingFee;
+                        totalDuesCalcRec = new TotalDuesCalcRec();
+                        totalDuesCalcRec.calcDesc = "FY " + assessmentRec.FY.ToString() + " Assessment Lien Filing Fee";
+                        totalDuesCalcRec.calcValue = assessmentRec.FilingFee.ToString();
+                        totalDuesCalcList.Add(totalDuesCalcRec);
+
+                        // If still calculating interest dynamically calculate the compound interest
+                        if (assessmentRec.StopInterestCalc != 1) {
+                            assessmentRec.FilingFeeInterest = CalcCompoundInterest(assessmentRec.FilingFee, assessmentRec.DateFiled);
+                        }
+
+                        totalDue += assessmentRec.FilingFeeInterest;
+                        totalDuesCalcRec = new TotalDuesCalcRec();
+                        totalDuesCalcRec.calcDesc = "%6 Interest on Filing Fees (since " + assessmentRec.DateFiled.ToString("yyyy-MM-dd") + ")";
+                        totalDuesCalcRec.calcValue = assessmentRec.FilingFeeInterest.ToString();
+                        totalDuesCalcList.Add(totalDuesCalcRec);
+                    }
+
+                    if (assessmentRec.ReleaseFee > 0.0m) {
+                        totalDue += assessmentRec.ReleaseFee;
+                        totalDuesCalcRec = new TotalDuesCalcRec();
+                        totalDuesCalcRec.calcDesc = "FY " + assessmentRec.FY.ToString() + " Assessment Lien Release Fee";
+                        totalDuesCalcRec.calcValue = assessmentRec.ReleaseFee.ToString();
+                        totalDuesCalcList.Add(totalDuesCalcRec);
+                    }
+
+                    if (assessmentRec.BankFee > 0.0m) {
+                        totalDue += assessmentRec.BankFee;
+                        totalDuesCalcRec = new TotalDuesCalcRec();
+                        totalDuesCalcRec.calcDesc = "FY " + assessmentRec.FY.ToString() + " Assessment Bank Fee";
+                        totalDuesCalcRec.calcValue = assessmentRec.BankFee.ToString();
+                        totalDuesCalcList.Add(totalDuesCalcRec);
+                    }
+                } // if (assessmentRec.Lien == 1 && dispositionStr.Equals("Open") && assessmentRec.NonCollectible != 1) {
+
+            } // foreach (var assessmentRec in assessmentsList)
+
+            return totalDuesCalcList;
         }
 
         public decimal CalcCompoundInterest(decimal principal, DateTime startDate) {
@@ -97,7 +267,7 @@ namespace GrhaWeb.Function
                         //     "DateDue": "10/1/2014 0:00:00",
                         //   "DateDue": "10/1/2015",
                         // "DateDue": "2024-10-01",
-                        //item.DateDue
+                        //assessmentRec.DateDue
 
                         // util function for a common date - take both formats, check for a space
                         //        if ($startDateTime = date_create( strtok($startDate," ") )) {
