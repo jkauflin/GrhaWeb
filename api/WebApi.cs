@@ -64,6 +64,9 @@ namespace GrhaWeb.Function
                 //log.LogInformation($">>> User is authorized - userName: {userName}");
 
                 // Get the content string from the HTTP request body
+                //string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
+
+                // Get the content string from the HTTP request body
                 string content = await new StreamReader(req.Body).ReadToEndAsync();
                 // Deserialize the JSON string into a generic JSON object
                 JObject jObject = JObject.Parse(content);
@@ -74,6 +77,16 @@ namespace GrhaWeb.Function
                     searchStr = jToken.ToString();
                 }
 
+                /*   >>>>>> think about searches on these specific params in the future (if needed)
+    let paramData = {
+        searchStr: searchStr.value,
+        parcelId: parcelId.value,
+        lotNo: lotNo.value,
+        address: address.value,
+        ownerName: ownerName.value,
+        phoneNo: phoneNo.value,
+        altAddress: altAddress.value
+                */
                 hoaPropertyList = await hoaDbCommon.GetPropertyList(searchStr);
             }
             catch (Exception ex) {
@@ -102,7 +115,10 @@ namespace GrhaWeb.Function
 
                 //log.LogInformation(">>> User is authorized ");
 
+                // Get the content string from the HTTP request body
+                string parcelId = await new StreamReader(req.Body).ReadToEndAsync();
 
+                /*
                 // Get the content string from the HTTP request body
                 string content = await new StreamReader(req.Body).ReadToEndAsync();
                 // Deserialize the JSON string into a generic JSON object
@@ -127,8 +143,10 @@ namespace GrhaWeb.Function
                 if (jObject.TryGetValue("saleDate", out jToken)) {
                     saleDate = jToken.ToString();
                 }
-
                 hoaRec = await hoaDbCommon.GetHoaRec(parcelId,ownerId,fy,saleDate);
+                */
+
+                hoaRec = await hoaDbCommon.GetHoaRec(parcelId);
             }
             catch (Exception ex) {
                 log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");

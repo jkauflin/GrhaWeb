@@ -49,10 +49,11 @@ import {empty} from './util.js';
 var detailPageTab = bootstrap.Tab.getOrCreateInstance(document.querySelector(`.navbar-nav a[href="#DetailPage"]`))
 
 
-var propertyDetailTBody = document.getElementById("PropertyDetailTBody")
+var propertyDetailTbody = document.getElementById("PropertyDetailTbody")
+var propertyOwnersTbody = document.getElementById("PropertyOwnersTbody")
+var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody")
 
 var messageDisplay = document.getElementById("MessageDisplay")
-
 var isTouchDevice = 'ontouchstart' in document.documentElement
 
 var hoaRec
@@ -138,8 +139,13 @@ async function getHoaRec(parcelId) {
     // If a string was passed in then use value as the name, else get it from the attribute of the click event object
     //var parcelId = (typeof value === "string") ? value : value.target.getAttribute("data-parcelId");
 
-    let tbody = propertyDetailTBody
+    let tbody = propertyDetailTbody
     empty(tbody)
+    empty(propertyOwnersTbody)
+    empty(propertyAssessmentsTbody)
+
+    messageDisplay.textContent = "Fetching data..."
+
     detailPageTab.show()
         
     /*
@@ -152,23 +158,27 @@ async function getHoaRec(parcelId) {
         _render();
         util.displayTabPage('DetailPage');
     });
-    */
 
     let paramData = {
         parcelId: parcelId,
     }
+    */
 
     const endpoint = "/api/GetHoaRec";
     try {
         const response = await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(paramData)
+//            body: JSON.stringify(paramData)
+            body: parcelId
         })
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
         hoaRec = await response.json();
+    
+        messageDisplay.textContent = ""
+
         displayDetail(hoaRec)
         //detailPageTab.show()
     } catch (err) {
@@ -178,11 +188,14 @@ async function getHoaRec(parcelId) {
 }
 
 function displayDetail(hoaRec) {
-    let tbody = propertyDetailTBody
+    let tbody = propertyDetailTbody
     empty(tbody)
     let tr = ''
     let th = ''
     let td = ''
+
+    //propertyOwnersTbody
+    //propertyAssessmentsTbody
 
 
     // setting records in a table (from an id reference to a tbody element within a table)
