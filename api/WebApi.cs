@@ -64,8 +64,9 @@ namespace GrhaWeb.Function
                 //log.LogInformation($">>> User is authorized - userName: {userName}");
 
                 // Get the content string from the HTTP request body
-                //string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
+                string searchStr = await new StreamReader(req.Body).ReadToEndAsync();
 
+                /*
                 // Get the content string from the HTTP request body
                 string content = await new StreamReader(req.Body).ReadToEndAsync();
                 // Deserialize the JSON string into a generic JSON object
@@ -76,6 +77,7 @@ namespace GrhaWeb.Function
                 if (jObject.TryGetValue("searchStr", out jToken)) {
                     searchStr = jToken.ToString();
                 }
+                */
 
                 /*   >>>>>> think about searches on these specific params in the future (if needed)
     let paramData = {

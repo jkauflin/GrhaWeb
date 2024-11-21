@@ -1,5 +1,6 @@
 /* ==========================================================================
    Author's custom styles
+   2024-11-21 JJK	Test link hover pointer
    ========================================================================== */
 
    * {
@@ -25,16 +26,27 @@
   }
 
 /* Turn off the outline on clicks to brand anchors */
-
-a {
-	outline: 0;
-	text-decoration:none; 
-	}
+li {
+	list-style-type: none;
+}
 a:link {
 	outline: 0;
 	text-decoration:none; 
 }
+a:hover {
+	cursor: pointer;
+}
+
+a.navbar-brand {
+	outline: 0;
+}
+
 /*
+a {
+	outline: 0;
+	text-decoration:none; 
+	}
+
 a:visited {
 	outline: 0;
 	text-decoration:none; 
@@ -43,13 +55,9 @@ a:hover {
 	outline: 0;
 	text-decoration:none; 
 }
-*/
+
 a:active {
 	outline: 0;
 	text-decoration:none; 
 }
-
-li {
-	list-style-type: none;
-}
-
+*/

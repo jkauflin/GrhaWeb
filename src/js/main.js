@@ -29,6 +29,7 @@
  *============================================================================*/
 
 var addressInput = document.getElementById("address");
+var messageDisplay = document.getElementById("MessageDisplay")
 
 // Keep track of the state of the navbar collapse (shown or hidden)
 var navbarCollapseShown = false;
@@ -117,6 +118,7 @@ function setCheckbox(checkVal) {
 async function fetchPropertiesData() {
     const endpoint = "/api/GetPropertyList2";
     try {
+        messageDisplay.textContent = "Fetching property information..."
         const response = await fetch(endpoint, {
             method: "POST",
             //headers: { "Content-Type": "application/json" },
@@ -126,10 +128,11 @@ async function fetchPropertiesData() {
             throw new Error('Network response was not ok');
         }
         const data = await response.json();
+        messageDisplay.textContent = ""
         displayPropertyList(data)
     } catch (err) {
         console.error(`Error in Fetch to ${endpoint}, ${err}`)
-        document.getElementById("MessageDisplay").textContent = "Fetch data FAILED - check log"
+        messageDisplay.textContent = "Fetch data FAILED - check log"
     }
 }
     
@@ -177,6 +180,7 @@ function displayPropertyList(hoaPropertyRecList) {
 async function getDuesStatement(element) {
     const endpoint = "/api/GetHoaRec2";
     try {
+        messageDisplay.textContent = "Fetching dues information..."
         const response = await fetch(endpoint, {
             method: "POST",
             //headers: { "Content-Type": "application/json" },
@@ -186,6 +190,7 @@ async function getDuesStatement(element) {
             throw new Error('Network response was not ok');
         }
         const data = await response.json();
+        messageDisplay.textContent = ""
         formatDuesStatementResults(data);
         new bootstrap.Modal(document.getElementById('duesStatementModal')).show();
     } catch (err) {

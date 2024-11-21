@@ -23,12 +23,14 @@ import {empty} from './util.js';
 //=================================================================================================================
 // Variables cached from the DOM
 var searchStr = document.getElementById("searchStr")
+/*
 var parcelId = document.getElementById("parcelId")
 var lotNo = document.getElementById("lotNo")
 var address = document.getElementById("address")
 var ownerName = document.getElementById("ownerName")
 var phoneNo = document.getElementById("phoneNo")
 var altAddress = document.getElementById("altAddress")
+*/
 var searchButton = document.getElementById("SearchButton")
 var propertyListDisplayTbody = document.getElementById("PropertyListDisplayTbody")
 var messageDisplay = document.getElementById("MessageDisplay")
@@ -54,6 +56,7 @@ if (!isTouchDevice) {
 
 async function getHoaPropertiesList() {
     // Create a parameters object to send via JSON in the POST request
+    /*
     let paramData = {
         searchStr: searchStr.value,
         parcelId: parcelId.value,
@@ -63,18 +66,23 @@ async function getHoaPropertiesList() {
         phoneNo: phoneNo.value,
         altAddress: altAddress.value
     }
+    */
+    empty(propertyListDisplayTbody)
 
     const endpoint = "/api/GetPropertyList";
     try {
+        messageDisplay.textContent = "Fetching property list..."
         const response = await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(paramData)
+            //body: JSON.stringify(paramData)
+            body: searchStr.value
         })
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
         const hoaPropertyRecList = await response.json();
+        messageDisplay.textContent = ""
         displayPropertyList(hoaPropertyRecList)
     } catch (err) {
         console.error(`Error in Fetch to ${endpoint}, ${err}`)

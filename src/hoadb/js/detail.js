@@ -144,8 +144,6 @@ async function getHoaRec(parcelId) {
     empty(propertyOwnersTbody)
     empty(propertyAssessmentsTbody)
 
-    messageDisplay.textContent = "Fetching data..."
-
     detailPageTab.show()
         
     /*
@@ -166,6 +164,7 @@ async function getHoaRec(parcelId) {
 
     const endpoint = "/api/GetHoaRec";
     try {
+        messageDisplay.textContent = "Fetching detail data..."
         const response = await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -176,9 +175,7 @@ async function getHoaRec(parcelId) {
             throw new Error('Network response was not ok');
         }
         hoaRec = await response.json();
-    
         messageDisplay.textContent = ""
-
         displayDetail(hoaRec)
         //detailPageTab.show()
     } catch (err) {
