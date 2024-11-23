@@ -16,6 +16,7 @@
  * 2020-12-22 JJK   Re-factored for Bootstrap 4
  * 2024-09-10 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
  *                  js module, and move from PHP/MySQL to Azure SWA
+ * 2024-11-21 JJK   Completed initial work for SWA version with API calls
  *============================================================================*/
 
 import {empty} from './util.js';
@@ -23,14 +24,6 @@ import {empty} from './util.js';
 //=================================================================================================================
 // Variables cached from the DOM
 var searchStr = document.getElementById("searchStr")
-/*
-var parcelId = document.getElementById("parcelId")
-var lotNo = document.getElementById("lotNo")
-var address = document.getElementById("address")
-var ownerName = document.getElementById("ownerName")
-var phoneNo = document.getElementById("phoneNo")
-var altAddress = document.getElementById("altAddress")
-*/
 var searchButton = document.getElementById("SearchButton")
 var propertyListDisplayTbody = document.getElementById("PropertyListDisplayTbody")
 var messageDisplay = document.getElementById("MessageDisplay")
@@ -56,17 +49,6 @@ if (!isTouchDevice) {
 
 async function getHoaPropertiesList() {
     // Create a parameters object to send via JSON in the POST request
-    /*
-    let paramData = {
-        searchStr: searchStr.value,
-        parcelId: parcelId.value,
-        lotNo: lotNo.value,
-        address: address.value,
-        ownerName: ownerName.value,
-        phoneNo: phoneNo.value,
-        altAddress: altAddress.value
-    }
-    */
     empty(propertyListDisplayTbody)
 
     const endpoint = "/api/GetPropertyList";
@@ -75,7 +57,6 @@ async function getHoaPropertiesList() {
         const response = await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            //body: JSON.stringify(paramData)
             body: searchStr.value
         })
         if (!response.ok) {

@@ -56,6 +56,7 @@ var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody
 var messageDisplay = document.getElementById("MessageDisplay")
 var isTouchDevice = 'ontouchstart' in document.documentElement
 
+// Do I still need these at this level???
 var hoaRec
 var currPdfRec
 
@@ -146,29 +147,12 @@ async function getHoaRec(parcelId) {
 
     detailPageTab.show()
         
-    /*
-    $propDetail.html("");
-    $propOwners.html("");
-    $propAssessments.html("");
-
-    $.getJSON("getHoaDbData.php", "parcelId=" + parcelId, function (outHoaRec) {
-        hoaRec = outHoaRec;
-        _render();
-        util.displayTabPage('DetailPage');
-    });
-
-    let paramData = {
-        parcelId: parcelId,
-    }
-    */
-
     const endpoint = "/api/GetHoaRec";
     try {
         messageDisplay.textContent = "Fetching detail data..."
         const response = await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-//            body: JSON.stringify(paramData)
             body: parcelId
         })
         if (!response.ok) {
@@ -199,6 +183,46 @@ function displayDetail(hoaRec) {
 
     // line
 
+    /*
+	                		<table class="table table-sm">
+	                  			<tbody id="PropertyDetailTbody">
+	                  			</tbody>
+	                		</table>
+
+        >>>>>>>>>>> is it still the best idea to:
+            1) display property details as rows in a table - *** check some of the other WEB UI displays you've done - Genv?
+            2) Edit - build a Modal with INPUT fields?
+
+            
+    function _render() {
+        var tr = '';
+        // Get the admin level to see if user is allowed to edit data
+        if (hoaRec.adminLevel > 1) {
+            tr += '<tr><th>Parcel Id:</th><td><a data-parcelId="' + hoaRec.Parcel_ID + '" href="#">' + hoaRec.Parcel_ID + '</a></td></tr>';
+        } else {
+            tr += '<tr><th>Parcel Id:</th><td>' + hoaRec.Parcel_ID + '</td></tr>';
+        }
+        tr += '<tr><th>Lot No:</th><td>' + hoaRec.LotNo + '</td></tr>';
+        tr += '<tr><th>Location: </th><td>' + hoaRec.Parcel_Location + '</td></tr>';
+        tr += '<tr><th class="d-none d-md-table-cell">Street No: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_Street_No + '</td></tr>';
+        tr += '<tr><th class="d-none d-md-table-cell">Street Name: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_Street_Name + '</td></tr>';
+        tr += '<tr><th class="d-none d-md-table-cell">City: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_City + '</td></tr>';
+        tr += '<tr><th class="d-none d-md-table-cell">State: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_State + '</td></tr>';
+        tr += '<tr><th class="d-none d-md-table-cell">Zip Code: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_Zip + '</td></tr>';
+        tr += '<tr><th>Total Due: </th><td>$' + util.formatMoney(hoaRec.TotalDue) + '</td></tr>';
+
+        //tr += '<tr><th class="d-none d-md-table-cell">Member: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Member) + '</td></tr>';
+        //tr += '<tr><th>Vacant: </th><td>' + util.setCheckbox(hoaRec.Vacant) + '</td></tr>';
+        tr += '<tr><th class="d-none d-md-table-cell">Rental: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Rental) + '</td></tr>';
+        tr += '<tr><th class="d-none d-md-table-cell">Managed: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Managed) + '</td></tr>';
+        tr += '<tr><th class="d-none d-md-table-cell">Foreclosure: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Foreclosure) + '</td></tr>';
+        tr += '<tr><th class="d-none d-md-table-cell">Bankruptcy: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Bankruptcy) + '</td></tr>';
+        tr += '<tr><th class="d-none d-md-table-cell">ToBe Released: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Liens_2B_Released) + '</td></tr>';
+        tr += '<tr><th>Use Email: </th><td>' + util.setCheckbox(hoaRec.UseEmail) + '</td></tr>';
+        tr += '<tr><th>Comments: </th><td>' + hoaRec.Comments + '</td></tr>';
+
+        $propDetail.html(tr);
+    */
 
     tr = document.createElement('tr')
     tr.classList.add('small')
