@@ -193,7 +193,6 @@ function displayDetail(hoaRec) {
             1) display property details as rows in a table - *** check some of the other WEB UI displays you've done - Genv?
             2) Edit - build a Modal with INPUT fields?
 
-            
     function _render() {
         var tr = '';
         // Get the admin level to see if user is allowed to edit data

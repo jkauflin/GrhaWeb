@@ -32,6 +32,24 @@ namespace GrhaWeb.Function
             return moneyValue;
         }
 
+
+/*
+        decimal amount = 1234.56m;
+        string formattedAmount = amount.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+*/
+
+/*
+    //Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
+    var nonMoneyCharsStr = "[\x01-\x2D\x2F\x3A-\x7F]";
+    //"g" global so it does more than 1 substitution
+    var regexNonMoneyChars = new RegExp(nonMoneyCharsStr, "g");
+    function formatMoney(inAmount) {
+        var inAmountStr = '' + inAmount;
+        inAmountStr = inAmountStr.replace(regexNonMoneyChars, '');
+        return parseFloat(inAmountStr).toFixed(2);
+    }
+*/
+
         //---------------------------------------------------------------------------------------------------
         // Calculate the total dues amount from the property assessments information and pass back a list
         // of the individual charge amounts and description
