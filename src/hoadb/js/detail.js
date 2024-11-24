@@ -141,7 +141,7 @@ async function getHoaRec(parcelId) {
     //var parcelId = (typeof value === "string") ? value : value.target.getAttribute("data-parcelId");
 
     let tbody = propertyDetailTbody
-    empty(tbody)
+    //empty(tbody)
     empty(propertyOwnersTbody)
     empty(propertyAssessmentsTbody)
 
@@ -170,7 +170,7 @@ async function getHoaRec(parcelId) {
 
 function displayDetail(hoaRec) {
     let tbody = propertyDetailTbody
-    empty(tbody)
+    //empty(tbody)
     let tr = ''
     let th = ''
     let td = ''
@@ -223,6 +223,7 @@ function displayDetail(hoaRec) {
         $propDetail.html(tr);
     */
 
+        /*
     tr = document.createElement('tr')
     tr.classList.add('small')
     
@@ -265,6 +266,7 @@ function displayDetail(hoaRec) {
     td.textContent = hoaRec.property.property_Street_No
     tr.appendChild(td)
     tbody.appendChild(tr)
+        */
 
     /*
     th = document.createElement("th"); th.textContent = "Parcel Location"; tr.appendChild(th)
