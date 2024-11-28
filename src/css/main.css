@@ -20,7 +20,13 @@
 	font-size: 3.5em;
   }
 
+/* Apply shadow-none to all input, textarea, and select elements */
+button, input, textarea, select {
+    box-shadow: none;
+	outline: none;
+}
 
+/* DON'T DO THIS, just use a Bootstrap class="small" on the TR element
 /* .small-header th { font-size: 0.8rem; } */
 /* .small-row td { font-size: 0.8rem; } */
 
