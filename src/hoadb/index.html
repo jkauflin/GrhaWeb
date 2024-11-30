@@ -47,10 +47,11 @@
 				  <div class="col-sm-4 col-md-3">
                     <h5>Search</h5>
 					<form>
-                    	<input type="text" class="form-control form-control-sm m-1 shadow-none" name="searchStr"  	id="searchStr" 	placeholder="Enter value to search">
+                    	<input type="text" class="form-control form-control-sm m-1 shadow-none" name="searchStr" id="searchStr" placeholder="Enter value to search">
                     	<button id="SearchButton" type="button" class="btn btn-primary mt-2 mb-2">
 							<i class="fa fa-search me-1"></i> Search
 						</button>
+
 						<!--
                     	<button id="AdvancedOptionsButton" type="button" class="btn btn-info mt-2 ml-2 mb-2" data-bs-toggle="collapse" data-bs-target="#AdvancedSearchOptions">Advanced Options</button>
 						<div id="AdvancedSearchOptions" class="collapse">
@@ -69,6 +70,7 @@
 				  </div>
 				  <div class="col-sm-8 col-md-9">
                 	<h5>Properties</h5>
+					<div id="SearchMessageDisplay" class="m-2"></div>
 		            <table class="table table-striped table-sm">
 		            	<tbody id="PropertyListDisplayTbody">
 		               	</tbody>
@@ -84,6 +86,9 @@
 
 				  		<div class="col-xs-5 col-sm-5">
 			             	<h5>Detail</h5>
+
+							<div id="DetailMessageDisplay" class="m-2"></div>
+
 		                  	<div id="MCTreasLink"></div>
 		                  		<div id="MCAuditorLink"></div>
 		                  		<div id="DuesStatement"></div>
@@ -121,7 +126,7 @@
 										<input id="UseEmail" class="form-check-input shadow-none" type="checkbox">
 									</td></tr>
 									<tr  class="small"><th>Comments: </th><td>
-										<textarea id="Comments" class="form-control shadow-none" rows="3"></textarea>
+										<textarea id="Comments" class="form-control shadow-none" rows="2"></textarea>
 									</td></tr>
 	                  			</tbody>
 	                		</table>
@@ -263,7 +268,9 @@
 
 	</div><!-- end of main tab content -->
 
+		<!--
 		<div id="MessageDisplay" class="m-2"></div>
+		-->
 
     </div><!-- end of main container -->
 

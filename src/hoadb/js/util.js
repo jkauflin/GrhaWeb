@@ -24,17 +24,29 @@
  * 2021-02-07 JJK   Added formateDateMonth
  * 2024-09-10 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
  *                  js module, and move from PHP/MySQL to Azure SWA
+ * 2024-11-30 JJK   Added the showLoadingSpinner function to display a 
+ *                  Loading... message with a built-in Bootstrap spinner
  *============================================================================*/
 
-    //=================================================================================================================
-    // Variables cached from the DOM
+//=================================================================================================================
+// Variables cached from the DOM
 
-    //=================================================================================================================
-    // Bind events
-
-    //=================================================================================================================
-    // Module methods
-
+var spanSpinner = document.createElement("span")
+spanSpinner.classList.add("spinner-grow","spinner-grow-sm","me-2")
+spanSpinner.setAttribute("aria-hidden","true")
+var spanSpinnerStatus = document.createElement("span")
+spanSpinnerStatus.setAttribute("role","status")
+spanSpinnerStatus.textContent = "Loading..."
+    
+//=================================================================================================================
+// Module methods
+export function showLoadingSpinner(buttonElement) {
+    empty(buttonElement)
+    buttonElement.appendChild(spanSpinner)            
+    buttonElement.appendChild(spanSpinnerStatus)            
+}
+    
+    
 // Remove all child nodes from an element
 export function empty(node) {
     while (node.firstChild) {

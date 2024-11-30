@@ -37,9 +37,10 @@
  *                  js module, and move from PHP/MySQL to Azure SWA
  * 2024-09-16 JJK   Added set and use of detailPageTab to show the tab page
  * 2024-11-05 JJK   Completed getHoaRec, working on detail display
+ * 2024-11-30 JJK   Added showLoadingSpinner for loading... display
  *============================================================================*/
 
-import {empty} from './util.js';
+import {empty,showLoadingSpinner} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -51,7 +52,7 @@ var detailPageTab = bootstrap.Tab.getOrCreateInstance(document.querySelector(`.n
 var propertyOwnersTbody = document.getElementById("PropertyOwnersTbody")
 var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody")
 
-var messageDisplay = document.getElementById("MessageDisplay")
+var messageDisplay = document.getElementById("DetailMessageDisplay")
 var isTouchDevice = 'ontouchstart' in document.documentElement
 
 // Do I still need these at this level???
@@ -158,15 +159,29 @@ document.body.addEventListener('click', function (event) {
 })
 
 async function getHoaRec(parcelId) {
+    // Clear out the property detail display fields
+    Parcel_ID.textContent = ""
+    LotNo.textContent = ""
+    Property_Street_No.textContent = ""
+    Property_Street_Name.textContent = ""
+    Property_City.textContent = ""
+    Property_State.textContent = ""
+    Property_Zip.textContent = ""
+    Rental.checked = false
+    Managed.checked = false
+    Foreclosure.checked = false
+    Bankruptcy.checked = false
+    UseEmail.checked = false
+    Comments.textContent = ""
     // Clear out the display tables for Owner and Assessment lists
     empty(propertyOwnersTbody)
     empty(propertyAssessmentsTbody)
 
+    showLoadingSpinner(messageDisplay)
     detailPageTab.show()
-        
+
     const endpoint = "/api/GetHoaRec";
     try {
-        messageDisplay.textContent = "Fetching detail data..."
         const response = await fetch(endpoint, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -176,7 +191,8 @@ async function getHoaRec(parcelId) {
             throw new Error('Network response was not ok');
         }
         hoaRec = await response.json();
-        messageDisplay.textContent = ""
+        messageDisplay.innerHTML = ""
+ 
         displayDetail(hoaRec)
         //detailPageTab.show()
     } catch (err) {
@@ -194,7 +210,6 @@ function displayDetail(hoaRec) {
     //propertyAssessmentsTbody
 //PropertyUpdateButton
 
-hoaRec.property.useEmail = 1
 
 Parcel_ID.textContent = hoaRec.property.parcel_ID
 LotNo.textContent = hoaRec.property.lotNo

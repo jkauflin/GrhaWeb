@@ -17,17 +17,21 @@
  * 2024-09-10 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
  *                  js module, and move from PHP/MySQL to Azure SWA
  * 2024-11-21 JJK   Completed initial work for SWA version with API calls
+ * 2024-11-30 JJK   Added showLoadingSpinner for loading... display
  *============================================================================*/
 
-import {empty} from './util.js';
+import {empty,showLoadingSpinner} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
 var searchStr = document.getElementById("searchStr")
 var searchButton = document.getElementById("SearchButton")
 var propertyListDisplayTbody = document.getElementById("PropertyListDisplayTbody")
-var messageDisplay = document.getElementById("MessageDisplay")
+var messageDisplay = document.getElementById("SearchMessageDisplay")
 var isTouchDevice = 'ontouchstart' in document.documentElement;
+
+var searchButtonHTML = '<i class="fa fa-search me-1"></i> Search'
+searchButton.innerHTML = searchButtonHTML
 
 //=================================================================================================================
 // Bind events
@@ -50,6 +54,7 @@ if (!isTouchDevice) {
 async function getHoaPropertiesList() {
     // Create a parameters object to send via JSON in the POST request
     empty(propertyListDisplayTbody)
+    showLoadingSpinner(searchButton)
 
     const endpoint = "/api/GetPropertyList";
     try {
@@ -64,7 +69,9 @@ async function getHoaPropertiesList() {
         }
         const hoaPropertyRecList = await response.json();
         messageDisplay.textContent = ""
+        searchButton.innerHTML = searchButtonHTML
         displayPropertyList(hoaPropertyRecList)
+
     } catch (err) {
         console.error(`Error in Fetch to ${endpoint}, ${err}`)
         messageDisplay.textContent = "Fetch data FAILED - check log"
@@ -86,10 +93,12 @@ function displayPropertyList(hoaPropertyRecList) {
         tr.classList.add('small')
         // Append the header elements
         let th = document.createElement("th"); th.textContent = "Row"; tr.appendChild(th)
+        //th = document.createElement("th"); th.classList.add('w-25'); th.textContent = "Parcel Location"; tr.appendChild(th)
         th = document.createElement("th"); th.textContent = "Parcel Location"; tr.appendChild(th)
+        //th = document.createElement("th"); th.classList.add('d-none','d-sm-table-cell','w-25'); th.textContent = "Parcel Id"; tr.appendChild(th)
         th = document.createElement("th"); th.classList.add('d-none','d-sm-table-cell'); th.textContent = "Parcel Id"; tr.appendChild(th)
         th = document.createElement("th"); th.classList.add('d-none','d-lg-table-cell'); th.textContent = "Owner Name"; tr.appendChild(th)
-        th = document.createElement("th"); th.classList.add('d-none','d-lg-table-cell'); th.textContent = "Owner Phone"; tr.appendChild(th)
+        //th = document.createElement("th"); th.classList.add('d-none','d-lg-table-cell'); th.textContent = "Owner Phone"; tr.appendChild(th)
         tbody.appendChild(tr)
 
         // Append a row for every record in list
@@ -99,15 +108,17 @@ function displayPropertyList(hoaPropertyRecList) {
             tr.classList.add('small')
             let td = document.createElement("td"); td.textContent = Number(index) + 1; tr.appendChild(td)
             let a = document.createElement("a")
-            a.classList.add('class', "DetailDisplay")
+            a.classList.add("DetailDisplay")
             a.setAttribute('data-parcelId', hoaPropertyRec.parcelId);
             a.textContent = hoaPropertyRec.parcelLocation
             td = document.createElement("td"); 
+            //td.classList.add('w-25');
             td.appendChild(a);
             tr.appendChild(td)
+            //td = document.createElement("td"); td.classList.add('d-none','d-sm-table-cell','w-25'); td.textContent = hoaPropertyRec.parcelId; tr.appendChild(td)
             td = document.createElement("td"); td.classList.add('d-none','d-sm-table-cell'); td.textContent = hoaPropertyRec.parcelId; tr.appendChild(td)
             td = document.createElement("td"); td.classList.add('d-none','d-lg-table-cell'); td.textContent = hoaPropertyRec.ownerName; tr.appendChild(td)
-            td = document.createElement("td"); td.classList.add('d-none','d-lg-table-cell'); td.textContent = hoaPropertyRec.ownerPhone; tr.appendChild(td)
+            //td = document.createElement("td"); td.classList.add('d-none','d-lg-table-cell'); td.textContent = hoaPropertyRec.ownerPhone; tr.appendChild(td)
             tbody.appendChild(tr)
         }
     }
