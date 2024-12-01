@@ -98,8 +98,10 @@ function displayPropertyList(hoaPropertyRecList) {
         //th = document.createElement("th"); th.classList.add('d-none','d-sm-table-cell','w-25'); th.textContent = "Parcel Id"; tr.appendChild(th)
         th = document.createElement("th"); th.classList.add('d-none','d-sm-table-cell'); th.textContent = "Parcel Id"; tr.appendChild(th)
         th = document.createElement("th"); th.classList.add('d-none','d-lg-table-cell'); th.textContent = "Owner Name"; tr.appendChild(th)
-        //th = document.createElement("th"); th.classList.add('d-none','d-lg-table-cell'); th.textContent = "Owner Phone"; tr.appendChild(th)
+        th = document.createElement("th"); th.classList.add('d-none','d-xl-table-cell'); th.textContent = "Owner Phone"; tr.appendChild(th)
         tbody.appendChild(tr)
+
+//BRANDENBURG, DOUGLAS S JR and MANGOLD, SAVANNAH
 
         // Append a row for every record in list
         for (let index in hoaPropertyRecList) {
@@ -117,8 +119,8 @@ function displayPropertyList(hoaPropertyRecList) {
             tr.appendChild(td)
             //td = document.createElement("td"); td.classList.add('d-none','d-sm-table-cell','w-25'); td.textContent = hoaPropertyRec.parcelId; tr.appendChild(td)
             td = document.createElement("td"); td.classList.add('d-none','d-sm-table-cell'); td.textContent = hoaPropertyRec.parcelId; tr.appendChild(td)
-            td = document.createElement("td"); td.classList.add('d-none','d-lg-table-cell'); td.textContent = hoaPropertyRec.ownerName; tr.appendChild(td)
-            //td = document.createElement("td"); td.classList.add('d-none','d-lg-table-cell'); td.textContent = hoaPropertyRec.ownerPhone; tr.appendChild(td)
+            td = document.createElement("td"); td.classList.add('d-none','d-lg-table-cell'); td.textContent = hoaPropertyRec.ownerName.substring(0,40); tr.appendChild(td)
+            td = document.createElement("td"); td.classList.add('d-none','d-xl-table-cell'); td.textContent = hoaPropertyRec.ownerPhone; tr.appendChild(td)
             tbody.appendChild(tr)
         }
     }

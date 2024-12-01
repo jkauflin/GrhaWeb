@@ -45,8 +45,7 @@ export function showLoadingSpinner(buttonElement) {
     buttonElement.appendChild(spanSpinner)            
     buttonElement.appendChild(spanSpinnerStatus)            
 }
-    
-    
+       
 // Remove all child nodes from an element
 export function empty(node) {
     while (node.firstChild) {
@@ -54,26 +53,6 @@ export function empty(node) {
     }
 }
 
-/*
-function displayTabPage(targetTabPage) {
-    // Remove the active class on the current active tab
-    $(".nav-link.active").removeClass("active");
-    // Show the target tab page
-    $('.navbar-nav a[href="#'+targetTabPage+'"]').tab('show')
-    // Make the target tab page active
-    $('.navbar-nav a[href="#'+targetTabPage+'"]').addClass('active');
-}
-*/
-
-
-    function sleep(milliseconds) {
-        var start = new Date().getTime();
-        for (var i = 0; i < 1e7; i++) {
-            if ((new Date().getTime() - start) > milliseconds) {
-                break;
-            }
-        }
-    }
 
     function urlParam(name) {
         var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
@@ -203,32 +182,3 @@ function displayTabPage(targetTabPage) {
         return tempStr;
     }
 
-    function displayError(errorMessage) {
-        //$ajaxError.html(errorMessage);
-    }
-
-    //=================================================================================================================
-    // This is what is exposed from this Module
-    /*
-    return {
-        displayTabPage,
-        sleep:              sleep,
-        urlParam:           urlParam,
-        cleanStr:           cleanStr,
-        csvFilter:          csvFilter,
-        formatMoney:        formatMoney,
-        formatDate:         formatDate,
-        formatDate2,
-        formatDateMonth,
-        setBoolText:        setBoolText,
-        setCheckbox:        setCheckbox,
-        setCheckboxEdit:    setCheckboxEdit,
-        setInputText:       setInputText,
-        setTextArea: setTextArea,
-        setTextArea2,
-        setInputDate:       setInputDate,
-        setSelectOption:    setSelectOption,
-        getJSONfromInputs:  getJSONfromInputs,
-        displayError:       displayError
-    };
-    */
