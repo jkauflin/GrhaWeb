@@ -101,8 +101,6 @@ function displayPropertyList(hoaPropertyRecList) {
         th = document.createElement("th"); th.classList.add('d-none','d-xl-table-cell'); th.textContent = "Owner Phone"; tr.appendChild(th)
         tbody.appendChild(tr)
 
-//BRANDENBURG, DOUGLAS S JR and MANGOLD, SAVANNAH
-
         // Append a row for every record in list
         for (let index in hoaPropertyRecList) {
             let hoaPropertyRec = hoaPropertyRecList[index]
