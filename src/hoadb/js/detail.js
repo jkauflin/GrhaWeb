@@ -73,6 +73,13 @@ var Bankruptcy = document.getElementById("Bankruptcy")
 var UseEmail = document.getElementById("UseEmail")
 var Comments = document.getElementById("Comments")
 var PropertyUpdateButton = document.getElementById("PropertyUpdateButton")
+
+var MCTreasLink = document.getElementById("MCTreasLink")
+var MCAuditorLink = document.getElementById("MCAuditorLink")
+var DuesStatementButton = document.getElementById("DuesStatementButton")
+var NewOwnerButton = document.getElementById("NewOwnerButton")
+var CommunicationsButton = document.getElementById("CommunicationsButton")
+
 /*
 lastChangedBy
 : 
@@ -83,10 +90,6 @@ lastChangedTs
 */
 
 /*
-var $document = $(document);
-var $moduleDiv = $('#DetailPage');
-var $ajaxError = $moduleDiv.find(".ajaxError");
-
 var $propertyDetail = $moduleDiv.find("#PropertyDetail");
 var $propertyOwners = $moduleDiv.find("#PropertyOwners");
 var $propertyAssessments = $moduleDiv.find("#PropertyAssessments");
@@ -208,87 +211,28 @@ function displayDetail(hoaRec) {
 
     //propertyOwnersTbody
     //propertyAssessmentsTbody
-//PropertyUpdateButton
+    //PropertyUpdateButton
 
-
-Parcel_ID.textContent = hoaRec.property.parcel_ID
-LotNo.textContent = hoaRec.property.lotNo
-Property_Street_No.textContent = hoaRec.property.property_Street_No
-Property_Street_Name.textContent = hoaRec.property.property_Street_Name
-Property_City.textContent = hoaRec.property.property_City
-Property_State.textContent = hoaRec.property.property_State
-Property_Zip.textContent = hoaRec.property.property_Zip
-Rental.checked = (hoaRec.property.rental == 1) ? Rental.checked = true : false
-Managed.checked = (hoaRec.property.managed == 1) ? Managed.checked = true : false
-Foreclosure.checked = (hoaRec.property.foreclosure == 1) ? Foreclosure.checked = true : false
-Bankruptcy.checked = (hoaRec.property.bankruptcy == 1) ? Bankruptcy.checked = true : false
-UseEmail.checked = (hoaRec.property.useEmail == 1) ? UseEmail.checked = true : false
-Comments.textContent = hoaRec.property.comments
+    Parcel_ID.textContent = hoaRec.property.parcel_ID
+    LotNo.textContent = hoaRec.property.lotNo
+    Property_Street_No.textContent = hoaRec.property.property_Street_No
+    Property_Street_Name.textContent = hoaRec.property.property_Street_Name
+    Property_City.textContent = hoaRec.property.property_City
+    Property_State.textContent = hoaRec.property.property_State
+    Property_Zip.textContent = hoaRec.property.property_Zip
+    Rental.checked = (hoaRec.property.rental == 1) ? Rental.checked = true : false
+    Managed.checked = (hoaRec.property.managed == 1) ? Managed.checked = true : false
+    Foreclosure.checked = (hoaRec.property.foreclosure == 1) ? Foreclosure.checked = true : false
+    Bankruptcy.checked = (hoaRec.property.bankruptcy == 1) ? Bankruptcy.checked = true : false
+    UseEmail.checked = (hoaRec.property.useEmail == 1) ? UseEmail.checked = true : false
+    Comments.textContent = hoaRec.property.comments
 
     /*
-									<tr id="Parcel_ID" class="small"><th>Parcel Id:</th><td id="Parcel_ID">xxxxxxxxxxx</td></tr>
-									<tr id="LotNo" class="small"><th>Lot No:</th><td>12345</td></tr>
-									<tr id="Property_Street_No" class="small"><th class="d-none d-md-table-cell">Street No: </th><td class="d-none d-md-table-cell"></td></tr>
-									<tr id="Property_Street_Name" class="small"><th class="d-none d-md-table-cell">Street Name: </th><td class="d-none d-md-table-cell"></td></tr>
-									<tr id="Property_City" class="small"><th class="d-none d-md-table-cell">City: </th><td class="d-none d-md-table-cell"></td></tr>
-									<tr id="Property_State" class="small"><th class="d-none d-md-table-cell">State: </th><td class="d-none d-md-table-cell"></td></tr>
-									<tr id="Property_Zip" class="small"><th class="d-none d-md-table-cell">Zip Code: </th><td class="d-none d-md-table-cell"></td></tr>
-									<tr id="TotalDue" class="small"><th>Total Due: </th><td></td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">Rental: </th><td class="d-none d-md-table-cell">
-										<input id="Rental" type="checkbox" class="form-check-input shadow-none">
-									</td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">Managed: </th><td class="d-none d-md-table-cell">
-										<input id="Managed" type="checkbox" class="form-check-input shadow-none">
-									</td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">Foreclosure: </th><td class="d-none d-md-table-cell">
-										<input id="Foreclosure" type="checkbox" class="form-check-input shadow-none">
-									</td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">Bankruptcy: </th><td class="d-none d-md-table-cell">
-										<input id="Bankruptcy" type="checkbox" class="form-check-input shadow-none">
-									</td></tr>
-									<tr  class="small"><th>Use Email: </th><td>
-										<input id="UseEmail" class="form-check-input shadow-none" type="checkbox">
-									</td></tr>
-									<tr  class="small"><th>Comments: </th><td>
-										<textarea id="Comments" class="form-control shadow-none" rows="3"></textarea>
-									</td></tr>
-	                  			</tbody>
-	                		</table>
-							<button id="PropertyUpdateButton" type="button" class="btn btn-success">
-
-
         >>>>>>>>>>> is it still the best idea to:
             1) display property details as rows in a table - *** check some of the other WEB UI displays you've done - Genv?
             2) Edit - build a Modal with INPUT fields?
 
     function _render() {
-        var tr = '';
-        // Get the admin level to see if user is allowed to edit data
-        if (hoaRec.adminLevel > 1) {
-            tr += '<tr><th>Parcel Id:</th><td><a data-parcelId="' + hoaRec.Parcel_ID + '" href="#">' + hoaRec.Parcel_ID + '</a></td></tr>';
-        } else {
-            tr += '<tr><th>Parcel Id:</th><td>' + hoaRec.Parcel_ID + '</td></tr>';
-        }
-        tr += '<tr><th>Lot No:</th><td>' + hoaRec.LotNo + '</td></tr>';
-        tr += '<tr><th>Location: </th><td>' + hoaRec.Parcel_Location + '</td></tr>';
-        tr += '<tr><th class="d-none d-md-table-cell">Street No: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_Street_No + '</td></tr>';
-        tr += '<tr><th class="d-none d-md-table-cell">Street Name: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_Street_Name + '</td></tr>';
-        tr += '<tr><th class="d-none d-md-table-cell">City: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_City + '</td></tr>';
-        tr += '<tr><th class="d-none d-md-table-cell">State: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_State + '</td></tr>';
-        tr += '<tr><th class="d-none d-md-table-cell">Zip Code: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_Zip + '</td></tr>';
-        tr += '<tr><th>Total Due: </th><td>$' + util.formatMoney(hoaRec.TotalDue) + '</td></tr>';
-
-        //tr += '<tr><th class="d-none d-md-table-cell">Member: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Member) + '</td></tr>';
-        //tr += '<tr><th>Vacant: </th><td>' + util.setCheckbox(hoaRec.Vacant) + '</td></tr>';
-        tr += '<tr><th class="d-none d-md-table-cell">Rental: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Rental) + '</td></tr>';
-        tr += '<tr><th class="d-none d-md-table-cell">Managed: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Managed) + '</td></tr>';
-        tr += '<tr><th class="d-none d-md-table-cell">Foreclosure: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Foreclosure) + '</td></tr>';
-        tr += '<tr><th class="d-none d-md-table-cell">Bankruptcy: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Bankruptcy) + '</td></tr>';
-        tr += '<tr><th class="d-none d-md-table-cell">ToBe Released: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Liens_2B_Released) + '</td></tr>';
-        tr += '<tr><th>Use Email: </th><td>' + util.setCheckbox(hoaRec.UseEmail) + '</td></tr>';
-        tr += '<tr><th>Comments: </th><td>' + hoaRec.Comments + '</td></tr>';
-
-        $propDetail.html(tr);
     */
 
         /*
