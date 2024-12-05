@@ -48,16 +48,18 @@ import {empty,showLoadingSpinner} from './util.js';
 //var searchButton = document.getElementById("SearchButton")
 
 var detailPageTab = bootstrap.Tab.getOrCreateInstance(document.querySelector(`.navbar-nav a[href="#DetailPage"]`))
-
-var propertyOwnersTbody = document.getElementById("PropertyOwnersTbody")
-var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody")
-
 var messageDisplay = document.getElementById("DetailMessageDisplay")
 var isTouchDevice = 'ontouchstart' in document.documentElement
 
 // Do I still need these at this level???
 var hoaRec
 var currPdfRec
+
+var MCTreasLink = document.getElementById("MCTreasLink")
+var MCAuditorLink = document.getElementById("MCAuditorLink")
+var DuesStatementButton = document.getElementById("DuesStatementButton")
+var NewOwnerButton = document.getElementById("NewOwnerButton")
+var CommunicationsButton = document.getElementById("CommunicationsButton")
 
 var Parcel_ID = document.getElementById("Parcel_ID")
 var LotNo = document.getElementById("LotNo")
@@ -74,11 +76,9 @@ var UseEmail = document.getElementById("UseEmail")
 var Comments = document.getElementById("Comments")
 var PropertyUpdateButton = document.getElementById("PropertyUpdateButton")
 
-var MCTreasLink = document.getElementById("MCTreasLink")
-var MCAuditorLink = document.getElementById("MCAuditorLink")
-var DuesStatementButton = document.getElementById("DuesStatementButton")
-var NewOwnerButton = document.getElementById("NewOwnerButton")
-var CommunicationsButton = document.getElementById("CommunicationsButton")
+var propertyOwnersTbody = document.getElementById("PropertyOwnersTbody")
+var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody")
+
 
 /*
 lastChangedBy
@@ -90,17 +90,6 @@ lastChangedTs
 */
 
 /*
-var $propertyDetail = $moduleDiv.find("#PropertyDetail");
-var $propertyOwners = $moduleDiv.find("#PropertyOwners");
-var $propertyAssessments = $moduleDiv.find("#PropertyAssessments");
-var $propDetail = $propertyDetail.find('tbody');
-var $propOwners = $propertyOwners.find('tbody');
-var $propAssessments = $propertyAssessments.find('tbody');
-var $MCTreasLink = $("#MCTreasLink");
-var $MCAuditorLink = $("#MCAuditorLink");
-var $DuesStatement = $("#DuesStatement");
-var $Communications = $("#Communications");
-var $NewOwner = $("#NewOwner");
 var $editValidationError = $(".editValidationError");
 
 var $EditPage = $("#EditPage");
@@ -208,10 +197,7 @@ function displayDetail(hoaRec) {
     let tr = ''
     let th = ''
     let td = ''
-
-    //propertyOwnersTbody
-    //propertyAssessmentsTbody
-    //PropertyUpdateButton
+    let tbody = ''
 
     Parcel_ID.textContent = hoaRec.property.parcel_ID
     LotNo.textContent = hoaRec.property.lotNo
@@ -226,6 +212,54 @@ function displayDetail(hoaRec) {
     Bankruptcy.checked = (hoaRec.property.bankruptcy == 1) ? Bankruptcy.checked = true : false
     UseEmail.checked = (hoaRec.property.useEmail == 1) ? UseEmail.checked = true : false
     Comments.textContent = hoaRec.property.comments
+
+    tbody = propertyOwnersTbody
+    tr = document.createElement('tr')
+    //tr.classList.add('small')
+    // Append the header elements
+    th = document.createElement("th"); th.textContent = "OwnId"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Owner"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Phone"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Purchased"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Alt Address"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Comments"; tr.appendChild(th)
+    tbody.appendChild(tr)
+
+    // Append a row for every record in list
+    for (let index in hoaRec.ownersList) {
+        let ownerRec = hoaRec.ownersList[index]
+
+        /*
+        if (rec.CurrentOwner) {
+            ownName1 = rec.Owner_Name1;
+            currOwnerID = rec.OwnerID;
+        }
+        */
+
+        tr = document.createElement('tr')
+        tr.classList.add('small')
+
+        td = document.createElement("td"); td.textContent = ownerRec.ownerID; tr.appendChild(td)
+
+        let a = document.createElement("a")
+        a.href = ""
+        //a.classList.add('class', "DetailDisplay")
+        a.setAttribute('data-parcelId', ownerRec.parcelId);
+        a.setAttribute('data-ownerId', ownerRec.ownerID);
+        a.textContent = ownerRec.owner_Name1 + ' ' + ownerRec.owner_Name2
+        td = document.createElement("td"); 
+        td.appendChild(a);
+        tr.appendChild(td)
+
+        td = document.createElement("td"); td.textContent = ownerRec.owner_Phone; tr.appendChild(td)
+        td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = ownerRec.datePurchased; tr.appendChild(td)
+        td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = ownerRec.alt_Address_Line1; tr.appendChild(td)
+        td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = ownerRec.comments; tr.appendChild(td)
+
+        tbody.appendChild(tr)
+    }
+
+    tbody = propertyAssessmentsTbody
 
     /*
         >>>>>>>>>>> is it still the best idea to:
