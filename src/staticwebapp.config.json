@@ -4,6 +4,10 @@
       {
         "route": "/hoadb*",
         "allowedRoles": ["hoadbadmin"]
+      },
+      {
+        "route": "/admin*",
+        "allowedRoles": ["grhaadmin"]
       }
     ],
     "responseOverrides": {

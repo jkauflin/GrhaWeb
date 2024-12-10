@@ -1,0 +1,238 @@
+<!doctype html>
+<html class="no-js" lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>HOA db</title>
+	<meta name="keywords" 		content="homewowners association database hoa db" />
+	<meta name="description"	content="This is the Homeowners Association database" />
+	<meta name="Author" 		content="John J Kauflin"/>
+    <!-- Place favicon.ico in the root directory -->
+    <link rel="icon" href="favicon.ico">
+
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" 
+		integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+	<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"
+		integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous" />
+
+    <link rel="stylesheet" href="css/main.css">
+</head>
+
+<body>
+	<nav class="navbar navbar-expand-sm bg-dark navbar-dark" role="navigation">
+		<a class="navbar-brand p-0 mx-2" href="/hoadb"><img class="m-0 p-0" id="header-image" alt="logo photo" src="images/logo-photo.jpg"></a>
+		<a class="navbar-brand d-lg-none" data-bs-toggle="modal" href="#aboutModal">GRHA Admin</a>
+		<a class="navbar-brand d-none d-lg-block" data-bs-toggle="modal" href="#aboutModal">GRHA Admin v1.0</a>
+		<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+			<span class="navbar-toggler-icon"></span>
+		</button>
+		<!-- Navbar links -->
+		<div class="collapse navbar-collapse justify-content-end mx-2" id="collapsibleNavbar">
+			<ul class="nav navbar-nav">
+                <li class="nav-item"><a class="nav-link active" href="#SearchPage" data-bs-toggle="tab"><i class="fa fa-search fa-lg"></i> Search</a></li>
+                <li class="nav-item"><a class="nav-link" href="#DetailPage" data-bs-toggle="tab"><i class="fa fa-list" fa-lg></i> Detail</a></li>
+                <li class="nav-item"><a class="nav-link" href="#ConfigPage" data-bs-toggle="tab"><i class="fa fa-cog fa-lg"></i> Config</a></li>
+			</ul>
+		</div>
+	</nav>
+
+    <div class="container-fluid">
+	<div class="tab-content">
+		<div class="tab-pane show active" role="tabpanel" id="SearchPage">
+			<div class="row">
+				  <div class="col-sm-3 col-md-3">
+                    <h5>Search</h5>
+					<form>
+                    	<input type="text" class="form-control form-control-sm m-1 shadow-none" name="searchStr" id="searchStr" placeholder="Enter value to search">
+                    	<button id="SearchButton" type="button" class="btn btn-primary mt-2 mb-2">
+							<i class="fa fa-search me-1"></i> Search
+						</button>
+
+						<!--
+                    	<button id="AdvancedOptionsButton" type="button" class="btn btn-info mt-2 ml-2 mb-2" data-bs-toggle="collapse" data-bs-target="#AdvancedSearchOptions">Advanced Options</button>
+						<div id="AdvancedSearchOptions" class="collapse">
+	                    	<div class="form-group">
+	                    		<input type="text" name="parcelId"  	id="parcelId" 	placeholder="Parcel Id (R35617399 0001)" class="form-control form-control-sm mb-1 resetval">
+	                    		<input type="text" name="lotNo"     	id="lotNo"		placeholder="Lot Number" class="form-control form-control-sm mb-1 resetval">
+	                    		<input type="text" name="address"       id="address"   	placeholder="Property Address" class="form-control form-control-sm mb-1 resetval">
+	                    		<input type="text" name="ownerName"     id="ownerName" 	placeholder="Owner Name (Last First)" class="form-control form-control-sm mb-1 resetval">
+	                    		<input type="text" name="phoneNo"       id="phoneNo"   	placeholder="Phone Number" class="form-control form-control-sm mb-1 resetval">
+	                    		<input type="text" name="altAddress"    id="altAddress"	placeholder="Alternate Address" class="form-control form-control-sm mb-1 resetval">
+                            </div>
+                        </div>
+						-->
+                    </form>
+
+				  </div>
+				  <div class="col-sm-9 col-md-9">
+                	<h5>Properties</h5>
+					<div id="SearchMessageDisplay" class="m-2"></div>
+		            <table class="table table-striped table-sm">
+		            	<tbody id="PropertyListDisplayTbody">
+		               	</tbody>
+		           	</table>
+				  </div>
+			</div><!-- row -->
+	    </div><!-- end of Search tab -->
+
+	    <div class="tab-pane" role="tabpanel" id="DetailPage">
+			<div class="row">
+				<div class="col-sm-5 col-md-4">
+					<div class="row">
+
+				  		<div class="col-xs-5 col-sm-5">
+			             	<h5>Detail</h5>
+							<div id="DetailMessageDisplay" class="m-2"></div>
+							<a id="MCTreasLink" href="" class="btn btn-sm btn-primary me-1 mb-1 float-left d-none d-md-block" role="button" target="_blank">
+								County<br>Treasurer
+							</a>
+							<a id="MCAuditorLink" href="" class="btn btn-sm btn-primary me-1 mb-1 float-left d-none d-md-block" role="button" target="_blank">
+								County<br>Property
+							</a>
+							<a id="DuesStatementButton" data-parcelId="" data-ownerId="" href="" class="btn btn-sm btn-success mr-1 mb-1 float-left" role="button">
+								Dues Statement
+							</a>
+							<a id="NewOwnerButton" data-parcelId="" data-ownerId="" href="" class="btn btn-sm btn-warning mr-1 mb-1 float-left" role="button">
+								New Owner
+							</a>
+							<a id="CommunicationsButton" data-parcelId="" data-ownerId="" href="" class="btn btn-sm btn-info mr-1 mb-1 float-left" role="button">
+								Communications
+							</a>
+							<!--
+		                  	<div id="AddAssessment">
+							</div>
+							-->
+		            	</div>
+
+    					<div class="col-xs-7 col-sm-7">
+	                		<h5 class="mt-2">Property Detail</h5>
+
+	                		<table class="table table-sm table-borderless">
+								<tbody>
+									<tr class="small"><th>Parcel Id:</th><td id="Parcel_ID"></td></tr>
+									<tr class="small"><th>Lot No:</th><td id="LotNo"></td></tr>
+									<tr class="small"><th class="d-none d-md-table-cell">Street No: </th><td id="Property_Street_No" class="d-none d-md-table-cell"></td></tr>
+									<tr class="small"><th class="d-none d-md-table-cell">Street Name: </th><td id="Property_Street_Name" class="d-none d-md-table-cell"></td></tr>
+									<tr class="small"><th class="d-none d-md-table-cell">City: </th><td id="Property_City" class="d-none d-md-table-cell"></td></tr>
+									<tr class="small"><th class="d-none d-md-table-cell">State: </th><td id="Property_State" class="d-none d-md-table-cell"></td></tr>
+									<tr class="small"><th class="d-none d-md-table-cell">Zip Code: </th><td id="Property_Zip" class="d-none d-md-table-cell"></td></tr>
+									<tr class="small"><th>Total Due: </th><td id="TotalDue"></td></tr>
+									<tr class="small"><th class="d-none d-md-table-cell">Rental: </th><td class="d-none d-md-table-cell">
+										<input id="Rental" type="checkbox" class="form-check-input shadow-none">
+									</td></tr>
+									<tr class="small"><th class="d-none d-md-table-cell">Managed: </th><td class="d-none d-md-table-cell">
+										<input id="Managed" type="checkbox" class="form-check-input shadow-none">
+									</td></tr>
+									<tr class="small"><th class="d-none d-md-table-cell">Foreclosure: </th><td class="d-none d-md-table-cell">
+										<input id="Foreclosure" type="checkbox" class="form-check-input shadow-none">
+									</td></tr>
+									<tr class="small"><th class="d-none d-md-table-cell">Bankruptcy: </th><td class="d-none d-md-table-cell">
+										<input id="Bankruptcy" type="checkbox" class="form-check-input shadow-none">
+									</td></tr>
+									<tr  class="small"><th>Use Email: </th><td>
+										<input id="UseEmail" class="form-check-input shadow-none" type="checkbox">
+									</td></tr>
+									<tr  class="small"><th>Comments: </th><td>
+										<textarea id="Comments" class="form-control shadow-none" rows="2"></textarea>
+									</td></tr>
+	                  			</tbody>
+	                		</table>
+							<button id="PropertyUpdateButton" type="button" class="btn btn-success">
+								<i class="fa fa-floppy-o me-1"></i> Save
+							</button>
+						</div>
+
+		        	</div><!-- row -->
+				</div>
+
+				  <div class="col-sm-7 col-md-8">
+				  		<h5 class="mt-2">Owners</h5>
+				        <table class="table table-striped">
+				            <tbody id="PropertyOwnersTbody">
+				            </tbody>
+				        </table>
+				    	<h5 class="mt-2">Assessments</h5>
+				        <table class="table table-striped table-sm">
+				            <tbody id="PropertyAssessmentsTbody">
+				            </tbody>
+				        </table>
+				  </div>
+			</div><!-- row -->
+		</div><!-- end of Detail -->
+
+	    <div class="tab-pane" role="tabpanel" id="ConfigPage">
+			<h4>Config</h4>
+            <a data-ConfigName="NEW-VALUE" href="#" class="btn btn-sm btn-primary NewConfig" role="button">New Config Value</a>
+		    <table id="ConfigListDisplay" class="table table-striped table-sm mt-2">
+		    	<tbody>
+		    	</tbody>
+		    </table>
+	 	</div><!-- end of Config -->
+
+	</div><!-- end of main tab content -->
+
+		<!--
+		<div id="MessageDisplay" class="m-2"></div>
+		-->
+
+    </div><!-- end of main container -->
+
+
+	<!-- Modal -->
+	<div class="modal fade" id="aboutDialog" role="dialog" tabindex="-1">
+	    <div class="modal-dialog modal-lg">
+	      <div class="modal-content">
+	        <div class="modal-header">
+	          <h5 class="modal-title">
+	          	<img src="images/logo-photo.jpg">
+	          	Gander Road Homoeowners Association
+			  </h5>
+			  <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+	        </div>
+	        <div class="modal-body">
+              <p>(C) Copyright 2024, All rights reserved. </p>
+            </br>
+              <a href="privacy.html"><i class="fa fa-briefcase"></i> privacy policy</a>
+
+	        </div>
+	        <div class="modal-footer">
+	          <button type="button" class="btn btn-sm btn-info" data-bs-dismiss="modal">Close</button>
+	        </div>
+
+
+	      </div>
+	    </div>
+	</div>
+
+
+<div id="FileUploadModal" class="modal fade" role="dialog" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 id="FileUploadTitle" class="modal-title">File Upload</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div id="FileUploadMessage" class="modal-body">
+                <form id="FileUploadForm" action="" method="post" enctype="multipart/form-data" class="form-group">
+                    <input id="uploadFilename" type="file" accept=".csv, .zip" name="uploadFilename" class="form-control p-1 m-1 float-left" />
+                    <input class="btn btn-success mt-2 float-left" type="submit" value="Upload file" >
+                </form>
+            </div>
+            <div class="modal-footer">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    <!-- Bootstrap core JavaScript ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <!-- Bootstrap 5 JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+        integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <script src="js/main.js" type="module"></script>
+
+</body>
+</html>
