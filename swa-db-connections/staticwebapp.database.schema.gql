@@ -1,0 +1,16 @@
+type Book @model {
+  id: ID
+  MediaTypeId: Int
+  Name: String
+  MediaDateTime: String
+  MediaDateTimeVal: Int
+  CategoryTags: String
+  MenuTags: String
+  AlbumTags: String
+  Title: String
+  Description: String
+  People: String
+  ToBeProcessed: Boolean
+  SearchStr: String
+  Selected: Boolean
+}
