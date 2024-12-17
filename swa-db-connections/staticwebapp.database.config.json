@@ -1,0 +1,41 @@
+{
+  "$schema": "https://github.com/Azure/data-api-builder/releases/download/v1.1.7/dab.draft.schema.json",
+  "data-source": {
+    "database-type": "cosmosdb_nosql",
+    "connection-string": "@env('DATABASE_CONNECTION_STRING')",
+    "options": {
+      "database": "hoadb",
+      "schema": "staticwebapp.database.schema.gql"
+    }
+  },
+  "runtime": {
+    "graphql": {
+      "enabled": true,
+      "path": "/graphql",
+      "allow-introspection": true
+    },
+    "host": {
+      "mode": "production",
+      "cors": {
+        "origins": ["http://localhost:4280"],
+        "allow-credentials": false
+      },
+      "authentication": {
+        "provider": "StaticWebApps"
+      }
+    }
+  },
+  "entities": {
+    "Book": {
+      "source": "MediaInfoDocs",
+      "rest": false,
+      "graphql": true,
+      "permissions": [
+        {
+          "actions": ["read"],
+          "role": "anonymous"
+        }
+      ]
+    }
+  }
+}
