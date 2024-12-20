@@ -27,7 +27,7 @@
   },
   "entities": {
     "Book": {
-      "source": "MediaInfoDocs",
+      "source": "MediaInfoDoc",
       "rest": false,
       "graphql": true,
       "permissions": [
