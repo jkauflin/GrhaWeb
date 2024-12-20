@@ -4,6 +4,7 @@
     "grhaweb": {
       "appLocation": "src",
       "outputLocation": "src",
+      "dataApiLocation": "swa-db-connections",
       "apiLocation": "api"
     }
   }
