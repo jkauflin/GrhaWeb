@@ -39,7 +39,7 @@ export var queryMenuItem = ""
 export var queryAlbumKey = ""
 
 export var categoryList = []
-let defaultCategory = "1 John J Kauflin"
+let defaultCategory = "Misc"
 
 // Look into using environment variables for this (like secrets for Azure credentials)
 let docsUri = "https://grhawebstorage.blob.core.windows.net/docs/"
@@ -289,6 +289,8 @@ type Malbum @model {
                         ${categoryQuery}
                         ${menuQuery}
                         ${searchQuery}
+
+                        ${categoryQuery}
                         ${startDateQuery}
 
 */
@@ -297,7 +299,6 @@ type Malbum @model {
                 filter: { 
                     and: [ 
                         { MediaTypeId: { eq: ${mediaType} } }
-                        ${startDateQuery}
                     ] 
                 },
                 ${orderBy},
@@ -331,8 +332,8 @@ type Malbum @model {
         console.log("Error: "+result.errors[0].message);
         console.table(result.errors);
     } else {
-        //console.log("result.data = "+result.data)
-        //console.table(result.data.mtypes.items);
+        console.log("result.data = "+result.data)
+        console.table(result.data.mtypes.items);
         /*
         console.log("items[0].Category[1].CategoryName = "+result.data.mtypes.items[0].Category[1].CategoryName);
         console.log("items[0].Category[1].Menu = "+result.data.mtypes.items[0].Category[1].Menu);
