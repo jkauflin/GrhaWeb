@@ -7,3 +7,4 @@ src/paypal*.*
 src/*.log
 src/error_log
 src/LOG_FILE
+.env
