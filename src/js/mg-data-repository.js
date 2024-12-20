@@ -18,6 +18,8 @@ Modification History
                 contains on strings, orderBy on Media, and first maxRows
 2024-06-20 JJK  Getting an error from Azure on the MediaType query, so I've
                 hard-coded the categories and menu items for now
+
+2024-12-20 JJK  Got the Photos query working for GRHA
 ================================================================================*/
 
 import {createMediaPage,displayCurrFileList,updateAdminMessage} from './mg-create-pages.js';
