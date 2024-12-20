@@ -14,15 +14,14 @@ Modification History
                 the presentation functions with no edit
 2024-04-04 JJK  Finally got a good structure for MediaInfo container in
                 Cosmos DB and got all of the records copied.  Now able to
-                do GraphQL queries with "gte" on TakenFileTime integer,
-                contains on strings, orderBy on Taken, and first maxRows
+                do GraphQL queries with "gte" on MediaFileTime integer,
+                contains on strings, orderBy on Media, and first maxRows
 2024-06-20 JJK  Getting an error from Azure on the MediaType query, so I've
                 hard-coded the categories and menu items for now
 ================================================================================*/
 
 import {createMediaPage,displayCurrFileList,updateAdminMessage} from './mg-create-pages.js';
 import {setMenuList} from './mg-menu.js';
-import {setAlbumList,getAlbumName} from './mg-album.js';
 export let mediaInfo = {
     menuList: [],
     filterList: [],
@@ -43,9 +42,9 @@ export var categoryList = []
 let defaultCategory = "1 John J Kauflin"
 
 // Look into using environment variables for this (like secrets for Azure credentials)
-let photosUri = "https://jjkwebstorage.blob.core.windows.net/photos/"
-let thumbsUri = "https://jjkwebstorage.blob.core.windows.net/thumbs/"
-let musicUri = "https://jjkwebstorage.blob.core.windows.net/music/"
+let docsUri = "https://grhawebstorage.blob.core.windows.net/docs/"
+let photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
+let thumbsUri = "https://grhawebstorage.blob.core.windows.net/thumbs/"
 
 
 export function setMediaType(inMediaType) {
@@ -177,7 +176,7 @@ export async function queryMediaInfo(paramData) {
                 }
             }
         }
-        */
+
         mediaTypeQuery = `
         malbums 
         {
@@ -187,6 +186,7 @@ export async function queryMediaInfo(paramData) {
             }
         }
         `
+        */
     }
 
 /*
@@ -230,8 +230,8 @@ type Malbum @model {
         //console.log("      int MediaFilterStartDate = "+getDateInt(paramData.MediaFilterStartDate))
 		//if (paramData.MediaFilterStartDate != "0001-01-01 00:00:00") {
         if (paramData.MediaFilterStartDate != "1800-01-01") {
-            //startDateQuery = `{ TakenFileTime: { gte: 2023010108 } }`
-            startDateQuery = `{ TakenFileTime: { gte: ${getDateInt(paramData.MediaFilterStartDate)} } }`
+            //startDateQuery = `{ MediaFileTime: { gte: 2023010108 } }`
+            startDateQuery = `{ MediaDateTimeVal: { gte: ${getDateInt(paramData.MediaFilterStartDate)} } }`
         }
         //console.log(">>> startDateQuery = "+startDateQuery)
 	}
@@ -262,7 +262,7 @@ type Malbum @model {
         //console.log(">>> searchQuery = "+searchQuery)
 	}
 
-    let orderBy = "orderBy: { TakenDateTime: ASC }"
+    let orderBy = "orderBy: { MediaDateTime: ASC }"
     /*
     if (mediaType == 2) {
         orderBy = "orderBy: { Name: ASC }"
@@ -273,8 +273,8 @@ type Malbum @model {
   id: ID
   MediaTypeId: Int
   Name: String
-  TakenDateTime: String
-  TakenFileTime: Float
+  MediaDateTime: String
+  MediaFileTime: Float
   CategoryTags: String
   MenuTags: String
   AlbumTags: String
@@ -283,16 +283,20 @@ type Malbum @model {
   People: String
   ToBeProcessed: Boolean
   SearchStr: String
+
+                        ${albumQuery}
+
+                        ${categoryQuery}
+                        ${menuQuery}
+                        ${searchQuery}
+                        ${startDateQuery}
+
 */
     let gql = `query {
-            books(
+            books (
                 filter: { 
                     and: [ 
                         { MediaTypeId: { eq: ${mediaType} } }
-                        ${categoryQuery}
-                        ${menuQuery}
-                        ${albumQuery}
-                        ${searchQuery}
                         ${startDateQuery}
                     ] 
                 },
@@ -301,14 +305,14 @@ type Malbum @model {
             ) {
                 items {
                     Name
-                    TakenDateTime
+                    MediaDateTime
                     Title
                 }
             }
             ${mediaTypeQuery}
         }`
 
-    //console.log(">>> query gql = "+gql)
+    console.log(">>> query gql = "+gql)
 
     const apiQuery = {
         query: gql,
@@ -350,11 +354,11 @@ type Malbum @model {
         mediaInfo.filterList = []
 
         if (mediaInfo.fileList.length > 0) {
-            mediaInfo.startDate = mediaInfo.fileList[0].TakenDateTime.substring(0,10)
+            mediaInfo.startDate = mediaInfo.fileList[0].MediaDateTime.substring(0,10)
 
             // Set the filter list elements
             let currYear = mediaInfo.startDate.substring(0,4)
-            let lastTakenDateTime = mediaInfo.fileList[result.data.books.items.length-1].TakenDateTime
+            let lastMediaDateTime = mediaInfo.fileList[result.data.books.items.length-1].MediaDateTime
 
             let prevYear = parseInt(mediaInfo.startDate.substring(0,4))-1
             let filterRec = {
@@ -365,10 +369,10 @@ type Malbum @model {
         
             filterRec = {
                 filterName: "Next",
-                startDate: lastTakenDateTime
+                startDate: lastMediaDateTime
             }
             mediaInfo.filterList.push(filterRec)
-            console.log("Next, startDate: lastTakenDateTime = "+lastTakenDateTime)
+            console.log("Next, startDate: lastMediaDateTime = "+lastMediaDateTime)
 
             //if ($param->MediaFilterMediaType == 1 && !$albumKeyExists && $cnt > 50) {
             if (mediaType == 1 && albumQuery == "" && mediaInfo.fileList.length > 50) {
@@ -463,7 +467,7 @@ type Malbum @model {
 
             // Save the menu lists
             setMenuList(mediaInfo.menuList)
-            setAlbumList(result.data.malbums.items)
+            //setAlbumList(result.data.malbums.items)
         }
 
         // Save the parameters from the laste query
@@ -476,6 +480,7 @@ type Malbum @model {
         if (paramData.MediaFilterMenuItem != null & paramData.MediaFilterMenuItem != "") {
             queryMenuItem = paramData.MediaFilterMenuItem
         }
+        /*
         queryAlbumKey = ""
         if (paramData.MediaFilterAlbumKey != null & paramData.MediaFilterAlbumKey != "") {
             queryAlbumKey = paramData.MediaFilterAlbumKey
@@ -484,6 +489,7 @@ type Malbum @model {
                 mediaInfo.menuOrAlbumName = getAlbumName(queryAlbumKey)
             }
         }
+        */
 
         //MediaFilterAlbumKey
         //queryAlbumKey

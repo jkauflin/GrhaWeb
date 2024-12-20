@@ -18,10 +18,10 @@ import {mediaInfo,mediaType,getMenu,
     getFilePath,getFileName
 } from './mg-data-repository.js'
 import {mediaMenuCanvasId,buildMenuElements} from './mg-menu.js'
-import {mediaAlbumMenuCanvasId,buildAlbumMenuElements} from './mg-album.js'
+//import {mediaAlbumMenuCanvasId,buildAlbumMenuElements} from './mg-album.js'
 import {displayElementInLightbox} from './mg-lightbox.js'
-import {playlistSongClass,audioPrevClass,audioNextClass,audioPlayer,setAudioListeners,
-        emptyPlaylist,incrementPlaylistIndex,addSongToPlaylist,initSong} from './mg-audio-playlist.js'
+//import {playlistSongClass,audioPrevClass,audioNextClass,audioPlayer,setAudioListeners,
+//        emptyPlaylist,incrementPlaylistIndex,addSongToPlaylist,initSong} from './mg-audio-playlist.js'
 
 const MediaFilterRequestClass = "MediaFilterRequest";
 const imgThumbnailClass = "img-thumbnail-jjk"  // Want my own thumbnail formatting instead of bootstrap border
@@ -73,7 +73,7 @@ export function empty(node) {
     }
 }
 
-setAudioListeners(thumbnailContainer)
+//setAudioListeners(thumbnailContainer)
 
 //-------------------------------------------------------------------------------------------------------
 // Listen for clicks in containers
@@ -95,7 +95,7 @@ thumbnailContainer.addEventListener("click", function (event) {
             MediaFilterCategory:  event.target.getAttribute('data-category'),
             MediaFilterStartDate: event.target.getAttribute('data-startDate'),
             MediaFilterMenuItem: event.target.getAttribute('data-menuItem'),
-            MediaFilterAlbumKey: event.target.getAttribute('data-albumKey'),
+            //MediaFilterAlbumKey: event.target.getAttribute('data-albumKey'),
             MediaFilterSearchStr: event.target.getAttribute('data-searchStr')}
 
         queryMediaInfo(paramData);
@@ -154,7 +154,7 @@ thumbnailContainer.addEventListener("click", function (event) {
 
         if (getMenu) {
             buildMenuElements(mediaType)
-            buildAlbumMenuElements(mediaType)
+            //buildAlbumMenuElements(mediaType)
         }
         buildFilterElements(mediaType)
 
@@ -196,6 +196,7 @@ thumbnailContainer.addEventListener("click", function (event) {
         menuButton.appendChild(icon1)
         filterRow1Col1.appendChild(menuButton)
 
+        /*
         let menuButton2 = document.createElement("button")
         menuButton2.classList.add('btn','btn-success','btn-sm','ms-2','float-start')
         menuButton2.setAttribute('type',"button")
@@ -211,6 +212,7 @@ thumbnailContainer.addEventListener("click", function (event) {
         if (mediaType == 1) {
             filterRow1Col1.appendChild(menuButton2)
         }
+        */
        
         filterRow1.appendChild(filterRow1Col1)
 
@@ -333,8 +335,8 @@ thumbnailContainer.addEventListener("click", function (event) {
         let playlistTbody = document.createElement("tbody")
 
         empty(thumbnailContainer)
-        emptyPlaylist()
-        let plIndex = 0
+        //emptyPlaylist()
+        //let plIndex = 0
 
         let thumbnailRow1 = document.createElement("div")
         let thumbnailRow2 = document.createElement("div")
@@ -419,7 +421,8 @@ thumbnailContainer.addEventListener("click", function (event) {
 
                 thumb.appendChild(iframe)
                 thumbnailRow2Col1.appendChild(thumb)
-
+            
+            /*
             } else if (mediaType == 3) {
                 // MUSIC
                 audioFiles = true;
@@ -438,7 +441,7 @@ thumbnailContainer.addEventListener("click", function (event) {
                 let tr = document.createElement("tr");
                 tr.appendChild(td);
                 playlistTbody.appendChild(tr)
-
+            */
             } else if (mediaType == 4) {
                 // DOCS
                     
@@ -467,6 +470,7 @@ thumbnailContainer.addEventListener("click", function (event) {
             table.appendChild(doclistTbody)
             thumbnailRow2Col1.appendChild(table)
         }
+        /*
         else if (audioFiles) {
             empty(thumbnailRow2Col1);
 
@@ -511,7 +515,7 @@ thumbnailContainer.addEventListener("click", function (event) {
  
             thumbnailRow2Col1.appendChild(row)
         }
-
+        */
 
         //----------------------------------------------------------------------------------------------------
         // If there is a filter request list, create Filter Request buttons with the start date
@@ -547,7 +551,7 @@ thumbnailContainer.addEventListener("click", function (event) {
                 button.setAttribute('data-category', mediaFilterCategory.value)
                 button.setAttribute('data-startDate', FilterRec.startDate)
                 button.setAttribute('data-menuItem', queryMenuItem)
-                button.setAttribute('data-albumKey', queryAlbumKey)
+                //button.setAttribute('data-albumKey', queryAlbumKey)
                 button.setAttribute('data-searchStr', querySearchStr)
                 button.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
                 button.textContent = FilterRec.filterName
@@ -562,7 +566,7 @@ thumbnailContainer.addEventListener("click", function (event) {
                     button2.setAttribute('data-category', mediaFilterCategory.value)
                     button2.setAttribute('data-startDate', FilterRec.startDate)
                     button2.setAttribute('data-menuItem', queryMenuItem)
-                    button2.setAttribute('data-albumKey', queryAlbumKey)
+                    //button2.setAttribute('data-albumKey', queryAlbumKey)
                     button2.setAttribute('data-searchStr', querySearchStr)
                     button2.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
                     button2.textContent = FilterRec.filterName
