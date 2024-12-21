@@ -339,8 +339,8 @@ type Malbum @model {
         console.log("Error: "+result.errors[0].message);
         console.table(result.errors);
     } else {
-        console.log("result.data = "+result.data)
-        console.table(result.data.mtypes.items);
+        //console.log("result.data = "+result.data)
+        //console.table(result.data.mtypes.items);
         /*
         console.log("items[0].Category[1].CategoryName = "+result.data.mtypes.items[0].Category[1].CategoryName);
         console.log("items[0].Category[1].Menu = "+result.data.mtypes.items[0].Category[1].Menu);
