@@ -116,19 +116,26 @@ Modification History
 --------------------------------------------------------------------------------
 2024-03-29 JJK  Migrating to Azure SWA, blob storage, Cosmos DB with GraphQL
                 for queries.  Also, removing Admin functions to make this just
-                the presentation functions with no edit0
+                the presentation functions with no edit
+2024-12-30 JJK  Modifications for GRHA displays.  Moved all tab navigation
+                and diplay to main, but handle all mediagallery display 
+                building and handling here - including handling of the filter
+                elements like Type, Category, and Year
 ================================================================================*/
 import {mediaType,setMediaType,queryMediaInfo} from './mg-data-repository.js'
 
-const MediaPageLinkClass = "media-page";
+const MediaPageLinkClass = "media-page"
 
 //=================================================================================================================
 // Bind events
 
     // Respond to click on a link-tile-tab button by finding the correct TAB and switching/showing it
     // (These link-tile-tab's also have media-page for creating the Menu, but these handled from the listener on that class)
+    /*
     document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("click", function (event) {
         setMediaType(event.target.getAttribute('data-MediaType'))
+        // data-MediaCategory
+        // data-MediaYear
         //console.log("link-tile-tab click, mediaType = " + mediaType)
 
         // Get the target tab based on the the MediaType specified, and use the new Bootstrap v5.2 js for showing the tab
@@ -140,23 +147,30 @@ const MediaPageLinkClass = "media-page";
             bootstrap.Tab.getOrCreateInstance(targetTabElement).show();
         }
     }));
+    */
 
-    // Respond to click on a media-page link tab by dynamically building the menu display
-    document.querySelectorAll("."+MediaPageLinkClass).forEach(el => el.addEventListener("click", function (event) {
-        setMediaType(event.target.getAttribute('data-MediaType'))
-        //console.log("media-page click, mediaType = " + mediaType)
+// Respond to click on a media-page link tab by dynamically building the menu display
+// *** This mediagallery library counts on a document element with an id of "MediaPage" to know where to display elements
+// <div class="tab-pane" role="tabpanel" id="MediaPage">
+//     <div id="MediaPageMessage"></div>
+// </div><!-- end of Media -->
+document.querySelectorAll("."+MediaPageLinkClass).forEach(el => el.addEventListener("click", function (event) {
+    setMediaType(event.target.getAttribute('data-MediaType'))
+    console.log("media-page click, mediaType = " + mediaType)
+    // data-MediaCategory
+    // data-MediaYear <<<<<<<<<<<<<<<   StartDate????????????????????????????
 
-        if (typeof mediaType !== "undefined" && mediaType !== null) {
-            // >>>>>>>>>>>>>>>>>>>>>>>> this is the START of things <<<<<<<<<<<<<<<<<<<
-            let paramData = {
-                MediaFilterMediaType: mediaType, 
-                getMenu: true,
-                MediaFilterCategory: "DEFAULT",
-                MediaFilterStartDate: "DEFAULT"}
+    if (typeof mediaType !== "undefined" && mediaType !== null) {
+        // >>>>>>>>>>>>>>>>>>>>>>>> this is the START of things <<<<<<<<<<<<<<<<<<<
+        let paramData = {
+            MediaFilterMediaType: mediaType, 
+            getMenu: true,
+            MediaFilterCategory: "DEFAULT",
+            MediaFilterStartDate: "DEFAULT"}
     
-            queryMediaInfo(paramData);
-        }
-    }));
+        queryMediaInfo(paramData);
+    }
+}))
 
 
     // If there is a data-dir parameter, build and display the page

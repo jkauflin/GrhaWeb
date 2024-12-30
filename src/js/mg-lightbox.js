@@ -8,11 +8,10 @@ Modification History
 2023-08-31 JJK  Attached click event to individual elements rather than 
                 tracking clicks on the whole body and looking for a class
 ================================================================================*/
+import {empty,showLoadingSpinner} from './util.js';
 import {mediaInfo,mediaType,mediaTypeDesc,setMediaType,
     getFilePath,getFileName
 } from './mg-data-repository.js'
-
-import {empty} from './mg-create-pages.js'
 
 const mediaLightbox = new bootstrap.Modal(document.getElementById('MediaLightbox'))
 var mediaLightboxBody = document.getElementById("MediaLightboxBody")

@@ -50,7 +50,11 @@ document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click
 }))
 
 // Respond to click on a link-tile-tab button by finding the correct TAB and switching/showing it
-// (These link-tile-tab's also have media-page for creating the Menu, but these handled from the listener on that class)
+// (These link-tile-tab's also have media-page for creating the Menu, but these handled from the listener on that class
+//  which is in the mediagallery.js)
+// >>>>> main.js is for the tab navigation and tab display (either bootstrap nav elements, or link-tile 
+//   and mediagallery.js is for handling display for anything with a media-page, but not the display navigation???) 
+// *** 12/30/2024 - you were using "data-dir" for the tab name, and MediaType number for the media type (and Media tab page)
 document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("click", function (event) {
     //console.log("link-tile-tab click ")
     let targetTab = event.target.getAttribute("data-dir")
@@ -61,7 +65,19 @@ document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("c
         bootstrap.Tab.getOrCreateInstance(targetTabElement).show();
     }
 }))
+    /*
+    document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("click", function (event) {
+        setMediaType(event.target.getAttribute('data-MediaType'))
+        // Get the target tab based on the the MediaType specified, and use the new Bootstrap v5.2 js for showing the tab
+        // the link ('a') with the correct MediaType, within the ".navbar-nav" list
+        let targetTabElement = document.querySelector(`.navbar-nav a[data-MediaType="${mediaType}"]`);
 
+        // If the target tab element is found, create a Tab object and call the show() method
+        if (typeof targetTabElement !== "undefined" && targetTabElement !== null) {
+            bootstrap.Tab.getOrCreateInstance(targetTabElement).show();
+        }
+    }));
+    */
     
     // Check if a Tab name is passed as a parameter on the URL and navigate to it
     /*

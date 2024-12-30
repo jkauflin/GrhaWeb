@@ -1,5 +1,5 @@
 /*==============================================================================
-(C) Copyright 2023 John J Kauflin, All rights reserved.
+(C) Copyright 2023,2024 John J Kauflin, All rights reserved.
 --------------------------------------------------------------------------------
 DESCRIPTION:
 --------------------------------------------------------------------------------
@@ -10,6 +10,7 @@ Modification History
                 for queries.  Also, removing Admin functions to make this just
                 the presentation functions with no edit
 ================================================================================*/
+import {empty,showLoadingSpinner} from './util.js';
 import {mediaInfo,mediaType,getMenu,
     queryCategory,querySearchStr,queryMenuItem,queryAlbumKey,
     categoryList,
@@ -58,22 +59,8 @@ var mediaDetailDescription
 // NEW ones
 var mediaDetailVideoList
 
-
 var currIndex = 0
 var currSelectAll = false
-
-
-// Remove all child nodes from an element
-export function empty(node) {
-    // Could just set the innerHTML to null, but they say removing the children is faster
-    // and better for removing any associated events
-    //node.innerHTML = "";
-    while (node.firstChild) {
-        node.removeChild(node.firstChild)
-    }
-}
-
-//setAudioListeners(thumbnailContainer)
 
 //-------------------------------------------------------------------------------------------------------
 // Listen for clicks in containers

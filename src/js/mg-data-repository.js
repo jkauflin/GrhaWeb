@@ -20,8 +20,10 @@ Modification History
                 hard-coded the categories and menu items for now
 
 2024-12-20 JJK  Got the Photos query working for GRHA
+2024-12-30 JJK  Working on Docs and filter options
 ================================================================================*/
 
+import {empty,showLoadingSpinner,addDays,getDateInt} from './util.js';
 import {createMediaPage,displayCurrFileList,updateAdminMessage} from './mg-create-pages.js';
 import {setMenuList} from './mg-menu.js';
 export let mediaInfo = {
@@ -44,10 +46,10 @@ export var categoryList = []
 let defaultCategory = "Misc"
 
 // Look into using environment variables for this (like secrets for Azure credentials)
+let musicUri = ""
 let docsUri = "https://grhawebstorage.blob.core.windows.net/docs/"
 let photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
 let thumbsUri = "https://grhawebstorage.blob.core.windows.net/thumbs/"
-
 
 export function setMediaType(inMediaType) {
     mediaType = parseInt(inMediaType)
@@ -59,6 +61,8 @@ export function getFilePath(index,descMod="",fullPath=false) {
 
     if (mediaType == 3) {
         return musicUri + fi.Name
+    } else if (mediaType == 4) {
+        return docsUri + fi.Name
     } else {
         if (descMod == "Thumbs") {
             return thumbsUri + fi.Name
@@ -81,60 +85,6 @@ export function getFileName(index) {
     return fileNameNoExt
 }
 
-function addDays(inDate, days) {
-    let td = new Date(inDate)
-    td.setDate(td.getDate() + (parseInt(days)+1))
-    /*
-    let tempMonth = td.getMonth() + 1
-    let tempDay = td.getDate()
-    let outDate = td.getFullYear() + '-' + paddy(tempMonth,2) + '-' + paddy(tempDay,2)
-    */
-    /*
-    const dateTimeFormatOptions = {
-        //timeZone: "Africa/Accra",
-        //hour12: true,
-        //hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-    };
-    */
-    //return tempDate.toLocaleTimeString("en-US", dateTimeFormatOptions)
-    //return outDate;
-    //return tempDate.toLocaleDateString("en-US", dateTimeFormatOptions)
-    //return td.toLocaleDateString()
-    return td.toISOString().substring(0,10)  //2024-01-31T19:37:12.291Z
-}
- 
-function paddy(num, padlen, padchar) {
-    var pad_char = typeof padchar !== 'undefined' ? padchar : '0'
-    var pad = new Array(1 + padlen).join(pad_char)
-    return (pad + num).slice(-pad.length)
-}
-
-// Return an integer of the date + hours (2024123101)
-export function getDateInt(inDateStr) {
-    /*
-    let td = new Date()
-    if (inDate != null) {
-        td = inDate
-    }
-    let tempMonth = td.getMonth() + 1
-    let tempDay = td.getDate()
-    let formattedDate = td.getFullYear() + paddy(tempMonth,2) + paddy(tempDay,2) + paddy(td.getHours(),2)
-    */
-
-    let formattedDate = "1800-01-01 00:00:00"
-    if (inDateStr != null) {
-        if (inDateStr.length >= 13) {
-            formattedDate = inDateStr.substring(0,4) + inDateStr.substring(5,7) + inDateStr.substring(8,10) + inDateStr.substring(11,13)
-        } else {
-            formattedDate = inDateStr.substring(0,4) + inDateStr.substring(5,7) + inDateStr.substring(8,10) + "00"
-        }
-    }
-
-    return(parseInt(formattedDate))
-}
-
 //------------------------------------------------------------------------------------------------------------
 // Query the database for menu and file information and store in js variables
 //------------------------------------------------------------------------------------------------------------
@@ -148,19 +98,20 @@ export async function queryMediaInfo(paramData) {
 
     // Set a default start date of 60 days back from current date
     mediaInfo.menuOrAlbumName = ""
+    mediaInfo.startDate = "1972-01-01"
 
+    /*
     if (mediaType == 1) {
         //mediaInfo.startDate = addDays(new Date(), -60)
-        mediaInfo.startDate = "2008-01-01"
+        //mediaInfo.startDate = "2008-01-01"
+        mediaInfo.startDate = "1972-01-01"
 
         if (paramData.MediaFilterCategory == "ALL") {
             mediaInfo.startDate = "1972-01-01"
         }
 
-    } else {
-        mediaInfo.startDate = "1800-01-01"
     }
-
+    */
 
     //let maxRows = 200
     let maxRows = 100
@@ -169,82 +120,45 @@ export async function queryMediaInfo(paramData) {
 		maxRows = 12
     }
 
-    // When getMenu specified, query the MediaType container for menu values (first page load)
-    let mediaTypeQuery = ""
-    if (getMenu) {
-        // loading...
-        //setThumbnailMessage("Loading...")
-        /*
-        mtype_by_pk(id: ${mediaType.toString()}) {
-            id
-            MediaTypeDesc
-            Category {
-                CategoryName
-                Menu {
-                    MenuItem
-                }
-            }
-        }
+//    CategoryName: "Governing Docs",
 
-        mediaTypeQuery = `
-        malbums 
-        {
-            items {
-                AlbumKey
-                AlbumName
-            }
-        }
-        `
-        */
-    }
-
-/*
-type Malbum @model {
-  id: ID
-  MediaAlbumId: Int
-  AlbumKey: String
-  AlbumName: String
-  AlbumDesc: String
-}
-*/
+    let mti = mediaType - 1
+    defaultCategory = mediaTypeData[mti].Category[0].CategoryName
 
     let categoryQuery = ""
     if (paramData.MediaFilterCategory != null && paramData.MediaFilterCategory != '' &&
         paramData.MediaFilterCategory != 'ALL' && paramData.MediaFilterCategory != '0') {
         if (paramData.MediaFilterCategory == 'DEFAULT') {
-            categoryQuery = `{ CategoryTags: {contains: "${defaultCategory}"} }`
+            if (defaultCategory != 'ALL') {
+                categoryQuery = `{ CategoryTags: {contains: "${defaultCategory}"} }`
+            }
         } else {
-            let tempCategory = paramData.MediaFilterCategory
-            let pos = 0
-            pos = paramData.MediaFilterCategory.indexOf(" Family")
-            if (pos > -1) {
-                tempCategory = paramData.MediaFilterCategory.substring(0,pos)
-            }
-            pos = paramData.MediaFilterCategory.indexOf(" family")
-            if (pos > -1) {
-                tempCategory = paramData.MediaFilterCategory.substring(0,pos)
-            }
-
-            categoryQuery = `{ CategoryTags: {contains: "${tempCategory}"} }`
+            categoryQuery = `{ CategoryTags: {contains: "${paramData.MediaFilterCategory}"} }`
         }
         //console.log(">>> categoryQuery = "+categoryQuery)
     }
 
     let startDateQuery = ""
-    //console.log("paramData.MediaFilterStartDate = "+paramData.MediaFilterStartDate)
+    console.log("paramData.MediaFilterStartDate = "+paramData.MediaFilterStartDate)
 	if (paramData.MediaFilterStartDate != null && paramData.MediaFilterStartDate != '') {
 		if (paramData.MediaFilterStartDate == "DEFAULT") {
 			paramData.MediaFilterStartDate = mediaInfo.startDate
-		}
+		} else {
+            //startDateQuery = `{ MediaFileTime: { gte: 2023010108 } }`
+            startDateQuery = `{ MediaDateTimeVal: { gte: ${getDateInt(paramData.MediaFilterStartDate)} } }`
+        }
         //console.log("      int MediaFilterStartDate = "+getDateInt(paramData.MediaFilterStartDate))
 		//if (paramData.MediaFilterStartDate != "0001-01-01 00:00:00") {
+        /*
         if (paramData.MediaFilterStartDate != "1800-01-01") {
             //startDateQuery = `{ MediaFileTime: { gte: 2023010108 } }`
             startDateQuery = `{ MediaDateTimeVal: { gte: ${getDateInt(paramData.MediaFilterStartDate)} } }`
         }
+        */
         //console.log(">>> startDateQuery = "+startDateQuery)
 	}
 
+    /*
     let menuQuery = ""
     if (paramData.MediaFilterMenuItem != null && paramData.MediaFilterMenuItem != '') {
         // Maybe add Category to this (if needed)
@@ -261,6 +175,7 @@ type Malbum @model {
         albumQuery = `{ AlbumTags: {contains: "${paramData.MediaFilterAlbumKey}"} }`
         //console.log(">>> albumQuery = "+albumQuery)
 	}
+    */
 
     let searchQuery = ""
     if (paramData.MediaFilterSearchStr != null && paramData.MediaFilterSearchStr != '') {
@@ -293,8 +208,6 @@ type Malbum @model {
   ToBeProcessed: Boolean
   SearchStr: String
 
-                        ${albumQuery}
-
                         ${menuQuery}
                         ${searchQuery}
                         ${startDateQuery}
@@ -305,6 +218,7 @@ type Malbum @model {
                 filter: { 
                     and: [ 
                         { MediaTypeId: { eq: ${mediaType} } }
+                        ${categoryQuery}
                         ${startDateQuery}
                     ] 
                 },
@@ -317,10 +231,9 @@ type Malbum @model {
                     Title
                 }
             }
-            ${mediaTypeQuery}
         }`
 
-    //console.log(">>> query gql = "+gql)
+    console.log(">>> query gql = "+gql)
 
     const apiQuery = {
         query: gql,
@@ -380,9 +293,10 @@ type Malbum @model {
                 startDate: lastMediaDateTime
             }
             mediaInfo.filterList.push(filterRec)
-            console.log("Next, startDate: lastMediaDateTime = "+lastMediaDateTime)
+            //console.log("Next, startDate: lastMediaDateTime = "+lastMediaDateTime)
 
             //if ($param->MediaFilterMediaType == 1 && !$albumKeyExists && $cnt > 50) {
+            /*
             if (mediaType == 1 && albumQuery == "" && mediaInfo.fileList.length > 50) {
                 filterRec = {
                     filterName: "Winter",
@@ -410,6 +324,7 @@ type Malbum @model {
                 }
                 mediaInfo.filterList.push(filterRec)
             }
+            */
 
         } // if (mediaInfo.fileList.length > 0) {
 
@@ -549,22 +464,40 @@ var mediaTypeData = [
     ]
 },
 {
+    id: "2",
+    MediaTypeId: 2,
+    MediaTypeDesc: "Video",
+    Category: [
+    ]
+},
+{
+    id: "3",
+    MediaTypeId: 3,
+    MediaTypeDesc: "Audio",
+    Category: [
+    ]
+},
+{
     id: "4",
     MediaTypeId: 4,
     MediaTypeDesc: "Docs",
     Category: [
         {
-            CategoryName: "Governing Docs"
-        },
+            CategoryName: "Governing Docs",
+            Menu: [
+            ]        },
         {
-            CategoryName: "Historical Docs"
-        },
+            CategoryName: "Historical Docs",
+            Menu: [
+            ]        },
         {
-            CategoryName: "Quail Call newsletters"
-        },
+            CategoryName: "Quail Call newsletters",
+            Menu: [
+            ]        },
         {
-            CategoryName: "Annual Meetings"
-        }
+            CategoryName: "Annual Meetings",
+            Menu: [
+            ]        }
     ]
 }
 ]

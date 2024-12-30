@@ -6,12 +6,11 @@ DESCRIPTION:
 Modification History
 2023-08-26 JJK  Initial version - moved menu components to this module
 ================================================================================*/
+import {empty,showLoadingSpinner} from './util.js';
 import {mediaInfo,mediaType,mediaTypeDesc,setMediaType,
     queryMediaInfo,
     getFilePath,getFileName
 } from './mg-data-repository.js'
-
-import {empty} from './mg-create-pages.js'
 
 export const MediaMenuRequestClass = "MediaMenuRequest"
 export const mediaMenuCanvasId = "#MediaMenuCanvas"
