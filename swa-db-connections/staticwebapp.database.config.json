@@ -36,6 +36,17 @@
           "role": "anonymous"
         }
       ]
+    },
+    "Board": {
+      "source": "BoardOfTrustees",
+      "rest": false,
+      "graphql": true,
+      "permissions": [
+        {
+          "actions": ["read"],
+          "role": "anonymous"
+        }
+      ]
     }
   }
 }

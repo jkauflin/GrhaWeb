@@ -26,7 +26,11 @@
  * 2024-08-25 JJK   Updated to be a js module and moved other js code to here
  * 2024-11-12 JJK   Updates for migration to Azure SWA
  * 2024-11-18 JJK   Got the api calls and Dues Statement working
+ * 2025-01-02 JJK   Added query to get Board of Trustees information from
+ *                  an Azure Cosmos NoSQL container
  *============================================================================*/
+
+import {empty,formatMoney,setCheckbox} from './util.js'
 
 var addressInput = document.getElementById("address");
 var messageDisplay = document.getElementById("MessageDisplay")
@@ -106,30 +110,6 @@ document.getElementById("DuesSearchButton").addEventListener("click", function (
     fetchPropertiesData()
 })
 
-// Remove all child nodes from an element
-function empty(node) {
-    while (node.firstChild) {
-        node.removeChild(node.firstChild)
-    }
-}
-
-//Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
-var nonMoneyCharsStr = "[\x01-\x2D\x2F\x3A-\x7F]";
-//"g" global so it does more than 1 substitution
-var regexNonMoneyChars = new RegExp(nonMoneyCharsStr, "g");
-function formatMoney(inAmount) {
-    let inAmountStr = '' + inAmount;
-    inAmountStr = inAmountStr.replace(regexNonMoneyChars, '');
-    return parseFloat(inAmountStr).toFixed(2);
-}
-
-function setCheckbox(checkVal) {
-    var tempStr = '';
-    if (checkVal == 1) {
-        tempStr = 'checked=true';
-    }
-    return '<input type="checkbox" ' + tempStr + ' disabled="disabled">';
-}
 
 async function fetchPropertiesData() {
     const endpoint = "/api/GetPropertyList2";
@@ -339,3 +319,141 @@ function formatDuesStatementResults(hoaRec) {
 
 } // End of function formatDuesStatementResults(hoaRec){
 
+async function fetchBoardData() {
+    const endpoint = "/api/GetPropertyList2";
+    try {
+        messageDisplay.textContent = "Fetching property information..."
+        const response = await fetch(endpoint, {
+            method: "POST",
+            //headers: { "Content-Type": "application/json" },
+            body: addressInput.value
+        })
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        messageDisplay.textContent = ""
+        displayPropertyList(data)
+    } catch (err) {
+        console.error(`Error in Fetch to ${endpoint}, ${err}`)
+        messageDisplay.textContent = "Fetch data FAILED - check log"
+    }
+}
+
+var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
+const presidentName = document.querySelectorAll('.PresidentName')
+const presidentPhone = document.querySelectorAll('.PresidentPhone')
+const presidentEmail = document.querySelectorAll('.PresidentEmail')
+const treasurerName = document.querySelectorAll('.TreasurerName')
+const treasurerPhone = document.querySelectorAll('.TreasurerPhone')
+const treasurerEmail = document.querySelectorAll('.TreasurerEmail')
+var boardRow = document.getElementById("BoardRow")
+
+queryBoardInfo()
+async function queryBoardInfo() {
+    let boardGql = `query {
+            boards (
+                orderBy: { TrusteeId: ASC }
+            ) {
+                items {
+                    Name
+                    Position
+                    PhoneNumber
+                    EmailAddress
+                    Description
+                    ImageUrl
+                }
+            }
+        }`
+
+    //console.log(">>> query boardGql = "+boardGql)
+
+    const apiQuery = {
+        query: boardGql,
+        variables: {
+        }
+    }
+
+    const endpoint = "/data-api/graphql";
+    const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apiQuery)
+    });
+    const result = await response.json();
+    if (result.errors != null) {
+        console.log("Error: "+result.errors[0].message);
+        console.table(result.errors);
+    } else {
+        //console.log("result.data = "+result.data)
+        if (result.data.boards.items.length > 0) {
+            for (let i = 0; i < result.data.boards.items.length; i++) {
+                if (result.data.boards.items[i].Position == "President") {
+                    presidentName.forEach((element) => {
+                        element.textContent = result.data.boards.items[i].Name
+                    })
+                    presidentPhone.forEach((element) => {
+                        element.textContent = result.data.boards.items[i].PhoneNumber
+                    })
+                    presidentEmail.forEach((element) => {
+                        element.textContent = result.data.boards.items[i].EmailAddress
+                        element.href = "mailto:"+result.data.boards.items[i].EmailAddress+"?subject=GRHA Business"
+                    })
+                }
+                if (result.data.boards.items[i].Position == "Treasurer") {
+                    treasurerName.forEach((element) => {
+                        element.textContent = result.data.boards.items[i].Name
+                    })
+                    treasurerPhone.forEach((element) => {
+                        element.textContent = result.data.boards.items[i].PhoneNumber
+                    })
+                    treasurerEmail.forEach((element) => {
+                        element.textContent = result.data.boards.items[i].EmailAddress
+                        element.href = "mailto:"+result.data.boards.items[i].EmailAddress+"?subject=GRHA Business"
+                    })
+                }
+
+                /*
+                <div class="card bg-light mb-2">
+                    <div class="card-body">
+                        <img class="float-start rounded mx-2" src="Media/images/TrusteePhotos/Diana-headshot.jpg" width="100" />
+                        <h5>Diana Schaefer - President</h5>
+                        <h6>937-684-5530</h6>
+                        <h6><a href="mailto:president@grha-dayton.org?subject=GRHA Business">president@grha-dayton.org</a></h6>
+                        Diana is the President and member of the Nominating Committee.  Contact for Architectural control Guidelines 
+                        Volunteer opportunities, and Resident concerns
+                    </div>
+                </div>
+                */
+                let card = document.createElement('div')
+                card.classList.add('card','bg-light','mb-2','w-25')
+                let cardBody = document.createElement('div')
+                cardBody.classList.add('card-body')
+                let trusteeImg = document.createElement('img')
+                trusteeImg.classList.add('float-start','rounded','mx-2')
+                trusteeImg.width = "100"
+                trusteeImg.src = result.data.boards.items[i].ImageUrl
+                let trusteeNamePosition = document.createElement('h5')
+                trusteeNamePosition.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
+                let trusteePhone = document.createElement('h6')
+                trusteePhone.textContent = result.data.boards.items[i].PhoneNumber 
+                let trusteeEmail = document.createElement('h6')
+                let trusteeEmailLink = document.createElement('a')
+                trusteeEmailLink.textContent = result.data.boards.items[i].EmailAddress
+                trusteeEmailLink.href = "mailto:"+result.data.boards.items[i].EmailAddress+"?subject=GRHA Business"
+                let trusteeDesc = document.createElement('span')
+                trusteeDesc.textContent = result.data.boards.items[i].Description 
+
+                trusteeEmail.appendChild(trusteeEmailLink)
+                cardBody.appendChild(trusteeImg)
+                cardBody.appendChild(trusteeNamePosition)
+                cardBody.appendChild(trusteePhone)
+                cardBody.appendChild(trusteeEmail)
+                cardBody.appendChild(trusteeDesc)
+                card.appendChild(cardBody)
+                boardRow.appendChild(card)
+            }
+        }
+
+    }
+}

@@ -14,3 +14,14 @@ type Book @model {
   SearchStr: String
   Selected: Boolean
 }
+
+type Board @model {
+    id: ID
+    TrusteeId: Int 
+    Name: String
+    Position: String
+    PhoneNumber: String
+    EmailAddress: String
+    Description: String
+    ImageUrl: String
+}
