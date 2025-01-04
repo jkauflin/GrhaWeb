@@ -319,6 +319,7 @@ function formatDuesStatementResults(hoaRec) {
 
 } // End of function formatDuesStatementResults(hoaRec){
 
+/*
 async function fetchBoardData() {
     const endpoint = "/api/GetPropertyList2";
     try {
@@ -339,6 +340,7 @@ async function fetchBoardData() {
         messageDisplay.textContent = "Fetch data FAILED - check log"
     }
 }
+*/
 
 var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
 const presidentName = document.querySelectorAll('.PresidentName')
@@ -349,6 +351,7 @@ const treasurerPhone = document.querySelectorAll('.TreasurerPhone')
 const treasurerEmail = document.querySelectorAll('.TreasurerEmail')
 const trustees = document.querySelectorAll('.Trustee')
 
+// Call the function to load Board of Trustees data every time the page is loaded
 queryBoardInfo()
 async function queryBoardInfo() {
     let boardGql = `query {

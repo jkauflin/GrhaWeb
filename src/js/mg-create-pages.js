@@ -11,18 +11,8 @@ Modification History
                 the presentation functions with no edit
 ================================================================================*/
 import {empty,showLoadingSpinner} from './util.js';
-import {mediaInfo,mediaType,getMenu,
-    queryCategory,querySearchStr,queryMenuItem,queryAlbumKey,
-    categoryList,
-    contentDesc,
-    queryMediaInfo,
-    getFilePath,getFileName
-} from './mg-data-repository.js'
-import {mediaMenuCanvasId,buildMenuElements} from './mg-menu.js'
-//import {mediaAlbumMenuCanvasId,buildAlbumMenuElements} from './mg-album.js'
+import {mediaInfo,mediaType,queryCategory,categoryList,contentDesc,queryMediaInfo,getFilePath,getFileName} from './mg-data-repository.js'
 import {displayElementInLightbox} from './mg-lightbox.js'
-//import {playlistSongClass,audioPrevClass,audioNextClass,audioPlayer,setAudioListeners,
-//        emptyPlaylist,incrementPlaylistIndex,addSongToPlaylist,initSong} from './mg-audio-playlist.js'
 
 const MediaFilterRequestClass = "MediaFilterRequest";
 const imgThumbnailClass = "img-thumbnail-jjk"  // Want my own thumbnail formatting instead of bootstrap border
@@ -33,7 +23,6 @@ var filterContainer = document.createElement("div")
 var thumbnailContainer = document.createElement("div")
 var editRow1 = document.createElement("div")
 
-
 var mediaAdminMessage
 var mediaCategorySelect
 var mediaMenuSelect
@@ -43,10 +32,6 @@ var mediaPeopleList
 
 var mediaFilterCategory
 var mediaFilterStartDate
-var mediaFilterSearchStr
-//var mediaFilterMenuItem
-//var mediaFilterAlbumTag
-
 var mediaDetailFilename
 var mediaDetailTitle
 var mediaDetailTaken
@@ -73,17 +58,12 @@ thumbnailContainer.addEventListener("click", function (event) {
         // If click on a Filter Request (like Next or Prev), query the data and build the thumbnail display
         //console.log(">>> FilterRequest data-category = "+event.target.getAttribute('data-category'))
         //console.log(">>> FilterRequest data-startDate = "+event.target.getAttribute('data-startDate'))
-        //console.log(">>> FilterRequest data-searchStr = "+event.target.getAttribute('data-searchStr'))
-        //console.log(">>> FilterRequest data-menuItem = "+event.target.getAttribute('data-menuItem'))
 
         let paramData = {
             MediaFilterMediaType: mediaType, 
             getMenu: false,
             MediaFilterCategory:  event.target.getAttribute('data-category'),
-            MediaFilterStartDate: event.target.getAttribute('data-startDate'),
-            MediaFilterMenuItem: event.target.getAttribute('data-menuItem'),
-            //MediaFilterAlbumKey: event.target.getAttribute('data-albumKey'),
-            MediaFilterSearchStr: event.target.getAttribute('data-searchStr')}
+            MediaFilterStartDate: event.target.getAttribute('data-startDate')}
 
         queryMediaInfo(paramData);
 
@@ -103,20 +83,15 @@ thumbnailContainer.addEventListener("click", function (event) {
     // Respond to Filter requests
     //-------------------------------------------------------------------------------------------------------
     function executeFilter() {
-        mediaFilterSearchStr.value = cleanInputStr(mediaFilterSearchStr.value)
         //console.log(">>> Execute Filter mediaFilterMediaType = "+mediaType)
         //console.log(">>> Execute Filter mediaFilterCategory = "+mediaFilterCategory.value)
         //console.log(">>> Filter mediaFilterStartDate = "+mediaFilterStartDate.value)
-        //console.log(">>> Filter mediaFilterSearchStr = "+mediaFilterSearchStr.value)
-        //console.log(">>> Filter mediaFilterMenuItem = "+mediaFilterMenuItem.value)
-        //console.log(">>> Filter mediaFilterAlbumTag = "+mediaFilterAlbumTag.value)
 
         let paramData = {
             MediaFilterMediaType: mediaType, 
             getMenu: false,
             MediaFilterCategory:  mediaFilterCategory.value,
-            MediaFilterStartDate: mediaFilterStartDate.value,
-            MediaFilterSearchStr: mediaFilterSearchStr.value}
+            MediaFilterStartDate: mediaFilterStartDate.value}
 
         queryMediaInfo(paramData);
         // After query has retreived data, it will kick off the display page create
@@ -139,10 +114,6 @@ thumbnailContainer.addEventListener("click", function (event) {
         empty(thumbnailContainer)
         empty(editRow1)
 
-        if (getMenu) {
-            buildMenuElements(mediaType)
-            //buildAlbumMenuElements(mediaType)
-        }
         buildFilterElements(mediaType)
 
         mediaPageContainer.appendChild(filterContainer);
@@ -166,46 +137,37 @@ thumbnailContainer.addEventListener("click", function (event) {
         // Row 1
         let filterRow1 = document.createElement("div")
         filterRow1.classList.add('row','mt-2')
+
+        //-----------------------------------------------------------------------------
         let filterRow1Col1 = document.createElement("div")
-        filterRow1Col1.classList.add('col-5')
-
-
-        let menuButton = document.createElement("button")
-        menuButton.classList.add('btn','btn-primary','btn-sm','float-start')
-        menuButton.setAttribute('type',"button")
-        menuButton.setAttribute('role',"button")
-        menuButton.setAttribute('data-bs-toggle', "offcanvas")
-        menuButton.setAttribute('data-bs-target', mediaMenuCanvasId)
-        //menuButton.textContent = "Menu"
-        let icon1 = document.createElement("i")
-        icon1.classList.add('fa','fa-chevron-right')
-        icon1.textContent = "Menu"
-        menuButton.appendChild(icon1)
-        filterRow1Col1.appendChild(menuButton)
-
-        /*
-        let menuButton2 = document.createElement("button")
-        menuButton2.classList.add('btn','btn-success','btn-sm','ms-2','float-start')
-        menuButton2.setAttribute('type',"button")
-        menuButton2.setAttribute('role',"button")
-        menuButton2.setAttribute('data-bs-toggle', "offcanvas")
-        menuButton2.setAttribute('data-bs-target', mediaAlbumMenuCanvasId)
-        //menuButton2.textContent = "Menu"
-        let iconB = document.createElement("i")
-        iconB.classList.add('fa','fa-chevron-right')
-        iconB.textContent = "Albums"
-        menuButton2.appendChild(iconB)
-        // Just display an Albums button for Photos for now (till I figure out Albums for the others)
-        if (mediaType == 1) {
-            filterRow1Col1.appendChild(menuButton2)
+        filterRow1Col1.classList.add('col-sm-6','col-md-5')
+        let header2 = document.createElement("h5")
+        if (contentDesc.length > 40) {
+            header2 = document.createElement("h6")
         }
-        */
-       
+        header2.textContent = contentDesc
+        filterRow1Col1.appendChild(header2)
         filterRow1.appendChild(filterRow1Col1)
 
         //-----------------------------------------------------------------------------
         let filterRow1Col2 = document.createElement("div")
-        filterRow1Col2.classList.add('col')
+        filterRow1Col2.classList.add('col-sm-4','col-md-3')
+        filterRow1.appendChild(filterRow1Col2)
+
+
+        //-----------------------------------------------------------------------------
+        let filterRow1Col3 = document.createElement("div")
+        filterRow1Col3.classList.add('col-1')
+        filterRow1.appendChild(filterRow1Col3)
+
+        //-----------------------------------------------------------------------------------------------------------------------------
+        // Row 2
+        let filterRow2 = document.createElement("div")
+        filterRow2.classList.add('row','mt-2')
+        let filterRow2Col1 = document.createElement("div")
+        //filterRow2Col1.classList.add('col-3','d-none','d-sm-block')
+        filterRow2Col1.classList.add('col-sm-4','col-md-3')
+
         // Category
         mediaFilterCategory = document.createElement("select")
         mediaFilterCategory.classList.add('form-select','float-start','shadow-none')
@@ -217,14 +179,8 @@ thumbnailContainer.addEventListener("click", function (event) {
                     tempSelected = true
                 }
             } else {
-                if (mediaType == 1) {
-                    if (index == 1) {
-                        tempSelected = true
-                    }
-                } else {
-                    if (index == 0) {
-                        tempSelected = true
-                    }
+                if (index == 0) {
+                    tempSelected = true
                 }
             }
 
@@ -234,32 +190,15 @@ thumbnailContainer.addEventListener("click", function (event) {
                 mediaFilterCategory.options[mediaFilterCategory.options.length] = new Option(categoryList[index], categoryList[index])
             }
         }
-        filterRow1Col2.appendChild(mediaFilterCategory);
         mediaFilterCategory.addEventListener("change", function () {
             executeFilter()
         });
-        filterRow1.appendChild(filterRow1Col2)
-
-        let filterRow1Col3 = document.createElement("div")
-        filterRow1Col3.classList.add('col-1')
-        filterRow1.appendChild(filterRow1Col3)
-
-        //-----------------------------------------------------------------------------------------------------------------------------
-        // Row 2
-        let filterRow2 = document.createElement("div")
-        filterRow2.classList.add('row','mt-2')
-        let filterRow2Col1 = document.createElement("div")
-        filterRow2Col1.classList.add('col-3','d-none','d-sm-block')
-
-        let header2 = document.createElement("h5")
-        if (contentDesc.length > 40) {
-            header2 = document.createElement("h6")
-        }
-        //header2.textContent = mediaTypeDesc
-        header2.textContent = contentDesc
-        filterRow2Col1.appendChild(header2)
+        filterRow2Col1.appendChild(mediaFilterCategory);
         filterRow2.appendChild(filterRow2Col1)
 
+
+
+        /*
         let filterRow2Col2 = document.createElement("div")
         filterRow2Col2.classList.add('col')
         let tRow = document.createElement("div")
@@ -275,36 +214,10 @@ thumbnailContainer.addEventListener("click", function (event) {
         mediaFilterStartDate.addEventListener("change", function () {
             executeFilter()
         });
-
-        let tCol2 = document.createElement("div")
-        tCol2.classList.add('col-7')
-        mediaFilterSearchStr = document.createElement("input")
-        //mediaFilterSearchStr.id = "MediaFilterSearchStr"
-        mediaFilterSearchStr.classList.add('form-control','shadow-none')
-        mediaFilterSearchStr.setAttribute('type',"text")
-        mediaFilterSearchStr.setAttribute('placeholder',"Search string")
-        mediaFilterSearchStr.value = querySearchStr
-        tCol2.appendChild(mediaFilterSearchStr);
-        tRow.appendChild(tCol2)
-        filterRow2Col2.appendChild(tRow)
-        filterRow2.appendChild(filterRow2Col2)
-        mediaFilterSearchStr.addEventListener("keypress", function(event) {
-            // If the user presses the "Enter" key on the keyboard
-            if (event.key === "Enter") {
-                // Cancel the default action, if needed
-                event.preventDefault();
-                executeFilter()
-            }
-        });
-    
-        let filterRow2Col3 = document.createElement("div")
-        filterRow2Col3.classList.add('col-2','d-none','d-sm-block')
-        let header3 = document.createElement("h6")
-        header3.classList.add('float-end')
-        //header3.textContent = "(Edit Mode)"
-        header3.textContent = ""   // >>>>>>>>>>>>>>>>>>>>>>> use if you need to display something <<<<<<<<<<<<<<<<<<<<<
-        filterRow2Col3.appendChild(header3)
-        filterRow2.appendChild(filterRow2Col3)
+        */
+        mediaFilterStartDate = document.createElement("input")
+        mediaFilterStartDate.setAttribute('type',"date")
+        mediaFilterStartDate.value = mediaInfo.startDate
 
         // Add Rows to Filter Container
         filterContainer.appendChild(filterRow1);
@@ -317,13 +230,9 @@ thumbnailContainer.addEventListener("click", function (event) {
     //===========================================================================================================
     export function displayCurrFileList() {
         let docFiles = false
-        let audioFiles = false
         let doclistTbody = document.createElement("tbody")
-        let playlistTbody = document.createElement("tbody")
 
         empty(thumbnailContainer)
-        //emptyPlaylist()
-        //let plIndex = 0
 
         let thumbnailRow1 = document.createElement("div")
         let thumbnailRow2 = document.createElement("div")
@@ -365,8 +274,6 @@ thumbnailContainer.addEventListener("click", function (event) {
                 img.src = getFilePath(index,"Thumbs")
                 //img.src = getFilePath(index,"Smaller")
                 img.setAttribute('data-index', index)
-                // Thumbnails are created as 130 x 130, but display is 110?
-                // 2024-04-06 Testing 120, but 110 seems better
                 img.height = 110
 
                 // Make sure the 1st image is cached (for the lightbox display)
@@ -375,60 +282,8 @@ thumbnailContainer.addEventListener("click", function (event) {
                     imgCache.src = getFilePath(index,"Smaller")
                 }
                 thumb = img
-
-                // *** For Testing ***
-                //let videoLabel = document.createElement("label")
-                //videoLabel.classList.add('mx-1')
-                //videoLabel.textContent = fi.Name.substring(0,20) + " " + fi.TakenDateTime
-                //thumb.appendChild(videoLabel)
-                //thumb.appendChild(img)
-
                 thumbnailRow2Col1.appendChild(thumb)
 
-            } else if (mediaType == 2) {
-                let videoLabel = document.createElement("label")
-                videoLabel.classList.add('mx-1')
-                if (fi.Title.length > titleMax) {
-                    videoLabel.textContent = fi.Title.substring(0,titleMax)
-                } else {
-                    videoLabel.textContent = fi.Title
-                }
-                thumb.appendChild(videoLabel)
-
-                let iframe = document.createElement("iframe")
-                iframe.classList.add('m-1')
-                // Use the embed link for iframe (without https so it can be run locally for testing)
-                iframe.setAttribute('src', "//www.youtube.com/embed/" + fi.Name)
-                iframe.setAttribute('allowfullscreen', true)
-
-                //iframe.style.width = "230px";
-                iframe.style.width = "310px";
-                //iframe.style.height = "140px";
-                iframe.style.height = "220px";
-
-                thumb.appendChild(iframe)
-                thumbnailRow2Col1.appendChild(thumb)
-            
-            /*
-            } else if (mediaType == 3) {
-                // MUSIC
-                audioFiles = true;
-                plIndex = incrementPlaylistIndex()
-                addSongToPlaylist({ "title": getFileName(index), "url": getFilePath(index) })
-                
-                // add the table rows for the playlist
-                // build a table then append to the thumbnail container
-                let a = document.createElement("a")
-                a.classList.add('class', `${playlistSongClass}`)
-                a.setAttribute('data-plIndex', plIndex);
-                a.setAttribute('role', 'button');
-                a.textContent = getFileName(index)
-                let td = document.createElement("td");
-                td.appendChild(a);
-                let tr = document.createElement("tr");
-                tr.appendChild(td);
-                playlistTbody.appendChild(tr)
-            */
             } else if (mediaType == 4) {
                 // DOCS
                     
@@ -447,7 +302,6 @@ thumbnailContainer.addEventListener("click", function (event) {
             }
         } //   for (let index in mediaInfo.fileList) {
         
-
         // if there were any docs, build a table of the filelinks and append to the Thumbnails container\
         if (docFiles) {
             empty(thumbnailRow2Col1);
@@ -457,52 +311,6 @@ thumbnailContainer.addEventListener("click", function (event) {
             table.appendChild(doclistTbody)
             thumbnailRow2Col1.appendChild(table)
         }
-        /*
-        else if (audioFiles) {
-            empty(thumbnailRow2Col1);
-
-                // if there were any MP3's, build a player with the playlist of MP3's
-                let h6 = document.createElement("h6");
-                h6.id = 'SongTitle'
-                h6.textContent = initSong(0)
-                thumbnailRow2Col1.appendChild(h6)
-
-                // Append the audioPlayer element
-                thumbnailRow2Col1.appendChild(audioPlayer);
-
-                let i = document.createElement("i");
-                i.classList.add('fa',`${audioPrevClass}`,'fa-3x')
-                let a = document.createElement("a")
-                a.id = "AudioPrev"
-                //a.href = "#"
-                a.appendChild(i)
-                thumbnailRow2Col1.appendChild(a)
-
-                i = document.createElement("i");
-                i.classList.add('fa',`${audioNextClass}`,'fa-3x','mx-3')
-                a = document.createElement("a")
-                a.id = "AudioNext"
-                //a.href = "#"
-                a.appendChild(i)
-                thumbnailRow2Col1.appendChild(a)
-
-            // append the tbody rows to the table, and the table to the Col1 (and thumbnail container)
-            let playlistTable = document.createElement("table");
-            playlistTable.id = 'PlaylistDisplay'
-            playlistTable.classList.add('table', 'table-sm', 'mt-3')
-            playlistTable.appendChild(playlistTbody)
-
-            let row = document.createElement("div");
-            row.id = 'PlaylistRow'
-            row.classList.add('row')
-            let col1 = document.createElement("div");
-            col1.classList.add('col-sm-7')
-            col1.appendChild(playlistTable)
-            row.appendChild(col1)
- 
-            thumbnailRow2Col1.appendChild(row)
-        }
-        */
 
         //----------------------------------------------------------------------------------------------------
         // If there is a filter request list, create Filter Request buttons with the start date
@@ -537,9 +345,6 @@ thumbnailContainer.addEventListener("click", function (event) {
                 button.setAttribute('data-MediaType', mediaType)
                 button.setAttribute('data-category', mediaFilterCategory.value)
                 button.setAttribute('data-startDate', FilterRec.startDate)
-                button.setAttribute('data-menuItem', queryMenuItem)
-                //button.setAttribute('data-albumKey', queryAlbumKey)
-                button.setAttribute('data-searchStr', querySearchStr)
                 button.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
                 button.textContent = FilterRec.filterName
                 thumbnailRow1Col1.appendChild(button)
@@ -552,9 +357,6 @@ thumbnailContainer.addEventListener("click", function (event) {
                     button2.setAttribute('data-MediaType', mediaType)
                     button2.setAttribute('data-category', mediaFilterCategory.value)
                     button2.setAttribute('data-startDate', FilterRec.startDate)
-                    button2.setAttribute('data-menuItem', queryMenuItem)
-                    //button2.setAttribute('data-albumKey', queryAlbumKey)
-                    button2.setAttribute('data-searchStr', querySearchStr)
                     button2.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
                     button2.textContent = FilterRec.filterName
                     thumbnailRow3Col1.appendChild(button2)

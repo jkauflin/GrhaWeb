@@ -25,9 +25,7 @@ Modification History
 
 import {empty,showLoadingSpinner,addDays,getDateInt} from './util.js';
 import {createMediaPage,displayCurrFileList,updateAdminMessage} from './mg-create-pages.js';
-import {setMenuList} from './mg-menu.js';
 export let mediaInfo = {
-    menuList: [],
     filterList: [],
     fileList: [],
     startDate: "",
@@ -38,12 +36,10 @@ export let contentDesc = ""
 export var getMenu = false
 
 export var queryCategory = ""
-export var querySearchStr = ""
-export var queryMenuItem = ""
-export var queryAlbumKey = ""
 
 export var categoryList = []
-let defaultCategory = "Misc"
+let defaultCategory = ""
+let prevCategory = ""
 
 // Look into using environment variables for this (like secrets for Azure credentials)
 let musicUri = ""
@@ -94,36 +90,16 @@ export async function queryMediaInfo(paramData) {
     //console.log("$$$$$ in the QueryMediaInfo, mediaType = "+mediaType)
 
     getMenu = paramData.getMenu
-    //getMenu = false
 
     // Set a default start date of 60 days back from current date
-    mediaInfo.menuOrAlbumName = ""
     mediaInfo.startDate = "1972-01-01"
+    mediaInfo.menuOrAlbumName = ""
 
-    /*
-    if (mediaType == 1) {
-        //mediaInfo.startDate = addDays(new Date(), -60)
-        //mediaInfo.startDate = "2008-01-01"
-        mediaInfo.startDate = "1972-01-01"
-
-        if (paramData.MediaFilterCategory == "ALL") {
-            mediaInfo.startDate = "1972-01-01"
-        }
-
-    }
-    */
-
-    //let maxRows = 200
-    let maxRows = 100
-    if (mediaType == 2) {
-		//maxRows = 18
-		maxRows = 12
-    }
-
-//    CategoryName: "Governing Docs",
-
+    //let maxRows = 150
+    let maxRows = 200
     let mti = mediaType - 1
     defaultCategory = mediaTypeData[mti].Category[0].CategoryName
+    queryCategory = defaultCategory
 
     let categoryQuery = ""
     if (paramData.MediaFilterCategory != null && paramData.MediaFilterCategory != '' &&
@@ -134,6 +110,8 @@ export async function queryMediaInfo(paramData) {
             }
         } else {
             categoryQuery = `{ CategoryTags: {contains: "${paramData.MediaFilterCategory}"} }`
+            // Save the parameters from the laste query
+            queryCategory = paramData.MediaFilterCategory
         }
         //console.log(">>> categoryQuery = "+categoryQuery)
     }
@@ -148,71 +126,18 @@ export async function queryMediaInfo(paramData) {
             startDateQuery = `{ MediaDateTimeVal: { gte: ${getDateInt(paramData.MediaFilterStartDate)} } }`
         }
         //console.log("      int MediaFilterStartDate = "+getDateInt(paramData.MediaFilterStartDate))
-		//if (paramData.MediaFilterStartDate != "0001-01-01 00:00:00") {
-        /*
-        if (paramData.MediaFilterStartDate != "1800-01-01") {
-            //startDateQuery = `{ MediaFileTime: { gte: 2023010108 } }`
-            startDateQuery = `{ MediaDateTimeVal: { gte: ${getDateInt(paramData.MediaFilterStartDate)} } }`
-        }
-        */
-        //console.log(">>> startDateQuery = "+startDateQuery)
 	}
 
-    /*
-    let menuQuery = ""
-    if (paramData.MediaFilterMenuItem != null && paramData.MediaFilterMenuItem != '') {
-        // Maybe add Category to this (if needed)
-        mediaInfo.menuOrAlbumName = paramData.MediaFilterMenuItem
-        menuQuery = `{ MenuTags: {contains: "${paramData.MediaFilterMenuItem}"} }`
-        //console.log(">>> menuQuery = "+menuQuery)
-	}
-    
-    let albumQuery = ""
-    if (paramData.MediaFilterAlbumKey != null && paramData.MediaFilterAlbumKey != '') {
-        if (paramData.MediaFilterAlbumName != null && paramData.MediaFilterAlbumName != '') {
-            mediaInfo.menuOrAlbumName = paramData.MediaFilterAlbumName
-        }
-        albumQuery = `{ AlbumTags: {contains: "${paramData.MediaFilterAlbumKey}"} }`
-        //console.log(">>> albumQuery = "+albumQuery)
-	}
-    */
-
-    let searchQuery = ""
-    if (paramData.MediaFilterSearchStr != null && paramData.MediaFilterSearchStr != '') {
-        searchQuery = `{ SearchStr: {contains: "${paramData.MediaFilterSearchStr.toLowerCase()}"} }`
-        // If search is specified, clear out the category and start date queries
-        categoryQuery = ""
+    if (paramData.MediaFilterCategory != prevCategory) {
+        prevCategory = paramData.MediaFilterCategory
         startDateQuery = ""
-        //console.log(">>> searchQuery = "+searchQuery)
-	}
-
-    let orderBy = "orderBy: { MediaDateTime: ASC }"
-    /*
-    if (mediaType == 2) {
-        orderBy = "orderBy: { Name: ASC }"
     }
-    */
 
-/*
-  id: ID
-  MediaTypeId: Int
-  Name: String
-  MediaDateTime: String
-  MediaFileTime: Float
-  CategoryTags: String
-  MenuTags: String
-  AlbumTags: String
-  Title: String
-  Description: String
-  People: String
-  ToBeProcessed: Boolean
-  SearchStr: String
+    let orderByQuery = "orderBy: { MediaDateTime: ASC },"
+    if (mediaType == 4) {
+        orderByQuery = "orderBy: { MediaDateTime: DESC },"
+    }
 
-                        ${menuQuery}
-                        ${searchQuery}
-                        ${startDateQuery}
-
-*/
     let gql = `query {
             books (
                 filter: { 
@@ -222,7 +147,7 @@ export async function queryMediaInfo(paramData) {
                         ${startDateQuery}
                     ] 
                 },
-                ${orderBy},
+                ${orderByQuery}
                 first: ${maxRows}
             ) {
                 items {
@@ -253,29 +178,13 @@ export async function queryMediaInfo(paramData) {
         console.table(result.errors);
     } else {
         //console.log("result.data = "+result.data)
-        //console.table(result.data.mtypes.items);
-        /*
-        console.log("items[0].Category[1].CategoryName = "+result.data.mtypes.items[0].Category[1].CategoryName);
-        console.log("items[0].Category[1].Menu = "+result.data.mtypes.items[0].Category[1].Menu);
-        console.log("items[0].Category[1].Menu[0].MenuItem = "+result.data.mtypes.items[0].Category[1].Menu[0].MenuItem);
-        */
-        //console.table(result.data.books.items);
-        //console.table(result.data.book_by_pk);
-        //console.log("Title = "+result.data.book_by_pk.Title)
-        //console.table(result.data.mtype_by_pk);
-        /*
-        console.log("data.mtype_by_pk.MediaTypeDesc = "+result.data.mtype_by_pk.MediaTypeDesc);
-        console.log("data.mtype_by_pk.Category[0].CategoryName = "+result.data.mtype_by_pk.Category[0].CategoryName);
-        if (result.data.mtype_by_pk.Category[0].Menu != null) {
-            console.log("data.mtype_by_pk.Category[0].Menu[0].MenuItem = "+result.data.mtype_by_pk.Category[0].Menu[0].MenuItem);
-        }
-        */
         mediaInfo.fileList.length = 0
         mediaInfo.fileList = result.data.books.items
         mediaInfo.filterList = []
 
         if (mediaInfo.fileList.length > 0) {
             mediaInfo.startDate = mediaInfo.fileList[0].MediaDateTime.substring(0,10)
+            mediaInfo.menuOrAlbumName = "dt = "+mediaInfo.fileList[0].MediaDateTime
 
             // Set the filter list elements
             let currYear = mediaInfo.startDate.substring(0,4)
@@ -328,94 +237,24 @@ export async function queryMediaInfo(paramData) {
 
         } // if (mediaInfo.fileList.length > 0) {
 
-        /*
-        if (mediaInfo.currMenu != null && mediaInfo.currMenu != "") {
-            contentDesc = mediaTypeDesc + " - " + mediaInfo.currMenu
-        } else if (mediaInfo.currAlbum != null && mediaInfo.currAlbum != "") {
-            contentDesc = mediaTypeDesc + " - " + mediaInfo.currAlbum
-        }
-        */
+        let mti = mediaType - 1
+        mediaTypeDesc = mediaTypeData[mti].MediaTypeDesc
 
-        if (getMenu) {
-            //mediaTypeDesc = result.data.mtype_by_pk.MediaTypeDesc
-            let mti = mediaType - 1
-            mediaTypeDesc = mediaTypeData[mti].MediaTypeDesc
-            contentDesc = mediaTypeDesc
+        // Clear array before setting with values
+        categoryList.length = 0
 
-            // Clear array before setting with values
-            mediaInfo.menuList.length = 0
-            categoryList.length = 0
-
-            let cnt = 0;
-            if (mediaTypeData[mti].Category != null) {
-                let category = null
-                for (let i = 0; i < mediaTypeData[mti].Category.length; i++) {
-                    category = mediaTypeData[mti].Category[i]
-                    categoryList.push(category.CategoryName)
-                    cnt++
-                    if (mediaType == 1) {
-                        if (cnt == 2) {
-                            defaultCategory = category.CategoryName
-                        }
-                    } else {
-                        if (cnt == 1) {
-                            defaultCategory = category.CategoryName
-                        }
-                    }
-    
-                    let menuObject = 
-                    {
-                        category: category.CategoryName,
-                        subMenuList: category.Menu
-                    }
-    
-                    mediaInfo.menuList.push(menuObject)
-                }
-
-                //mediaTypeData[mti].Category.length
-                /*
-                mediaTypeData[mti].Category.forEach((category) => {
-                    categoryList.push(category.CategoryName)
-    
-                    let menuObject = 
-                    {
-                        category: category.CategoryName,
-                        subMenuList: category.Menu
-                    }
-    
-                    mediaInfo.menuList.push(menuObject)
-                })
-                */
-            }
-
-            // Save the menu lists
-            setMenuList(mediaInfo.menuList)
-            //setAlbumList(result.data.malbums.items)
-        }
-
-        // Save the parameters from the laste query
-        queryCategory = paramData.MediaFilterCategory
-        querySearchStr = ""
-        if (paramData.MediaFilterSearchStr != null && paramData.MediaFilterSearchStr != "") {
-            querySearchStr = paramData.MediaFilterSearchStr
-        }
-        queryMenuItem = ""
-        if (paramData.MediaFilterMenuItem != null & paramData.MediaFilterMenuItem != "") {
-            queryMenuItem = paramData.MediaFilterMenuItem
-        }
-        /*
-        queryAlbumKey = ""
-        if (paramData.MediaFilterAlbumKey != null & paramData.MediaFilterAlbumKey != "") {
-            queryAlbumKey = paramData.MediaFilterAlbumKey
-            // Get the Album Name if not included
-            if (mediaInfo.menuOrAlbumName == "") {
-                mediaInfo.menuOrAlbumName = getAlbumName(queryAlbumKey)
+        let cnt = 0;
+        if (mediaTypeData[mti].Category != null) {
+            let category = null
+            for (let i = 0; i < mediaTypeData[mti].Category.length; i++) {
+                category = mediaTypeData[mti].Category[i]
+                categoryList.push(category.CategoryName)
+                cnt++
             }
         }
-        */
 
-        //MediaFilterAlbumKey
-        //queryAlbumKey
+        contentDesc = mediaTypeDesc + " - " + queryCategory
+        //contentDesc = mediaTypeDesc
 
         createMediaPage()
     }
@@ -428,9 +267,6 @@ var mediaTypeData = [
     MediaTypeId: 1,
     MediaTypeDesc: "Photos",
     Category: [
-        {
-            CategoryName: "ALL"
-        },
         {
             CategoryName: "Misc",
             Menu: [
@@ -460,6 +296,9 @@ var mediaTypeData = [
             CategoryName: "Meetings",
             Menu: [
             ]
+        },
+        {
+            CategoryName: "ALL"
         }
     ]
 },
