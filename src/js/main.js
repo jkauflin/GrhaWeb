@@ -28,21 +28,28 @@
  * 2024-11-18 JJK   Got the api calls and Dues Statement working
  * 2025-01-02 JJK   Added query to get Board of Trustees information from
  *                  an Azure Cosmos NoSQL container
+ * 2025-01-11 JJK   Cleaned up the logic for handling link-tile-tab for
+ *                  non-mediagallery links
  *============================================================================*/
 
 import {empty,formatMoney,setCheckbox} from './util.js'
+
+var duesPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("DuesPageNavLink"))
+var duesLinkTile = document.getElementById("DuesLinkTile");
+var contactsPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("ContactsPageNavLink"))
+var contactsLinkTile = document.getElementById("ContactsLinkTile");
 
 var addressInput = document.getElementById("address");
 var messageDisplay = document.getElementById("MessageDisplay")
 
 // Keep track of the state of the navbar collapse (shown or hidden)
-var navbarCollapseShown = false;
-var collapsibleNavbar = document.getElementsByClassName("navbar-collapse")[0];
+var navbarCollapseShown = false
+var collapsibleNavbar = document.getElementsByClassName("navbar-collapse")[0]
 collapsibleNavbar.addEventListener('hidden.bs.collapse', function () {
-    navbarCollapseShown = false;
+    navbarCollapseShown = false
 })
 collapsibleNavbar.addEventListener('shown.bs.collapse', function () {
-    navbarCollapseShown = true;
+    navbarCollapseShown = true
 })
  
 // Listen for nav-link clicks
@@ -53,44 +60,12 @@ document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click
     }
 }))
 
-// Respond to click on a link-tile-tab button by finding the correct TAB and switching/showing it
-// (These link-tile-tab's also have media-page for creating the Menu, but these handled from the listener on that class
-//  which is in the mediagallery.js)
-// >>>>> main.js is for the tab navigation and tab display (either bootstrap nav elements, or link-tile 
-//   and mediagallery.js is for handling display for anything with a media-page, but not the display navigation???) 
-// *** 12/30/2024 - you were using "data-dir" for the tab name, and MediaType number for the media type (and Media tab page)
-document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("click", function (event) {
-    //console.log("link-tile-tab click ")
-    let targetTab = event.target.getAttribute("data-dir")
-    let targetTabPage = targetTab + 'Page';
-    let targetTabElement = document.querySelector(`.navbar-nav a[href="#${targetTabPage}"]`);
-    // If the target tab element is found, create a Tab object and call the show() method
-    if (typeof targetTabElement !== "undefined" && targetTabElement !== null) {
-        bootstrap.Tab.getOrCreateInstance(targetTabElement).show();
-    }
-}))
-    /*
-    document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("click", function (event) {
-        setMediaType(event.target.getAttribute('data-MediaType'))
-        // Get the target tab based on the the MediaType specified, and use the new Bootstrap v5.2 js for showing the tab
-        // the link ('a') with the correct MediaType, within the ".navbar-nav" list
-        let targetTabElement = document.querySelector(`.navbar-nav a[data-MediaType="${mediaType}"]`);
-
-        // If the target tab element is found, create a Tab object and call the show() method
-        if (typeof targetTabElement !== "undefined" && targetTabElement !== null) {
-            bootstrap.Tab.getOrCreateInstance(targetTabElement).show();
-        }
-    }));
-    */
-    
-    // Check if a Tab name is passed as a parameter on the URL and navigate to it
-    /*
-    var results = new RegExp('[\?&]tab=([^&#]*)').exec(window.location.href);
-    if (results != null) {
-        let tabName = results[1] || 0;
-        displayTabPage(tabName);
-    }
-    */
+duesLinkTile.addEventListener("click", function (event) {
+    duesPageTab.show();
+})
+contactsLinkTile.addEventListener("click", function (event) {
+    contactsPageTab.show();
+})
 
 document.body.addEventListener("click", function (event) {
     if (event.target && event.target.classList.contains("DuesStatement")) {
@@ -319,29 +294,6 @@ function formatDuesStatementResults(hoaRec) {
 
 } // End of function formatDuesStatementResults(hoaRec){
 
-/*
-async function fetchBoardData() {
-    const endpoint = "/api/GetPropertyList2";
-    try {
-        messageDisplay.textContent = "Fetching property information..."
-        const response = await fetch(endpoint, {
-            method: "POST",
-            //headers: { "Content-Type": "application/json" },
-            body: addressInput.value
-        })
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        messageDisplay.textContent = ""
-        displayPropertyList(data)
-    } catch (err) {
-        console.error(`Error in Fetch to ${endpoint}, ${err}`)
-        messageDisplay.textContent = "Fetch data FAILED - check log"
-    }
-}
-*/
-
 var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
 const presidentName = document.querySelectorAll('.PresidentName')
 const presidentPhone = document.querySelectorAll('.PresidentPhone')
@@ -389,6 +341,7 @@ async function queryBoardInfo() {
         console.table(result.errors);
     } else {
         //console.log("result.data = "+result.data)
+
         const maxTrustees = result.data.boards.items.length
         if (maxTrustees > 0) {
             let i = -1
@@ -450,8 +403,7 @@ async function queryBoardInfo() {
                     cardBody.appendChild(trusteeDesc)
                 }
             })
-
         } // result.data.boards.items.length
-
     }
-}
+} // async function queryBoardInfo()
+

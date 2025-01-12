@@ -13,7 +13,7 @@
     <meta property="og:type" content="article" />
     <meta property="og:title" content="Gander Road Homeowners Association" />
     <meta property="og:description" content="This is the web site for the Gander Road Homeowners Association" />
-    <meta property="og:image" content="https://grha-dayton.org/https://grhawebstorage.blob.core.windows.net/images/qh-sign.jpg" />
+    <meta property="og:image" content="https://grhawebstorage.blob.core.windows.net/images/qh-sign.jpg" />
     
     <!-- Place favicon.ico in the root directory -->
     <link rel="icon" href="favicon.ico?ver=1.003">
@@ -40,21 +40,16 @@
         <ul class="nav navbar-nav">
             <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#HomePage" >
                 <i class="fa fa-home"></i> Home</a></li>
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#ContactsPage" role="tab">
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#ContactsPage" role="tab" id="ContactsPageNavLink">
                 <i class="fa fa-phone"></i> Contact Us</a></li>
-
             <li class="nav-item"><a class="nav-link media-page" data-bs-toggle="tab" href="#MediaPage" data-MediaType="4">
                 <i class="fa fa-file"></i> Docs</a></li>
-    
-            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#DuesPage" role="tab">
+            <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#DuesPage" role="tab" id="DuesPageNavLink">
                 <i class="fa fa-dollar"></i> Dues</a></li>
             <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#CommitteesPage" role="tab">
                 <i class="fa fa-group"></i> Committees</a></li>
-
             <li class="nav-item"><a class="nav-link media-page" data-bs-toggle="tab" href="#MediaPage" data-MediaType="1">
                 <i class="fa fa-camera" style="font-size: 1rem;"></i> Photos</a></li>
-
-    
         </ul>
     </div>
 </nav>
@@ -67,6 +62,9 @@
                 <div id="DisplayWidth"></div>
                 <h4 class="d-none d-sm-block">Home</h4>
                 <div class="d-none d-sm-block">
+                    <!--
+                    >>>>>>>>>>> add menu or album tags for sign and neighborhood photos and re-implement a "random pic" function
+                    -->
                     <img id="HomePhoto" class="rounded mb-2 ml-2" src="https://grhawebstorage.blob.core.windows.net/images/QH-sign.JPG" alt="Quail Hollow sign" width="65%" />
                 </div>
                 President: <b><span class="PresidentName"></span></b>
@@ -80,63 +78,28 @@
                 </a>
             </div><!-- End of col 1 -->
 
-            <!--
-            <div class="row ml-1 mb-1">
-                <div class="container-fluid ">
-                    <button class="btn btn-success mt-2 mr-2 link-tile-tab media-page" data-MediaType="1" type="button" role="button">
-                        <i class="fa fa-camera fa-2x float-start"></i> Photos</button>
-                    <button class="btn btn-success mt-2 mr-2 link-tile-tab media-page" data-MediaType="2" type="button" role="button">
-                        <i class="fa fa-video-camera fa-2x float-start"></i> Videos</button>
-                    <button class="btn btn-success mt-2 mr-2 link-tile-tab media-page" data-MediaType="3" type="button" role="button">
-                        <i class="fa fa-music fa-2x float-start"></i> Music</button>
-
-                    <button class="btn btn-warning mt-2 mr-2 link-tile-tab-solar" type="button" role="button" id="SolarTile">
-                        <i class="fa fa-sun-o fa-2x float-start"></i> Solar</button>
-                </div>
-            </div>
-            -->
             <div class="col-sm-4 col-lg-6">
                 <a class="btn btn-danger mt-2 link-tile" href="#realtorModal" data-bs-toggle="modal">
                     <i class="fa fa-home fa-2x float-start"></i> Realtors and <br> Title Agents</a>
-                <button class="btn btn-success mt-2 link-tile link-tile-tab" data-dir="Dues" type="button" role="button">
+                <button class="btn btn-success mt-2 link-tile" type="button" role="button" id="DuesLinkTile">
                     <i class="fa fa-dollar fa-2x float-start"></i> Dues and <br> Liens</button>
-
-                <button class="btn btn-primary mt-2 link-tile media-page" data-dir="Docs/Quail%20Call%20(newsletter)/2024" type="button" role="button">
+                <button class="btn btn-primary mt-2 link-tile link-tile-tab media-page" type="button" role="button" data-MediaType="4">
                     <i class="fa fa-file-text-o fa-2x float-start"></i> Quail Call <br>newsletter</button>
-
-                <a class="btn btn-warning mt-2 link-tile" href="Media/Docs/GRHA%20Welcome%20Letter.pdf" target="_blank">
+                <a class="btn btn-warning mt-2 link-tile" href="https://grhawebstorage.blob.core.windows.net/docs/GRHA%20Welcome%20Letter.pdf" target="_blank">
                     <i class="fa fa-info fa-2x float-start"></i> Welcome <br>message</a>
                 <a class="btn btn-info mt-2 link-tile" href="#meetingModal" data-bs-toggle="modal">
                     <i class="fa fa-group fa-2x float-start"></i> Monthly <br>meetings</a>
-                <button class="btn btn-success mt-2 link-tile media-page" data-dir="Docs" type="button" role="button">
+                <button class="btn btn-success mt-2 link-tile link-tile-tab media-page" type="button" role="button" data-MediaType="4">
                     <i class="fa fa-legal fa-2x float-start"></i> Covenants <br>and By Laws</button>
-                <button class="btn btn-danger mt-2 link-tile media-page" data-dir="Docs" type="button" role="button">
+                <button class="btn btn-danger mt-2 link-tile link-tile-tab media-page" type="button" role="button" data-MediaType="4">
                     <i class="fa fa-bank fa-2x float-start"></i> Architecture <br>and Zoning</button>
                 <a class="btn btn-primary mt-2 link-tile" href="#eventModal" data-bs-toggle="modal">
                     <i class="fa fa-calendar fa-2x float-start"></i> Events / <br>Calendar</a>
-                <button class="btn btn-warning mt-2 link-tile link-tile-tab" data-dir="Contacts" type="button" role="button">
+                <button class="btn btn-warning mt-2 link-tile" data-dir="Contacts" type="button" role="button" id="ContactsLinkTile">
                     <i class="fa fa-phone fa-2x float-start"></i> Contact <br>us</button>
                 
                 <!--
-                <a class="btn btn-danger mt-2 link-tile" href="#realtorModal" data-bs-toggle="modal">
-                    <i class="fa fa-home fa-2x float-start"></i> Realtors and <br> Title Agents</a>
-                <button class="btn btn-success mt-2 link-tile link-tile-tab" data-dir="Dues" type="button" role="button">
-                    <i class="fa fa-dollar fa-2x float-start"></i> Dues and <br> Liens</button>
-                <button class="btn btn-primary mt-2 link-tile media-page" data-dir="Docs/Quail%20Call%20(newsletter)/2024" type="button" role="button">
-                    <i class="fa fa-file-text-o fa-2x float-start"></i> Quail Call <br>newsletter</button>
-                <a class="btn btn-warning mt-2 link-tile" href="Media/Docs/GRHA%20Welcome%20Letter.pdf" target="_blank">
-                    <i class="fa fa-info fa-2x float-start"></i> Welcome <br>message</a>
-                <a class="btn btn-info mt-2 link-tile" href="#meetingModal" data-bs-toggle="modal">
-                    <i class="fa fa-group fa-2x float-start"></i> Monthly <br>meetings</a>
-                <button class="btn btn-success mt-2 link-tile media-page" data-dir="Docs" type="button" role="button">
-                    <i class="fa fa-legal fa-2x float-start"></i> Covenants <br>and By Laws</button>
-                <button class="btn btn-danger mt-2 link-tile media-page" data-dir="Docs" type="button" role="button">
-                    <i class="fa fa-bank fa-2x float-start"></i> Architecture <br>and Zoning</button>
-                <a class="btn btn-primary mt-2 link-tile" href="#eventModal" data-bs-toggle="modal">
-                    <i class="fa fa-calendar fa-2x float-start"></i> Events / <br>Calendar</a>
-                <button class="btn btn-warning mt-2 link-tile link-tile-tab" data-dir="Contacts" type="button" role="button">
-                    <i class="fa fa-phone fa-2x float-start"></i> Contact <br>us</button>
-
+                 link-tile-tab
 
                 <div class="float-start m-2">
                     The 2021 GRHA Christmas decorating contest winners are:
@@ -204,7 +167,7 @@
                     width="85%" frameborder="0" style="border:0;" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
                 </div>
 
-                <h6><i class="fa fa-copyright"></i>2024 Gander Road Homeowners Association</h6>
+                <h6><i class="fa fa-copyright"></i>2025 Gander Road Homeowners Association</h6>
                 <p>
                 <a data-bs-toggle="modal" href="#PrivacyModal"><i class="fa fa-briefcase"></i> privacy policy</a>
                 </p>
@@ -318,11 +281,11 @@
     </div><!-- end of Contacts tab -->
 
     <div class="tab-pane" role="tabpanel"  id="DuesPage">
-        <a class="btn btn-success mt-2" href="Media/Docs/Why%20do%20I%20have%20to%20pay%20dues.pdf" target="_blank">
+        <a class="btn btn-success mt-2" href="https://grhawebstorage.blob.core.windows.net/docs/Why%20do%20I%20have%20to%20pay%20dues.pdf" target="_blank">
             <i class="fa fa-dollar "></i> Why do I have to pay dues</a>
-        <a class="btn btn-success mt-2" href="Media/Docs/GRHA%20Dues%20and%20Liens.pdf" target="_blank">
+        <a class="btn btn-success mt-2" href="https://grhawebstorage.blob.core.windows.net/docs/GRHA%20Dues%20and%20Liens.pdf" target="_blank">
             <i class="fa fa-dollar "></i> Dues and Lien info</a>
-        <a class="btn btn-success mt-2" href="Media/Docs/2024%20GRHA%20Collection%20Policy.pdf" target="_blank">
+        <a class="btn btn-success mt-2" href="https://grhawebstorage.blob.core.windows.net/docs/2024%20GRHA%20Collection%20Policy.pdf" target="_blank">
                 <i class="fa fa-dollar "></i> 2024 Collection Policy</a>
     
         <div class="row mt-2">
@@ -502,7 +465,7 @@
                     This meeting is open to all members of the GRHA.
                     <h6>*** Special Note - Jan. meeting will be at regular 7:00pm, but February meeting will start at 7:30pm</h6>
                     <p>
-                        <a href="https://www.google.com/maps/place/Dayton+Metro+Library+-+Huber+Heights+Branch/@39.843046,-84.1196126,17z/data=!4m14!1m7!3m6!1s0x883f7d43ef86bd67:0x914d39b2d5b2eab5!2sDayton+Metro+Library+-+Huber+Heights+Branch!8m2!3d39.843046!4d-84.1170377!16s%2Fg%2F1tfl0ww6!3m5!1s0x883f7d43ef86bd67:0x914d39b2d5b2eab5!8m2!3d39.843046!4d-84.1170377!16s%2Fg%2F1tfl0ww6?hl=en&entry=ttu&g_ep=EgoyMDI0MTIxMS4wIKXMDSoASAFQAw%3D%3D" target="_blank">
+                        <a target="_blank" href="https://www.google.com/maps/place/Dayton+Metro+Library+-+Huber+Heights+Branch/@39.843046,-84.1196126,17z/data=!4m14!1m7!3m6!1s0x883f7d43ef86bd67:0x914d39b2d5b2eab5!2sDayton+Metro+Library+-+Huber+Heights+Branch!8m2!3d39.843046!4d-84.1170377!16s%2Fg%2F1tfl0ww6!3m5!1s0x883f7d43ef86bd67:0x914d39b2d5b2eab5!8m2!3d39.843046!4d-84.1170377!16s%2Fg%2F1tfl0ww6?hl=en&entry=ttu&g_ep=EgoyMDI0MTIxMS4wIKXMDSoASAFQAw%3D%3D">
                             <b>(Click here for map to Dayton Metro Library - Huber Heights)</b>
                         </a>
                     </p>
@@ -685,26 +648,6 @@
         </div>
     </div>
 
-
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="MediaMenuCanvas" aria-labelledby="MediaMenuCanvasLabel">
-        <div class="offcanvas-header">
-          <h5 class="offcanvas-title" id="MediaMenuCanvasLabel">Menu</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body">
-            <div id="MediaOffcanvasMenu"></div>
-        </div>
-    </div>
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="MediaAlbumMenuCanvas" aria-labelledby="MediaAlbumMenuCanvasLabel">
-        <div class="offcanvas-header">
-          <h5 class="offcanvas-title" id="MediaAlbumMenuCanvasLabel">Albums</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-        </div>
-        <div class="offcanvas-body">
-            <div id="MediaOffcanvasAlbumMenu"></div>
-        </div>
-    </div>
-    
     <div class="modal" tabindex="-1" id="MediaModal">
         <div class="modal-dialog modal-dialog-centered modal-xl">
           <div class="modal-content">

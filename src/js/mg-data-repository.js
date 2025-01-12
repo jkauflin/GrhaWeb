@@ -101,6 +101,13 @@ export async function queryMediaInfo(paramData) {
     defaultCategory = mediaTypeData[mti].Category[0].CategoryName
     queryCategory = defaultCategory
 
+    // FilterCategory
+
+    // Start date (Year)
+
+    // show X Docs, then off an "Older Docs link-tile"
+
+
     let categoryQuery = ""
     if (paramData.MediaFilterCategory != null && paramData.MediaFilterCategory != '' &&
         paramData.MediaFilterCategory != 'ALL' && paramData.MediaFilterCategory != '0') {
@@ -184,12 +191,13 @@ export async function queryMediaInfo(paramData) {
 
         if (mediaInfo.fileList.length > 0) {
             mediaInfo.startDate = mediaInfo.fileList[0].MediaDateTime.substring(0,10)
-            mediaInfo.menuOrAlbumName = "dt = "+mediaInfo.fileList[0].MediaDateTime
+            //mediaInfo.menuOrAlbumName = "dt = "+mediaInfo.fileList[0].MediaDateTime
 
             // Set the filter list elements
             let currYear = mediaInfo.startDate.substring(0,4)
             let lastMediaDateTime = mediaInfo.fileList[result.data.books.items.length-1].MediaDateTime
 
+            /*
             let prevYear = parseInt(mediaInfo.startDate.substring(0,4))-1
             let filterRec = {
                 filterName: "Prev Year",
@@ -202,7 +210,8 @@ export async function queryMediaInfo(paramData) {
                 startDate: lastMediaDateTime
             }
             mediaInfo.filterList.push(filterRec)
-            //console.log("Next, startDate: lastMediaDateTime = "+lastMediaDateTime)
+            console.log("Next, startDate: lastMediaDateTime = "+lastMediaDateTime)
+            */
 
             //if ($param->MediaFilterMediaType == 1 && !$albumKeyExists && $cnt > 50) {
             /*
@@ -254,7 +263,6 @@ export async function queryMediaInfo(paramData) {
         }
 
         contentDesc = mediaTypeDesc + " - " + queryCategory
-        //contentDesc = mediaTypeDesc
 
         createMediaPage()
     }

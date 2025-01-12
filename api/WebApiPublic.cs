@@ -76,7 +76,6 @@ namespace GrhaWeb.Function
             return new OkObjectResult(hoaRec2);
         }
 
-
     } // public static class WebApi
 
 }

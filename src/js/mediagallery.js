@@ -117,10 +117,7 @@ Modification History
 2024-03-29 JJK  Migrating to Azure SWA, blob storage, Cosmos DB with GraphQL
                 for queries.  Also, removing Admin functions to make this just
                 the presentation functions with no edit
-2024-12-30 JJK  Modifications for GRHA displays.  Moved all tab navigation
-                and diplay to main, but handle all mediagallery display 
-                building and handling here - including handling of the filter
-                elements like Type, Category, and Year
+2025-01-11 JJK  Cleaned up the link-tile-tab and media-page display logic
 ================================================================================*/
 import {mediaType,setMediaType,queryMediaInfo} from './mg-data-repository.js'
 
@@ -129,25 +126,21 @@ const MediaPageLinkClass = "media-page"
 //=================================================================================================================
 // Bind events
 
-    // Respond to click on a link-tile-tab button by finding the correct TAB and switching/showing it
-    // (These link-tile-tab's also have media-page for creating the Menu, but these handled from the listener on that class)
-    /*
-    document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("click", function (event) {
-        setMediaType(event.target.getAttribute('data-MediaType'))
-        // data-MediaCategory
-        // data-MediaYear
-        //console.log("link-tile-tab click, mediaType = " + mediaType)
+// Respond to click on a link-tile-tab button by finding the correct TAB and switching/showing it
+// (These link-tile-tab's also have media-page for creating the Menu, but these handled from the listener on that class)
+document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("click", function (event) {
+    setMediaType(event.target.getAttribute('data-MediaType'))
+    console.log("link-tile-tab click, mediaType = " + mediaType)
 
-        // Get the target tab based on the the MediaType specified, and use the new Bootstrap v5.2 js for showing the tab
-        // the link ('a') with the correct MediaType, within the ".navbar-nav" list
-        let targetTabElement = document.querySelector(`.navbar-nav a[data-MediaType="${mediaType}"]`);
+    // Get the target tab based on the the MediaType specified, and use the new Bootstrap v5.2 js for showing the tab
+    // the link ('a') with the correct MediaType, within the ".navbar-nav" list
+    let targetTabElement = document.querySelector(`.navbar-nav a[data-MediaType="${mediaType}"]`);
 
-        // If the target tab element is found, create a Tab object and call the show() method
-        if (typeof targetTabElement !== "undefined" && targetTabElement !== null) {
-            bootstrap.Tab.getOrCreateInstance(targetTabElement).show();
-        }
-    }));
-    */
+    // If the target tab element is found, create a Tab object and call the show() method
+    if (typeof targetTabElement !== "undefined" && targetTabElement !== null) {
+        bootstrap.Tab.getOrCreateInstance(targetTabElement).show();
+    }
+}))
 
 // Respond to click on a media-page link tab by dynamically building the menu display
 // *** This mediagallery library counts on a document element with an id of "MediaPage" to know where to display elements
@@ -157,6 +150,12 @@ const MediaPageLinkClass = "media-page"
 document.querySelectorAll("."+MediaPageLinkClass).forEach(el => el.addEventListener("click", function (event) {
     setMediaType(event.target.getAttribute('data-MediaType'))
     console.log("media-page click, mediaType = " + mediaType)
+    let mediaCategory = event.target.getAttribute('data-MediaCategory')
+    if (typeof mediaCategory == "undefined" || mediaCategory == null) {
+        mediaCategory = "DEFAULT"
+    }
+
+
     // data-MediaCategory
     // data-MediaYear <<<<<<<<<<<<<<<   StartDate????????????????????????????
 
@@ -165,7 +164,7 @@ document.querySelectorAll("."+MediaPageLinkClass).forEach(el => el.addEventListe
         let paramData = {
             MediaFilterMediaType: mediaType, 
             getMenu: true,
-            MediaFilterCategory: "DEFAULT",
+            MediaFilterCategory: mediaCategory,
             MediaFilterStartDate: "DEFAULT"}
     
         queryMediaInfo(paramData);
@@ -173,6 +172,7 @@ document.querySelectorAll("."+MediaPageLinkClass).forEach(el => el.addEventListe
 }))
 
 
+// >>>>>>>>>>>>>> probably don't need this if not implementing an "album" concept (keep for example of passing mediagallery query on url line???)
     // If there is a data-dir parameter, build and display the page
     var paramName = 'albumKey';
     // Look for parameters on the url

@@ -9,6 +9,7 @@ Modification History
 2024-03-29 JJK  Migrating to Azure SWA, blob storage, Cosmos DB with GraphQL
                 for queries.  Also, removing Admin functions to make this just
                 the presentation functions with no edit
+2025-01-05 JJK  Added handling of doc class to return PDF data
 ================================================================================*/
 import {empty,showLoadingSpinner} from './util.js';
 import {mediaInfo,mediaType,queryCategory,categoryList,contentDesc,queryMediaInfo,getFilePath,getFileName} from './mg-data-repository.js'
@@ -18,6 +19,7 @@ const MediaFilterRequestClass = "MediaFilterRequest";
 const imgThumbnailClass = "img-thumbnail-jjk"  // Want my own thumbnail formatting instead of bootstrap border
 const thumbCheckboxClass = "thumb-checkbox"
 
+// This media gallery library counts on a "MediaPage" main element being define
 var mediaPageContainer = document.getElementById("MediaPage");
 var filterContainer = document.createElement("div")
 var thumbnailContainer = document.createElement("div")
@@ -74,8 +76,8 @@ thumbnailContainer.addEventListener("click", function (event) {
         if (typeof index !== "undefined" && index !== null) {
             displayElementInLightbox(index)
         }
-
-    } 
+    }
+    
 })
 
 
@@ -288,9 +290,14 @@ thumbnailContainer.addEventListener("click", function (event) {
                 // DOCS
                     
                 //console.log("PDF file = " + fi.Name + ", filePath = " + filePath);
+
+                //const endpoint = "/api/DownloadPDF";
+                //a.href = endpoint
+
                 docFiles = true
                 let a = document.createElement("a")
                 a.href = getFilePath(index)
+                a.type = "application/pdf"
                 a.setAttribute('target',"_blank");
                 a.textContent = getFileName(index)
                 let td = document.createElement("td");
@@ -299,6 +306,7 @@ thumbnailContainer.addEventListener("click", function (event) {
                 tr.classList.add("smalltext")
                 tr.appendChild(td);
                 doclistTbody.appendChild(tr)
+
             }
         } //   for (let index in mediaInfo.fileList) {
         
