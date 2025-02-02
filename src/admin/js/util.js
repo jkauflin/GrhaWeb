@@ -53,6 +53,23 @@ export function empty(node) {
     }
 }
 
+export function setCheckbox(checkVal) {
+    var tempStr = '';
+    if (checkVal == 1) {
+        tempStr = 'checked=true';
+    }
+    return '<input type="checkbox" ' + tempStr + ' disabled="disabled">';
+}
+
+//Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
+var nonMoneyCharsStr = "[\x01-\x2D\x2F\x3A-\x7F]";
+//"g" global so it does more than 1 substitution
+var regexNonMoneyChars = new RegExp(nonMoneyCharsStr, "g");
+export function formatMoney(inAmount) {
+    var inAmountStr = '' + inAmount;
+    inAmountStr = inAmountStr.replace(regexNonMoneyChars, '');
+    return parseFloat(inAmountStr).toFixed(2);
+}
 
     function urlParam(name) {
         var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
@@ -83,16 +100,6 @@ export function empty(node) {
     var regexCommaHexStr = new RegExp(commaHexStr, "g");
     function csvFilter(inVal) {
         return inVal.toString().replace(regexCommaHexStr, '');
-    }
-
-    //Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
-    var nonMoneyCharsStr = "[\x01-\x2D\x2F\x3A-\x7F]";
-    //"g" global so it does more than 1 substitution
-    var regexNonMoneyChars = new RegExp(nonMoneyCharsStr, "g");
-    function formatMoney(inAmount) {
-        var inAmountStr = '' + inAmount;
-        inAmountStr = inAmountStr.replace(regexNonMoneyChars, '');
-        return parseFloat(inAmountStr).toFixed(2);
     }
 
     function formatDate(inDate) {
@@ -144,13 +151,6 @@ export function empty(node) {
             tempStr = "YES";
         }
         return tempStr;
-    }
-    function setCheckbox(checkVal) {
-        var tempStr = '';
-        if (checkVal == 1) {
-            tempStr = 'checked=true';
-        }
-        return '<input type="checkbox" ' + tempStr + ' disabled="disabled">';
     }
     //function setCheckboxEdit(checkVal, idName) {
     function setCheckboxEdit(idName, checkVal) {

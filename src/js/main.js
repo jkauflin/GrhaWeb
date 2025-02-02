@@ -33,7 +33,7 @@
  *============================================================================*/
 
 import {empty,formatMoney,setCheckbox} from './util.js'
-
+  
 var duesPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("DuesPageNavLink"))
 var duesLinkTile = document.getElementById("DuesLinkTile");
 var contactsPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("ContactsPageNavLink"))

@@ -201,6 +201,18 @@ thumbnailContainer.addEventListener("click", function (event) {
 
 
         /*
+<div class="dropdown">
+  <a class="btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+    Dropdown link
+  </a>
+
+  <ul class="dropdown-menu">
+    <li><a class="dropdown-item" href="#">Action</a></li>
+    <li><a class="dropdown-item" href="#">Another action</a></li>
+    <li><a class="dropdown-item" href="#">Something else here</a></li>
+  </ul>
+</div>
+
         let filterRow2Col2 = document.createElement("div")
         filterRow2Col2.classList.add('col')
         let tRow = document.createElement("div")
@@ -253,8 +265,14 @@ thumbnailContainer.addEventListener("click", function (event) {
         //-------------------------------------------------------------------------------------------------------------------------
         // Loop through all the files in the current file list
         //-------------------------------------------------------------------------------------------------------------------------
+        let prevYear = ""
+        let currYear = ""
         for (let index in mediaInfo.fileList) {
             let fi = mediaInfo.fileList[index]
+
+            //console.log("fi.MediaDateTime = " + fi.MediaDateTime);
+            //let prevYear = parseInt(mediaInfo.startDate.substring(0,4))-1
+
 
             // Create a Card to hold the thumbnail of the media object
             let thumb = document.createElement("div")
@@ -269,6 +287,27 @@ thumbnailContainer.addEventListener("click", function (event) {
             // Display thumbnail according to media type (and add event links for lightbox and edit)
             //-------------------------------------------------------------------------------------------------------------------
             if (mediaType == 1) {
+                currYear = fi.MediaDateTime.substring(0,4)
+                if (currYear != prevYear) {
+
+                    //<div class="clearfix">...</div>
+
+                    /*
+    <!-- Force next columns to break to new line -->
+    <div class="w-100"></div>
+                    */
+                    let cf = document.createElement("div")
+                    cf.classList.add('clearfix')
+                    thumbnailRow2Col1.appendChild(cf)
+
+                    let yearHeader = document.createElement("b")
+                    yearHeader.classList.add('clearfix','m-0','p-0')
+                    yearHeader.textContent = currYear
+                    thumbnailRow2Col1.appendChild(yearHeader)
+                    thumbnailRow2Col1.appendChild(yearHeader)
+                }
+                prevYear = currYear
+
                 let img = document.createElement("img");
                 // add a class for event click
                 img.classList.add('rounded','float-start','mt-2','me-2',imgThumbnailClass)

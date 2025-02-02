@@ -197,6 +197,14 @@ export async function queryMediaInfo(paramData) {
             let currYear = mediaInfo.startDate.substring(0,4)
             let lastMediaDateTime = mediaInfo.fileList[result.data.books.items.length-1].MediaDateTime
 
+            if (mediaType == 1 && mediaInfo.fileList.length > 50) {
+                let filterRec = {
+                    filterName: "Next",
+                    startDate: lastMediaDateTime
+                }
+                mediaInfo.filterList.push(filterRec)
+            }
+
             /*
             let prevYear = parseInt(mediaInfo.startDate.substring(0,4))-1
             let filterRec = {
