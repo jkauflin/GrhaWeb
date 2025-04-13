@@ -10,6 +10,16 @@
 
 import {empty,showLoadingSpinner} from './util.js';
 
+var TrusteeId = document.getElementById("TrusteeId")
+var Name = document.getElementById("Name")
+var Position = document.getElementById("Position")
+var PhoneNumber = document.getElementById("PhoneNumber")
+var EmailAddress = document.getElementById("EmailAddress")
+var EmailAddressForward = document.getElementById("EmailAddressForward")
+var Description = document.getElementById("Description")
+var ImageUrl = document.getElementById("ImageUrl")
+var BoardMessageDisplay = document.getElementById("BoardMessageDisplay")
+
 // Keep track of the state of the navbar collapse (shown or hidden)
 var navbarCollapseShown = false;
 var collapsibleNavbar = document.getElementsByClassName("navbar-collapse")[0];
@@ -36,6 +46,11 @@ document.querySelectorAll(".Trustee").forEach(el => el.addEventListener("click",
     //console.log('Target:', event.target); // The element that was clicked
     getTrustee(trusteeId)
 }))
+
+
+document.getElementById("BoardUpdateButton").addEventListener("click", function () {
+    updateTrustee()
+})
 
 
 var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
@@ -103,7 +118,7 @@ async function queryBoardInfo() {
                     let trusteeNameLink = document.createElement('a')
                     trusteeNameLink.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
                     trusteeNameLink.setAttribute('data-trustee-id', result.data.boards.items[i].id)
-                    trusteeNameLink.href = ""
+                    trusteeNameLink.href = "#"  // # will do all the good link formatting, but will not try to open the link
                     trusteeNamePosition.appendChild(trusteeNameLink)
                     
                     let trusteePhone = document.createElement('b')
@@ -130,6 +145,7 @@ async function queryBoardInfo() {
 
 // Get the specific Trustee information and display for update
 async function getTrustee(trusteeId) {
+    BoardMessageDisplay.textContent = "Fetching Board information..."
     const endpoint = "/api/GetTrustee";
     const response = await fetch(endpoint, {
         method: "POST",
@@ -137,12 +153,63 @@ async function getTrustee(trusteeId) {
         body: trusteeId
     });
     const result = await response.json();
+    BoardMessageDisplay.textContent = ""
     if (result.errors != null) {
         console.log("Error: "+result.errors[0].message);
         console.table(result.errors);
     } else {
-        //const maxTrustees = result.data.boards.items.length
+        let trustee = result        
+        TrusteeId.value = trustee.id
+        Name.value = trustee.name
+        Position.value = trustee.position
+        PhoneNumber.value = trustee.phoneNumber
+        EmailAddress.value = trustee.emailAddress
+        EmailAddressForward.value = trustee.emailAddressForward
+        Description.value = trustee.description
+        ImageUrl.value = trustee.imageUrl
+    }
+}
 
+// Get the specific Trustee information and display for update
+async function updateTrustee(trusteeId) {
+    BoardMessageDisplay.textContent = "Updating Board information..."
+
+    /*
+    TrusteeId.value
+    Name.value
+    Position.value
+    PhoneNumber.value
+    EmailAddress.value
+    EmailAddressForward.value
+    Description.value
+    ImageUrl.value
+    */
+
+    let paramData = {
+        id: TrusteeId.value,
+        TrusteeId: parseInt(TrusteeId.value),
+        Name: Name.value,
+        Position: Position.value,
+        PhoneNumber: PhoneNumber.value,
+        EmailAdddress: EmailAddress.value,
+        EmailAddressForward: EmailAddressForward.value,
+        Description: Description.value,
+        ImageUrl: ImageUrl.value
+    }
+
+    const endpoint = "/api/UpdateTrustee";
+    const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paramData)
+    });
+    const result = await response.json();
+    BoardMessageDisplay.textContent = ""
+    if (result.errors != null) {
+        console.log("Error: "+result.errors[0].message);
+        console.table(result.errors);
+    } else {
+        console.log("AFTER update")
 
     }
 }

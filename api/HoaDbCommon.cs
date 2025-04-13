@@ -465,34 +465,8 @@ namespace GrhaWeb.Function
                 Container container = db.GetContainer(containerId);
 
                 // Get the existing document from Cosmos DB
-                //string sql = $"SELECT * FROM c WHERE c.id = '{trusteeId}' ";
-
-                //string id = "your-item-id"; // The ID of the item you want to fetch
                 int partitionKey = int.Parse(trusteeId); // Partition key of the item
-
-                ItemResponse<dynamic> response = await container.ReadItemAsync<dynamic>(trusteeId, new PartitionKey(partitionKey));
-                Console.WriteLine($"Item retrieved: {response.Resource}");
-                trustee = response.Resource;
-                
-                /*
-                var feed = container.GetItemQueryIterator<hoa_properties2>(sql);
-                int cnt = 0;
-                while (feed.HasMoreResults)
-                {
-                    var response = await feed.ReadNextAsync();
-                    foreach (var item in response)
-                    {
-                        cnt++;
-                        //log.LogInformation($"{cnt}  Name: {mediaPeople.PeopleName}");
-                        hoaProperty2= new HoaProperty2();
-                        hoaProperty2.parcelId = item.Parcel_ID;
-                        hoaProperty2.lotNo = item.LotNo;
-                        hoaProperty2.subDivParcel = item.SubDivParcel;
-                        hoaProperty2.parcelLocation = item.Parcel_Location;
-                        hoaProperty2List.Add(hoaProperty2);
-                    }
-                }
-                */
+                trustee = await container.ReadItemAsync<Trustee>(trusteeId, new PartitionKey(partitionKey));
             }
             catch (Exception ex) {
                 log.LogError($"Exception in DB query to {containerId}, message: {ex.Message} {ex.StackTrace}");

@@ -94,21 +94,42 @@
 		</div><!-- end of Home tab -->
 
 		<div class="tab-pane" role="tabpanel" id="BoardPage">
-			<h5 class="mt-3">Board of Trustees</h5>
+			<h5 class="mt-3">Board of Trustees - Maintenance</h5>
 			<div class="row">
 				<div class="col-sm-3 col-md-3">
 
+					<input id="TrusteeId" type="text" disabled hidden>
 					<div class="form-floating m-1">
-						<input id="targetTemperature" type="number" class="form-control shadow-none">
-						<label for="targetTemperature">Target Temp</label>
+						<input id="Name" type="text" class="form-control shadow-none">
+						<label for="Name">Name</label>
 					</div>
 					<div class="form-floating m-1">
-						<input id="currTemperature" type="number" class="form-control shadow-none" disabled>
-						<label for="currTemperature">Curr Temp</label>
+						<input id="Position" type="text" class="form-control shadow-none">
+						<label for="Position">Position</label>
+					</div>
+					<div class="form-floating m-1">
+						<input id="PhoneNumber" type="text" class="form-control shadow-none">
+						<label for="PhoneNumber">Phone Number</label>
+					</div>
+					<div class="form-floating m-1">
+						<input id="EmailAddress" type="text" class="form-control shadow-none">
+						<label for="EmailAddress">Email Address</label>
+					</div>
+					<div class="form-floating m-1">
+						<input id="EmailAddressForward" type="text" class="form-control shadow-none">
+						<label for="EmailAddressForward">Private Email Address</label>
+					</div>
+					<div class="form-floating m-1">
+						<textarea id="Description" class="form-control shadow-none" placeholder="Leave a comment here" style="height: 138px"></textarea>
+						<label for="Description">Description</label>
+					</div>
+					<div class="form-floating m-1">
+						<input id="ImageUrl" type="text" class="form-control shadow-none">
+						<label for="ImageUrl">Image Url</label>
 					</div>
 		
-					<button id="UpdateButton" type="button" class="btn btn-primary m-2">Update</button>
-
+					<button id="BoardUpdateButton" type="button" class="btn btn-primary m-2">Update</button>
+					<div id="BoardMessageDisplay" class="m-2"></div>
 				</div>
 				<div class="col-sm-9 col-md-9">
 					<div class="row">

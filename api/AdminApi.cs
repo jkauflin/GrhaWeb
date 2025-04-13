@@ -12,6 +12,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;     // for IActionResult
+using Newtonsoft.Json.Linq;
 
 using GrhaWeb.Function.Model;
 
@@ -50,13 +51,50 @@ namespace GrhaWeb.Function
                     return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
 
-                log.LogInformation($">>> User is authorized - userName: {userName}");
+                //log.LogInformation($">>> User is authorized - userName: {userName}");
 
                 // Get the content string from the HTTP request body
                 string trusteeId = await new StreamReader(req.Body).ReadToEndAsync();
 
                 trustee = await hoaDbCommon.GetTrusteeById(trusteeId);
-                log.LogInformation($"trustee.Name: {trustee.Name}");
+                //log.LogWarning($"trustee.Name: {trustee.Name}");
+            }
+            catch (Exception ex) {
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+            }
+            
+            //return new OkObjectResult(hoaPropertyList);
+            return new OkObjectResult(trustee);
+        }
+
+        [Function("UpdateTrustee")]
+        public async Task<IActionResult> UpdateTrustee(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            var trustee = new Trustee{
+                id = "01"
+            };
+            try {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+
+                //log.LogInformation($">>> User is authorized - userName: {userName}");
+
+                // Get the content string from the HTTP request body
+                string content = await new StreamReader(req.Body).ReadToEndAsync();
+                // Deserialize the JSON string into a generic JSON object
+                JObject jObject = JObject.Parse(content);
+                //JObject jObject = JObject.Parse("{\"Name\":\"John\",\"Age\":30}");
+                trustee = jObject.ToObject<Trustee>();
+
+
+                // Get the content string from the HTTP request body
+                //string trusteeId = await new StreamReader(req.Body).ReadToEndAsync();
+
+                //trustee = await hoaDbCommon.GetTrusteeById(trusteeId);
+                //log.LogWarning($"trustee.Name: {trustee.Name}");
                 
                 //hoaPropertyList = await hoaDbCommon.GetPropertyList(searchStr);
 
@@ -85,21 +123,6 @@ namespace GrhaWeb.Function
                 */
                 //hoaPropertyList = await hoaDbCommon.GetPropertyList(searchStr);
 
-/*
-    public class Trustee
-    {
-        public required string id { get; set; }
-        public int TrusteeId { get; set; }
-        public string? Name { get; set; }
-        public string? Position { get; set; }
-        public string? PhoneNumber { get; set; }
-        public string? EmailAddress { get; set; }
-        public string? EmailAddressForward { get; set; }
-        public string? Description { get; set; }
-        public string? ImageUrl { get; set; }
-    }
-*/
-
             }
             catch (Exception ex) {
                 return new BadRequestObjectResult($"Exception, message = {ex.Message}");
@@ -108,9 +131,6 @@ namespace GrhaWeb.Function
             //return new OkObjectResult(hoaPropertyList);
             return new OkObjectResult(trustee);
         }
-
-
-
 
     } // public static class AdminApi
 
