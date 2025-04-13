@@ -6,6 +6,7 @@ DESCRIPTION:  Common functions to handle getting data from the data sources
 --------------------------------------------------------------------------------
 Modification History
 2024-11-19 JJK  Initial versions
+2025-04-12 JJK  Added functions to read and update BoardOfTrustee data source
 ================================================================================*/
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -442,6 +443,62 @@ namespace GrhaWeb.Function
             }
 
             return hoaRec2;
+        }
+
+
+        public async Task<Trustee> GetTrusteeById(string trusteeId)
+        {
+            //------------------------------------------------------------------------------------------------------------------
+            // Query the NoSQL container to get values
+            //------------------------------------------------------------------------------------------------------------------
+            string databaseId = "hoadb";
+            string containerId = "BoardOfTrustees";
+
+            var trustee = new Trustee{
+                id = "01"
+            };
+
+            try {
+                //var mySetting = _configuration["MY_ENV_VARIABLE"];
+                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
+                Database db = cosmosClient.GetDatabase(databaseId);
+                Container container = db.GetContainer(containerId);
+
+                // Get the existing document from Cosmos DB
+                //string sql = $"SELECT * FROM c WHERE c.id = '{trusteeId}' ";
+
+                //string id = "your-item-id"; // The ID of the item you want to fetch
+                int partitionKey = int.Parse(trusteeId); // Partition key of the item
+
+                ItemResponse<dynamic> response = await container.ReadItemAsync<dynamic>(trusteeId, new PartitionKey(partitionKey));
+                Console.WriteLine($"Item retrieved: {response.Resource}");
+                trustee = response.Resource;
+                
+                /*
+                var feed = container.GetItemQueryIterator<hoa_properties2>(sql);
+                int cnt = 0;
+                while (feed.HasMoreResults)
+                {
+                    var response = await feed.ReadNextAsync();
+                    foreach (var item in response)
+                    {
+                        cnt++;
+                        //log.LogInformation($"{cnt}  Name: {mediaPeople.PeopleName}");
+                        hoaProperty2= new HoaProperty2();
+                        hoaProperty2.parcelId = item.Parcel_ID;
+                        hoaProperty2.lotNo = item.LotNo;
+                        hoaProperty2.subDivParcel = item.SubDivParcel;
+                        hoaProperty2.parcelLocation = item.Parcel_Location;
+                        hoaProperty2List.Add(hoaProperty2);
+                    }
+                }
+                */
+            }
+            catch (Exception ex) {
+                log.LogError($"Exception in DB query to {containerId}, message: {ex.Message} {ex.StackTrace}");
+            }
+
+            return trustee;
         }
 
 

@@ -5,7 +5,7 @@
  *----------------------------------------------------------------------------
  * Modification History
  * 2025-01-09 JJK 	Initial version
- * 2025-04-12 JJK   Working on Board maint page
+ * 2025-04-12 JJK   Working on Board maintenance page
 *============================================================================*/
 
 import {empty,showLoadingSpinner} from './util.js';
@@ -28,6 +28,15 @@ document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click
     }
 }))
 
+document.querySelectorAll(".Trustee").forEach(el => el.addEventListener("click", function (event) {
+    //console.log(".Trustee click, classList = "+event.target.classList)
+    //if (event.target && event.target.classList.contains(MediaFilterRequestClass)) {
+    //}
+    const trusteeId = event.target.getAttribute('data-trustee-id')
+    //console.log('Target:', event.target); // The element that was clicked
+    getTrustee(trusteeId)
+}))
+
 
 var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
 const trustees = document.querySelectorAll('.Trustee')
@@ -40,6 +49,7 @@ async function queryBoardInfo() {
                 orderBy: { TrusteeId: ASC }
             ) {
                 items {
+                    id
                     Name
                     Position
                     PhoneNumber
@@ -70,8 +80,6 @@ async function queryBoardInfo() {
         console.log("Error: "+result.errors[0].message);
         console.table(result.errors);
     } else {
-        console.log("result.data = "+result.data)
-
         const maxTrustees = result.data.boards.items.length
         if (maxTrustees > 0) {
             let i = -1
@@ -93,13 +101,11 @@ async function queryBoardInfo() {
 
                     let trusteeNamePosition = document.createElement('h5')
                     let trusteeNameLink = document.createElement('a')
-                    trusteeNameLink.classList.add('get-board-to-update')
                     trusteeNameLink.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
                     trusteeNameLink.setAttribute('data-trustee-id', result.data.boards.items[i].id)
-                    //trusteeNameLink.href = "api/update"
                     trusteeNameLink.href = ""
                     trusteeNamePosition.appendChild(trusteeNameLink)
-
+                    
                     let trusteePhone = document.createElement('b')
                     trusteePhone.textContent = result.data.boards.items[i].PhoneNumber 
                     let trusteeEmail = document.createElement('h6')
@@ -122,4 +128,21 @@ async function queryBoardInfo() {
     }
 } // async function queryBoardInfo()
 
+// Get the specific Trustee information and display for update
+async function getTrustee(trusteeId) {
+    const endpoint = "/api/GetTrustee";
+    const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: trusteeId
+    });
+    const result = await response.json();
+    if (result.errors != null) {
+        console.log("Error: "+result.errors[0].message);
+        console.table(result.errors);
+    } else {
+        //const maxTrustees = result.data.boards.items.length
 
+
+    }
+}
