@@ -473,8 +473,22 @@ namespace GrhaWeb.Function
             }
 
             return trustee;
-        }
+        } // public async Task<Trustee> GetTrusteeById(string trusteeId)
 
+        public async Task UpdTrustee(Trustee trustee)
+        {
+            //------------------------------------------------------------------------------------------------------------------
+            // Query the NoSQL container to get values
+            //------------------------------------------------------------------------------------------------------------------
+            string databaseId = "hoadb";
+            string containerId = "BoardOfTrustees";
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
+
+            await container.ReplaceItemAsync(trustee,trustee.id,new PartitionKey(trustee.TrusteeId));
+
+        } // public async Task UpdTrustee(Trustee trustee)
 
     } // public class HoaDbCommon
 

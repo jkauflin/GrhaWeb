@@ -6,6 +6,7 @@ DESCRIPTION:  Azure API Functions for the Static Web App (SWA) - to support
 --------------------------------------------------------------------------------
 Modification History
 2025-04-12 JJK  Initial version
+2025-04-13 JJK  Completed the Board of Trustees maintenance functions
 ================================================================================*/
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -50,7 +51,6 @@ namespace GrhaWeb.Function
                 if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
                     return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
-
                 //log.LogInformation($">>> User is authorized - userName: {userName}");
 
                 // Get the content string from the HTTP request body
@@ -71,65 +71,30 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> UpdateTrustee(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            var trustee = new Trustee{
-                id = "01"
-            };
+            //var trustee = new Trustee{id = "01"};
             try {
                 string userName = "";
                 if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
                     return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
-
                 //log.LogInformation($">>> User is authorized - userName: {userName}");
 
                 // Get the content string from the HTTP request body
                 string content = await new StreamReader(req.Body).ReadToEndAsync();
                 // Deserialize the JSON string into a generic JSON object
                 JObject jObject = JObject.Parse(content);
-                //JObject jObject = JObject.Parse("{\"Name\":\"John\",\"Age\":30}");
-                trustee = jObject.ToObject<Trustee>();
-
-
-                // Get the content string from the HTTP request body
-                //string trusteeId = await new StreamReader(req.Body).ReadToEndAsync();
-
-                //trustee = await hoaDbCommon.GetTrusteeById(trusteeId);
-                //log.LogWarning($"trustee.Name: {trustee.Name}");
-                
-                //hoaPropertyList = await hoaDbCommon.GetPropertyList(searchStr);
-
-                /*
-                // Get the content string from the HTTP request body
-                string content = await new StreamReader(req.Body).ReadToEndAsync();
-                // Deserialize the JSON string into a generic JSON object
-                JObject jObject = JObject.Parse(content);
-                JToken? jToken;
-
-                string searchStr = "";
-                if (jObject.TryGetValue("searchStr", out jToken)) {
-                    searchStr = jToken.ToString();
-                }
-                */
-
-                /*   >>>>>> think about searches on these specific params in the future (if needed)
-    let paramData = {
-        searchStr: searchStr.value,
-        parcelId: parcelId.value,
-        lotNo: lotNo.value,
-        address: address.value,
-        ownerName: ownerName.value,
-        phoneNo: phoneNo.value,
-        altAddress: altAddress.value
-                */
-                //hoaPropertyList = await hoaDbCommon.GetPropertyList(searchStr);
-
+                var trustee = jObject.ToObject<Trustee>();
+                if (trustee == null) {
+                    return new BadRequestObjectResult("Update failed - object was NULL");
+                } 
+                await hoaDbCommon.UpdTrustee(trustee);
             }
             catch (Exception ex) {
+                log.LogError($"Exception in DB update to Board of Trustees, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
             
-            //return new OkObjectResult(hoaPropertyList);
-            return new OkObjectResult(trustee);
+            return new OkObjectResult("Update was successful");
         }
 
     } // public static class AdminApi

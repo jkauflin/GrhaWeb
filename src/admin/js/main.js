@@ -170,6 +170,14 @@ async function getTrustee(trusteeId) {
     }
 }
 
+function cleanStr(tempStr) {
+    let outStr = tempStr.value
+    if (outStr == null) {
+        outStr = ""
+    }
+    return outStr
+}
+
 // Get the specific Trustee information and display for update
 async function updateTrustee(trusteeId) {
     BoardMessageDisplay.textContent = "Updating Board information..."
@@ -186,21 +194,21 @@ async function updateTrustee(trusteeId) {
     */
 
     let paramData = {
-        id: TrusteeId.value,
+        id: cleanStr(TrusteeId),
         TrusteeId: parseInt(TrusteeId.value),
-        Name: Name.value,
-        Position: Position.value,
-        PhoneNumber: PhoneNumber.value,
-        EmailAdddress: EmailAddress.value,
-        EmailAddressForward: EmailAddressForward.value,
-        Description: Description.value,
-        ImageUrl: ImageUrl.value
+        Name: cleanStr(Name),
+        Position: cleanStr(Position),
+        PhoneNumber: cleanStr(PhoneNumber),
+        EmailAdddress: cleanStr(EmailAddress),
+        EmailAddressForward: cleanStr(EmailAddressForward),
+        Description: cleanStr(Description),
+        ImageUrl: cleanStr(ImageUrl)
     }
 
     const endpoint = "/api/UpdateTrustee";
     const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/plain" },
         body: JSON.stringify(paramData)
     });
     const result = await response.json();
