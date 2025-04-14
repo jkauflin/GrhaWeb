@@ -43,9 +43,7 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetTrustee(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            var trustee = new Trustee{
-                id = "01"
-            };
+            var trustee = new Trustee{id = "01"};
             try {
                 string userName = "";
                 if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
@@ -60,6 +58,7 @@ namespace GrhaWeb.Function
                 //log.LogWarning($"trustee.Name: {trustee.Name}");
             }
             catch (Exception ex) {
+                log.LogError($"Exception in DB get of Board of Trustees, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
             

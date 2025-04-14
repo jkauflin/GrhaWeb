@@ -7,6 +7,9 @@ DESCRIPTION:  Common functions to handle getting data from the data sources
 Modification History
 2024-11-19 JJK  Initial versions
 2025-04-12 JJK  Added functions to read and update BoardOfTrustee data source
+2025-04-13 JJK  *** NEW philosophy - put the error handling (try/catch) in the
+                main/calling function, and leave it out of the DB Common - DB
+                Common will throw any error, and the caller can log and handle
 ================================================================================*/
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -453,24 +456,13 @@ namespace GrhaWeb.Function
             //------------------------------------------------------------------------------------------------------------------
             string databaseId = "hoadb";
             string containerId = "BoardOfTrustees";
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
 
-            var trustee = new Trustee{
-                id = "01"
-            };
-
-            try {
-                //var mySetting = _configuration["MY_ENV_VARIABLE"];
-                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
-                Database db = cosmosClient.GetDatabase(databaseId);
-                Container container = db.GetContainer(containerId);
-
-                // Get the existing document from Cosmos DB
-                int partitionKey = int.Parse(trusteeId); // Partition key of the item
-                trustee = await container.ReadItemAsync<Trustee>(trusteeId, new PartitionKey(partitionKey));
-            }
-            catch (Exception ex) {
-                log.LogError($"Exception in DB query to {containerId}, message: {ex.Message} {ex.StackTrace}");
-            }
+            // Get the existing document from Cosmos DB
+            int partitionKey = int.Parse(trusteeId); // Partition key of the item
+            var trustee = await container.ReadItemAsync<Trustee>(trusteeId, new PartitionKey(partitionKey));
 
             return trustee;
         } // public async Task<Trustee> GetTrusteeById(string trusteeId)

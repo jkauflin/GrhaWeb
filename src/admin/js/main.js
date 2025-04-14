@@ -149,7 +149,7 @@ async function getTrustee(trusteeId) {
     const endpoint = "/api/GetTrustee";
     const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "text/plain" },
         body: trusteeId
     });
     const result = await response.json();
@@ -172,7 +172,7 @@ async function getTrustee(trusteeId) {
 
 function cleanStr(tempStr) {
     let outStr = tempStr.value
-    if (outStr == null) {
+    if (outStr === null || outStr == undefined) {
         outStr = ""
     }
     return outStr
@@ -205,13 +205,16 @@ async function updateTrustee(trusteeId) {
         ImageUrl: cleanStr(ImageUrl)
     }
 
+    // >>>>>>>>>>>>> check function of cleanStr to get rid of null in EmailAddress <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+
     const endpoint = "/api/UpdateTrustee";
     const response = await fetch(endpoint, {
         method: "POST",
-        headers: { "Content-Type": "text/plain" },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(paramData)
     });
-    const result = await response.json();
+    //const result = await response.json();
+    const result = await response.text();
     BoardMessageDisplay.textContent = ""
     if (result.errors != null) {
         console.log("Error: "+result.errors[0].message);
