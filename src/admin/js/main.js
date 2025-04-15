@@ -152,6 +152,7 @@ async function getTrustee(trusteeId) {
         headers: { "Content-Type": "text/plain" },
         body: trusteeId
     });
+    // what if it gets an error and returns a text message <<<<<<<<<<<<<<<<<<<<<<<
     const result = await response.json();
     BoardMessageDisplay.textContent = ""
     if (result.errors != null) {
@@ -172,7 +173,7 @@ async function getTrustee(trusteeId) {
 
 function cleanStr(tempStr) {
     let outStr = tempStr.value
-    if (outStr === null || outStr == undefined) {
+    if (outStr == null || outStr == undefined) {
         outStr = ""
     }
     return outStr
@@ -215,7 +216,7 @@ async function updateTrustee(trusteeId) {
     });
     //const result = await response.json();
     const result = await response.text();
-    BoardMessageDisplay.textContent = ""
+    BoardMessageDisplay.textContent = result
     if (result.errors != null) {
         console.log("Error: "+result.errors[0].message);
         console.table(result.errors);

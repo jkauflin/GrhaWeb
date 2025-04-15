@@ -47,6 +47,7 @@ namespace GrhaWeb.Function
             try {
                 string userName = "";
                 if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
+                    log.LogWarning($">>> User is NOT authorized - userName: {userName}");
                     return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
                 //log.LogInformation($">>> User is authorized - userName: {userName}");
