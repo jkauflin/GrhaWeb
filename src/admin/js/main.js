@@ -56,6 +56,39 @@ document.getElementById("BoardUpdateButton").addEventListener("click", function 
 var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
 const trustees = document.querySelectorAll('.Trustee')
 
+
+    document.querySelectorAll('.form-control').forEach(input => {
+      input.addEventListener('input', () => {
+        if (input.checkValidity()) {
+          input.classList.add('is-valid');
+          input.classList.remove('is-invalid');
+        } else {
+          input.classList.add('is-invalid');
+          input.classList.remove('is-valid');
+        }
+      });
+    });
+
+    //const form = document.querySelector('.needs-validation');
+    const form = document.querySelector('.needs-validation');
+    var updTrusteeForm = document.getElementById("UpdateTrusteeForm")
+    updTrusteeForm.addEventListener('submit', (event) => {
+        let formValid = form.checkValidity()
+        event.preventDefault();
+        event.stopPropagation();
+
+        BoardMessageDisplay.textContent = ""
+      if (!formValid) {
+        BoardMessageDisplay.textContent = "Form inputs are NOT valid"
+      } else {
+        // do UPDATE
+        BoardMessageDisplay.textContent = "Update successful"
+    }
+    updTrusteeForm.classList.add('was-validated');
+
+    });
+
+
 // Call the function to load Board of Trustees data every time the page is loaded
 queryBoardInfo()
 async function queryBoardInfo() {
