@@ -96,20 +96,12 @@
 		<div class="tab-pane" role="tabpanel" id="BoardPage">
 			<h5 class="mt-3">Board of Trustees - Maintenance</h5>
 			<div class="row">
-				<div class="col-sm-3 col-md-3">
+				<div class="col-sm-2 col-md-2">
 
 					<input id="TrusteeId" type="text" disabled hidden>
 					<div class="form-floating m-1">
 						<input id="Name" type="text" class="form-control shadow-none">
 						<label for="Name">Name</label>
-					</div>
-					<div class="form-floating m-1">
-						<input id="Position" type="text" class="form-control shadow-none">
-						<label for="Position">Position</label>
-					</div>
-					<div class="form-floating m-1">
-						<input id="PhoneNumber" type="text" class="form-control shadow-none">
-						<label for="PhoneNumber">Phone Number</label>
 					</div>
 					<div class="form-floating m-1">
 						<input id="EmailAddress" type="text" class="form-control shadow-none">
@@ -120,18 +112,28 @@
 						<label for="EmailAddressForward">Private Email Address</label>
 					</div>
 					<div class="form-floating m-1">
-						<textarea id="Description" class="form-control shadow-none" placeholder="Leave a comment here" style="height: 138px"></textarea>
+						<textarea id="Description" class="form-control shadow-none" placeholder="Leave a comment here" style="height: 158px"></textarea>
 						<label for="Description">Description</label>
-					</div>
-					<div class="form-floating m-1">
-						<input id="ImageUrl" type="text" class="form-control shadow-none">
-						<label for="ImageUrl">Image Url</label>
 					</div>
 		
 					<button id="BoardUpdateButton" type="button" class="btn btn-primary m-2">Update</button>
 					<div id="BoardMessageDisplay" class="m-2"></div>
 				</div>
-				<div class="col-sm-9 col-md-9">
+				<div class="col-sm-2 col-md-2">
+					<div class="form-floating m-1">
+						<input id="Position" type="text" class="form-control shadow-none">
+						<label for="Position">Position</label>
+					</div>
+					<div class="form-floating m-1">
+						<input id="PhoneNumber" type="text" class="form-control shadow-none">
+						<label for="PhoneNumber">Phone Number</label>
+					</div>
+					<div class="form-floating m-1">
+						<input id="ImageUrl" type="text" class="form-control shadow-none">
+						<label for="ImageUrl">Image Url</label>
+					</div>
+				</div>
+				<div class="col-sm-8 col-md-8">
 					<div class="row">
 						<div class="col-md-4">
 							<div class="card bg-light mb-2">

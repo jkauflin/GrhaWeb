@@ -60,6 +60,8 @@ namespace GrhaWeb.Function
             }
             catch (Exception ex) {
                 log.LogError($"Exception in DB get of Board of Trustees, message: {ex.Message} {ex.StackTrace}");
+                //console.log("Error: "+result.errors[0].message);
+                //
                 return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
             

@@ -155,9 +155,11 @@ async function getTrustee(trusteeId) {
     // what if it gets an error and returns a text message <<<<<<<<<<<<<<<<<<<<<<<
     const result = await response.json();
     BoardMessageDisplay.textContent = ""
+    // GraphQL returns an .errors section in the JSON - always returns a JSON (should I do that?)
     if (result.errors != null) {
         console.log("Error: "+result.errors[0].message);
         console.table(result.errors);
+        BoardMessageDisplay.textContent = "Error in Fetch - check log"
     } else {
         let trustee = result        
         TrusteeId.value = trustee.id
@@ -220,6 +222,7 @@ async function updateTrustee(trusteeId) {
     if (result.errors != null) {
         console.log("Error: "+result.errors[0].message);
         console.table(result.errors);
+        BoardMessageDisplay.textContent = "Error in Fetch - check log"
     } else {
         console.log("AFTER update")
 
