@@ -7,6 +7,7 @@ DESCRIPTION:  Azure API Functions for the Static Web App (SWA) - to support
 Modification History
 2025-04-12 JJK  Initial version
 2025-04-13 JJK  Completed the Board of Trustees maintenance functions
+2025-04-22 JJK  Re-thinking error handling for api calls from javascript fetch
 ================================================================================*/
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -34,7 +35,7 @@ namespace GrhaWeb.Function
             log = logger;
             config = configuration;
             authCheck = new AuthorizationCheck(log);
-            userAdminRole = "grhaadmin";   // add to config ???
+            userAdminRole = "grhaadminX";   // add to config ???
             util = new CommonUtil(log);
             hoaDbCommon = new HoaDbCommon(log,config);
         }
@@ -47,7 +48,7 @@ namespace GrhaWeb.Function
             try {
                 string userName = "";
                 if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
-                    log.LogWarning($">>> User is NOT authorized - userName: {userName}");
+                    //log.LogWarning($">>> User is NOT authorized - userName: {userName}");
                     return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
                 //log.LogInformation($">>> User is authorized - userName: {userName}");
@@ -61,11 +62,9 @@ namespace GrhaWeb.Function
             catch (Exception ex) {
                 log.LogError($"Exception in DB get of Board of Trustees, message: {ex.Message} {ex.StackTrace}");
                 //console.log("Error: "+result.errors[0].message);
-                //
                 return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
             
-            //return new OkObjectResult(hoaPropertyList);
             return new OkObjectResult(trustee);
         }
 

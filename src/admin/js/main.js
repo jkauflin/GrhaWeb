@@ -6,6 +6,7 @@
  * Modification History
  * 2025-01-09 JJK 	Initial version
  * 2025-04-12 JJK   Working on Board maintenance page
+ * 2025-04-22 JJK   Implementing new html5/bootstrap input validation logic
 *============================================================================*/
 
 import {empty,showLoadingSpinner} from './util.js';
@@ -47,12 +48,6 @@ document.querySelectorAll(".Trustee").forEach(el => el.addEventListener("click",
     getTrustee(trusteeId)
 }))
 
-
-document.getElementById("BoardUpdateButton").addEventListener("click", function () {
-    updateTrustee()
-})
-
-
 var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
 const trustees = document.querySelectorAll('.Trustee')
 
@@ -70,21 +65,22 @@ const trustees = document.querySelectorAll('.Trustee')
     });
 
     //const form = document.querySelector('.needs-validation');
-    const form = document.querySelector('.needs-validation');
     var updTrusteeForm = document.getElementById("UpdateTrusteeForm")
     updTrusteeForm.addEventListener('submit', (event) => {
-        let formValid = form.checkValidity()
+        let formValid = updTrusteeForm.checkValidity()
         event.preventDefault();
         event.stopPropagation();
 
         BoardMessageDisplay.textContent = ""
-      if (!formValid) {
-        BoardMessageDisplay.textContent = "Form inputs are NOT valid"
-      } else {
-        // do UPDATE
-        BoardMessageDisplay.textContent = "Update successful"
-    }
-    updTrusteeForm.classList.add('was-validated');
+      
+        if (!formValid) {
+            BoardMessageDisplay.textContent = "Form inputs are NOT valid"
+        } else {
+            //    updateTrustee()
+            BoardMessageDisplay.textContent = "Update successful"
+        }
+
+        updTrusteeForm.classList.add('was-validated');
 
     });
 
@@ -149,11 +145,15 @@ async function queryBoardInfo() {
 
                     let trusteeNamePosition = document.createElement('h5')
                     let trusteeNameLink = document.createElement('a')
-                    trusteeNameLink.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
+                    //trusteeNameLink.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
+                    trusteeNameLink.textContent = result.data.boards.items[i].Position + " - " + result.data.boards.items[i].Name
                     trusteeNameLink.setAttribute('data-trustee-id', result.data.boards.items[i].id)
                     trusteeNameLink.href = "#"  // # will do all the good link formatting, but will not try to open the link
                     trusteeNamePosition.appendChild(trusteeNameLink)
-                    
+
+                    cardBody.appendChild(trusteeImg)
+                    cardBody.appendChild(trusteeNamePosition)
+                    /*
                     let trusteePhone = document.createElement('b')
                     trusteePhone.textContent = result.data.boards.items[i].PhoneNumber 
                     let trusteeEmail = document.createElement('h6')
@@ -164,12 +164,11 @@ async function queryBoardInfo() {
                     let trusteeDesc = document.createElement('span')
                     trusteeDesc.textContent = result.data.boards.items[i].Description 
 
-                    cardBody.appendChild(trusteeImg)
-                    cardBody.appendChild(trusteeNamePosition)
                     cardBody.appendChild(trusteePhone)
                     cardBody.appendChild(trusteeEmail)
                     cardBody.appendChild(trusteeEmail2)
                     cardBody.appendChild(trusteeDesc)
+                    */
                 }
             })
         } // result.data.boards.items.length
@@ -178,6 +177,7 @@ async function queryBoardInfo() {
 
 // Get the specific Trustee information and display for update
 async function getTrustee(trusteeId) {
+    // >>>>> should I pass the display object as one of the parameters - would that have any benefit???
     BoardMessageDisplay.textContent = "Fetching Board information..."
     const endpoint = "/api/GetTrustee";
     const response = await fetch(endpoint, {
@@ -185,9 +185,20 @@ async function getTrustee(trusteeId) {
         headers: { "Content-Type": "text/plain" },
         body: trusteeId
     });
+    BoardMessageDisplay.textContent = ""
+
+    let jjkText = ""
+    if (!response.ok) {
+        jjkText = await response.text();
+    }
+
+    //ok: false
+    //status: 400
+    //statusText: "Bad Request"
+    
     // what if it gets an error and returns a text message <<<<<<<<<<<<<<<<<<<<<<<
     const result = await response.json();
-    BoardMessageDisplay.textContent = ""
+    
     // GraphQL returns an .errors section in the JSON - always returns a JSON (should I do that?)
     if (result.errors != null) {
         console.log("Error: "+result.errors[0].message);
