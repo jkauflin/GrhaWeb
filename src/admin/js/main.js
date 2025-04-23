@@ -65,7 +65,6 @@ document.querySelectorAll('.form-control').forEach(input => {
 
 //const form = document.querySelector('.needs-validation');
 var updTrusteeForm = document.getElementById("UpdateTrusteeForm")
-// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> I don't want a RETURN to trigger the update - I want a click on the button <<<<<<<<
 updTrusteeForm.addEventListener('submit', (event) => {
     let formValid = updTrusteeForm.checkValidity()
     event.preventDefault()
@@ -216,30 +215,9 @@ async function getTrustee(trusteeId) {
     }
 }
 
-/*
-function cleanStr(tempStr) {
-    let outStr = tempStr.value
-    if (outStr == null || outStr == undefined) {
-        outStr = ""
-    }
-    return outStr
-}
-*/
-
 // Get the specific Trustee information and display for update
 async function updateTrustee(trusteeId) {
     BoardMessageDisplay.textContent = "Updating Board information..."
-
-    /*
-    TrusteeId.value
-    Name.value
-    Position.value
-    PhoneNumber.value
-    EmailAddress.value
-    EmailAddressForward.value
-    Description.value
-    ImageUrl.value
-    */
 
     let paramData = {
         id: trusteeId,
@@ -247,13 +225,11 @@ async function updateTrustee(trusteeId) {
         Name: Name.value,
         Position: Position.value,
         PhoneNumber: PhoneNumber.value,
-        EmailAdddress: EmailAddress.value,
+        EmailAddress: EmailAddress.value,
         EmailAddressForward: EmailAddressForward.value,
         Description: Description.value,
         ImageUrl: ImageUrl.value
     }
-
-    // >>>>>>>>>>>>> check function of cleanStr to get rid of null in EmailAddress <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     const endpoint = "/api/UpdateTrustee";
     const response = await fetch(endpoint, {
@@ -282,5 +258,4 @@ async function updateTrustee(trusteeId) {
         BoardMessageDisplay.textContent = "Update successful"
         queryBoardInfo()
     }
-
 }

@@ -99,5 +99,4 @@ namespace GrhaWeb.Function
 
     } // public static class AdminApi
 
-}
-
+} // namespace GrhaWeb.Function

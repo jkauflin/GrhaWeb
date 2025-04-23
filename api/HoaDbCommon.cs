@@ -1,8 +1,9 @@
 /*==============================================================================
 (C) Copyright 2024 John J Kauflin, All rights reserved.
 --------------------------------------------------------------------------------
-DESCRIPTION:  Common functions to handle getting data from the data sources
-
+DESCRIPTION:  Common functions to handle getting data from the data sources.
+              Centralize all data source libraries and configuration to this
+              utility class.
 --------------------------------------------------------------------------------
 Modification History
 2024-11-19 JJK  Initial versions
