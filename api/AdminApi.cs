@@ -35,7 +35,7 @@ namespace GrhaWeb.Function
             log = logger;
             config = configuration;
             authCheck = new AuthorizationCheck(log);
-            userAdminRole = "grhaadminX";   // add to config ???
+            userAdminRole = "grhaadmin";   // add to config ???
             util = new CommonUtil(log);
             hoaDbCommon = new HoaDbCommon(log,config);
         }
@@ -61,8 +61,7 @@ namespace GrhaWeb.Function
             }
             catch (Exception ex) {
                 log.LogError($"Exception in DB get of Board of Trustees, message: {ex.Message} {ex.StackTrace}");
-                //console.log("Error: "+result.errors[0].message);
-                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+                return new BadRequestObjectResult("Error in get of Trustee data - check log");
             }
             
             return new OkObjectResult(trustee);
@@ -92,7 +91,7 @@ namespace GrhaWeb.Function
             }
             catch (Exception ex) {
                 log.LogError($"Exception in DB update to Board of Trustees, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+                return new BadRequestObjectResult("Error in update of Trustee data - check log");
             }
             
             return new OkObjectResult("Update was successful");

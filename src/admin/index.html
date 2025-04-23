@@ -149,12 +149,16 @@
 								</div>
 								<div class="mb-2">
 									<label for="PhoneNumber" class="form-label">Phone Number</label>
-									<input  id="PhoneNumber" type="text" class="form-control" pattern="^\d{10}$">
+									<!--
+									pattern="[A-Za-z0-9]+"  (letters and numbers only)
+									^\d{10}$
+									-->
+									<input  id="PhoneNumber" type="text" class="form-control" pattern="\d{3}-\d{3}-\d{4}">
 									<div class="valid-feedback">
 										Valid
 									</div>
 									<div class="invalid-feedback">
-										Please enter a valid 10-digit phone number
+										Please enter a valid 10-digit phone number in 999-999-9999 format
 									</div>
 								</div>
 								<div class="mb-2">
@@ -175,7 +179,7 @@
 								<div class="col">
 									<div class="mb-2">
 										<label   for="Description" class="form-label">Description</label>
-										<textarea id="Description" type="text" class="form-control" style="height: 117px"></textarea>
+										<textarea id="Description" type="text" class="form-control" style="height: 118px"></textarea>
 										<div class="valid-feedback">
 											Valid
 										</div>

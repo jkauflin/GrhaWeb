@@ -51,38 +51,37 @@ document.querySelectorAll(".Trustee").forEach(el => el.addEventListener("click",
 var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
 const trustees = document.querySelectorAll('.Trustee')
 
-
-    document.querySelectorAll('.form-control').forEach(input => {
-      input.addEventListener('input', () => {
+document.querySelectorAll('.form-control').forEach(input => {
+    input.addEventListener('input', () => {
         if (input.checkValidity()) {
-          input.classList.add('is-valid');
-          input.classList.remove('is-invalid');
+          input.classList.add('is-valid')
+          input.classList.remove('is-invalid')
         } else {
-          input.classList.add('is-invalid');
-          input.classList.remove('is-valid');
+          input.classList.add('is-invalid')
+          input.classList.remove('is-valid')
         }
-      });
-    });
+    })
+})
 
-    //const form = document.querySelector('.needs-validation');
-    var updTrusteeForm = document.getElementById("UpdateTrusteeForm")
-    updTrusteeForm.addEventListener('submit', (event) => {
-        let formValid = updTrusteeForm.checkValidity()
-        event.preventDefault();
-        event.stopPropagation();
+//const form = document.querySelector('.needs-validation');
+var updTrusteeForm = document.getElementById("UpdateTrusteeForm")
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> I don't want a RETURN to trigger the update - I want a click on the button <<<<<<<<
+updTrusteeForm.addEventListener('submit', (event) => {
+    let formValid = updTrusteeForm.checkValidity()
+    event.preventDefault()
+    event.stopPropagation()
 
-        BoardMessageDisplay.textContent = ""
-      
-        if (!formValid) {
-            BoardMessageDisplay.textContent = "Form inputs are NOT valid"
-        } else {
-            //    updateTrustee()
-            BoardMessageDisplay.textContent = "Update successful"
-        }
+    BoardMessageDisplay.textContent = ""
+  
+    if (!formValid) {
+        BoardMessageDisplay.textContent = "Form inputs are NOT valid"
+    } else {
+        let trusteeId = TrusteeId.value
+        updateTrustee(trusteeId)
+    }
 
-        updTrusteeForm.classList.add('was-validated');
-
-    });
+    updTrusteeForm.classList.add('was-validated')
+})
 
 
 // Call the function to load Board of Trustees data every time the page is loaded
@@ -184,28 +183,28 @@ async function getTrustee(trusteeId) {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: trusteeId
-    });
+    })
     BoardMessageDisplay.textContent = ""
 
-    let jjkText = ""
     if (!response.ok) {
-        jjkText = await response.text();
-    }
-
-    //ok: false
-    //status: 400
-    //statusText: "Bad Request"
-    
-    // what if it gets an error and returns a text message <<<<<<<<<<<<<<<<<<<<<<<
-    const result = await response.json();
-    
-    // GraphQL returns an .errors section in the JSON - always returns a JSON (should I do that?)
-    if (result.errors != null) {
-        console.log("Error: "+result.errors[0].message);
-        console.table(result.errors);
-        BoardMessageDisplay.textContent = "Error in Fetch - check log"
+        //response.status: 400
+        //response.statusText: "Bad Request"
+        let errMessage = response.statusText
+        try {
+            errMessage = await response.text();
+            // Check if there is a JSON structure in the response (which contains errors)
+            const result = JSON.parse(errMessage);
+            if (result.errors != null) {
+                console.log("Error: "+result.errors[0].message);
+                console.table(result.errors);
+                errMessage = result.errors[0].message
+            }
+        } catch (err) {
+            //console.log("JSON parse failed - text = "+errMessage)
+        }
+        BoardMessageDisplay.textContent = errMessage
     } else {
-        let trustee = result        
+        let trustee = await response.json();
         TrusteeId.value = trustee.id
         Name.value = trustee.name
         Position.value = trustee.position
@@ -217,6 +216,7 @@ async function getTrustee(trusteeId) {
     }
 }
 
+/*
 function cleanStr(tempStr) {
     let outStr = tempStr.value
     if (outStr == null || outStr == undefined) {
@@ -224,6 +224,7 @@ function cleanStr(tempStr) {
     }
     return outStr
 }
+*/
 
 // Get the specific Trustee information and display for update
 async function updateTrustee(trusteeId) {
@@ -241,15 +242,15 @@ async function updateTrustee(trusteeId) {
     */
 
     let paramData = {
-        id: cleanStr(TrusteeId),
-        TrusteeId: parseInt(TrusteeId.value),
-        Name: cleanStr(Name),
-        Position: cleanStr(Position),
-        PhoneNumber: cleanStr(PhoneNumber),
-        EmailAdddress: cleanStr(EmailAddress),
-        EmailAddressForward: cleanStr(EmailAddressForward),
-        Description: cleanStr(Description),
-        ImageUrl: cleanStr(ImageUrl)
+        id: trusteeId,
+        TrusteeId: parseInt(trusteeId),
+        Name: Name.value,
+        Position: Position.value,
+        PhoneNumber: PhoneNumber.value,
+        EmailAdddress: EmailAddress.value,
+        EmailAddressForward: EmailAddressForward.value,
+        Description: Description.value,
+        ImageUrl: ImageUrl.value
     }
 
     // >>>>>>>>>>>>> check function of cleanStr to get rid of null in EmailAddress <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
@@ -259,16 +260,27 @@ async function updateTrustee(trusteeId) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(paramData)
-    });
-    //const result = await response.json();
-    const result = await response.text();
-    BoardMessageDisplay.textContent = result
-    if (result.errors != null) {
-        console.log("Error: "+result.errors[0].message);
-        console.table(result.errors);
-        BoardMessageDisplay.textContent = "Error in Fetch - check log"
+    })
+    if (!response.ok) {
+        //response.status: 400
+        //response.statusText: "Bad Request"
+        let errMessage = response.statusText
+        try {
+            errMessage = await response.text();
+            // Check if there is a JSON structure in the response (which contains errors)
+            const result = JSON.parse(errMessage);
+            if (result.errors != null) {
+                console.log("Error: "+result.errors[0].message);
+                console.table(result.errors);
+                errMessage = result.errors[0].message
+            }
+        } catch (err) {
+            //console.log("JSON parse failed - text = "+errMessage)
+        }
+        BoardMessageDisplay.textContent = errMessage
     } else {
-        console.log("AFTER update")
-
+        BoardMessageDisplay.textContent = "Update successful"
+        queryBoardInfo()
     }
+
 }
