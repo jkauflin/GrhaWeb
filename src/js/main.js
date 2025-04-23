@@ -1,7 +1,7 @@
 /*==============================================================================
  * (C) Copyright 2015,2020,2021,2022,2024 John J Kauflin, All rights reserved.
  *----------------------------------------------------------------------------
- * DESCRIPTION:
+ * DESCRIPTION:  Vanilla javascript code for the main public website
  *----------------------------------------------------------------------------
  * Modification History
  * 2015-03-06 JJK 	Initial version
@@ -307,7 +307,7 @@ const trustees = document.querySelectorAll('.Trustee')
 queryBoardInfo()
 async function queryBoardInfo() {
     let boardGql = `query {
-            boards (
+            boardsX (
                 orderBy: { TrusteeId: ASC }
             ) {
                 items {
