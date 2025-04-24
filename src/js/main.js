@@ -307,7 +307,7 @@ const trustees = document.querySelectorAll('.Trustee')
 queryBoardInfo()
 async function queryBoardInfo() {
     let boardGql = `query {
-            boardsX (
+            boards (
                 orderBy: { TrusteeId: ASC }
             ) {
                 items {
