@@ -382,19 +382,22 @@ async function queryBoardInfo() {
                     } else {
                         trusteeImg = document.createElement('img')
                         trusteeImg.classList.add('float-start','rounded','me-3')
-                        trusteeImg.width = "100"
+                        trusteeImg.width = "64"
                         trusteeImg.src = result.data.boards.items[i].ImageUrl
                     }
-                    let trusteeNamePosition = document.createElement('h5')
+                    let trusteeNamePosition = document.createElement('h6')
                     trusteeNamePosition.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
                     let trusteePhone = document.createElement('b')
                     trusteePhone.textContent = result.data.boards.items[i].PhoneNumber 
                     let trusteeEmail = document.createElement('h6')
+                    //let trusteeEmail = document.createElement('span')
                     let trusteeEmailLink = document.createElement('a')
                     trusteeEmailLink.textContent = result.data.boards.items[i].EmailAddress
                     trusteeEmailLink.href = "mailto:"+result.data.boards.items[i].EmailAddress+"?subject=GRHA Business"
-                    let trusteeDesc = document.createElement('span')
+
+                    let trusteeDesc = document.createElement('small')
                     trusteeDesc.textContent = result.data.boards.items[i].Description 
+                    
                     trusteeEmail.appendChild(trusteeEmailLink)
                     cardBody.appendChild(trusteeImg)
                     cardBody.appendChild(trusteeNamePosition)

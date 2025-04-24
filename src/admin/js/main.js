@@ -137,11 +137,11 @@ async function queryBoardInfo() {
                     } else {
                         trusteeImg = document.createElement('img')
                         trusteeImg.classList.add('float-start','rounded','me-3')
-                        trusteeImg.width = "100"
+                        trusteeImg.width = "64"
                         trusteeImg.src = result.data.boards.items[i].ImageUrl
                     }
 
-                    let trusteeNamePosition = document.createElement('h5')
+                    let trusteeNamePosition = document.createElement('h6')
                     let trusteeNameLink = document.createElement('a')
                     //trusteeNameLink.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
                     trusteeNameLink.textContent = result.data.boards.items[i].Position + " - " + result.data.boards.items[i].Name
@@ -159,7 +159,7 @@ async function queryBoardInfo() {
                     let trusteeEmail2 = document.createElement('h6')
                     trusteeEmail2.textContent = "Private Email: "+result.data.boards.items[i].EmailAddressForward
 
-                    let trusteeDesc = document.createElement('span')
+                    let trusteeDesc = document.createElement('small')
                     trusteeDesc.textContent = result.data.boards.items[i].Description 
 
                     cardBody.appendChild(trusteePhone)
