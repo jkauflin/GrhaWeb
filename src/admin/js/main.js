@@ -20,6 +20,8 @@ var EmailAddressForward = document.getElementById("EmailAddressForward")
 var Description = document.getElementById("Description")
 var ImageUrl = document.getElementById("ImageUrl")
 var BoardMessageDisplay = document.getElementById("BoardMessageDisplay")
+var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
+const trustees = document.querySelectorAll('.Trustee')
 
 // Keep track of the state of the navbar collapse (shown or hidden)
 var navbarCollapseShown = false;
@@ -39,17 +41,6 @@ document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click
     }
 }))
 
-document.querySelectorAll(".Trustee").forEach(el => el.addEventListener("click", function (event) {
-    //console.log(".Trustee click, classList = "+event.target.classList)
-    //if (event.target && event.target.classList.contains(MediaFilterRequestClass)) {
-    //}
-    const trusteeId = event.target.getAttribute('data-trustee-id')
-    //console.log('Target:', event.target); // The element that was clicked
-    getTrustee(trusteeId)
-}))
-
-var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
-const trustees = document.querySelectorAll('.Trustee')
 
 document.querySelectorAll('.form-control').forEach(input => {
     input.addEventListener('input', () => {
@@ -63,7 +54,46 @@ document.querySelectorAll('.form-control').forEach(input => {
     })
 })
 
-//const form = document.querySelector('.needs-validation');
+
+var FileUploadMessageDisplay = document.getElementById("FileUploadMessageDisplay")
+var uploadFileForm = document.getElementById("UploadFileForm")
+uploadFileForm.addEventListener('submit', (event) => {
+    let formValid = uploadFileForm.checkValidity()
+    event.preventDefault()
+    event.stopPropagation()
+
+    FileUploadMessageDisplay.textContent = ""
+  
+    if (!formValid) {
+        FormUploadMessageDisplay.textContent = "Form inputs are NOT valid"
+    } else {
+        //let trusteeId = TrusteeId.value
+        //updateTrustee(trusteeId)
+    }
+
+    uploadFileForm.classList.add('was-validated')
+})
+/*
+var url = 'salesUpload.php';
+fetch(url, {
+    method: 'POST',
+    body: new FormData(fileUploadForm)
+})
+
+GOOD INFO
+https://eecs.blog/file-uploads-with-js-and-c-azure-functions/
+*/
+
+
+document.querySelectorAll(".Trustee").forEach(el => el.addEventListener("click", function (event) {
+    //console.log(".Trustee click, classList = "+event.target.classList)
+    //if (event.target && event.target.classList.contains(MediaFilterRequestClass)) {
+    //}
+    const trusteeId = event.target.getAttribute('data-trustee-id')
+    //console.log('Target:', event.target); // The element that was clicked
+    getTrustee(trusteeId)
+}))
+
 var updTrusteeForm = document.getElementById("UpdateTrusteeForm")
 updTrusteeForm.addEventListener('submit', (event) => {
     let formValid = updTrusteeForm.checkValidity()

@@ -40,8 +40,86 @@
 	<div class="tab-content">
 		<div class="tab-pane show active" role="tabpanel" id="HomePage">
 			<div class="row">
-				<div class="col-sm-4 col-lg-3">
-					<div id="DisplayWidth"></div>
+
+				<form id="UploadFileForm" class="needs-validation" novalidate>
+
+					<button type="submit" class="btn btn-primary">Upload</button>
+					<div id="FileUploadMessageDisplay" class="m-2"></div>
+
+				</form>
+
+				  <form action="/upload" method="post" enctype="multipart/form-data">
+					<div class="mb-3">
+					  <label for="formFile" class="form-label">Choose a file to upload</label>
+					  <input  id="formFile" class="form-control" type="file" name="file" accept="image/jpeg,application/pdf" />
+					</div>
+					<!--
+					<div class="progress d-none mb-3">
+					  <div class="progress-bar" role="progressbar" style="width: 0%"></div>
+					</div>
+					-->
+					<button type="submit" class="btn btn-primary">Upload</button>
+				  </form>
+
+
+				  <form enctype="multipart/form-data" method="post">
+					<dl>
+						<dt>
+							<label asp-for="FileUpload.FormFile"></label>
+						</dt>
+						<dd>
+							<input asp-for="FileUpload.FormFile" type="file" />
+							<span asp-validation-for="FileUpload.FormFile"></span>
+						</dd>
+					</dl>
+					<input asp-page-handler="Upload" class="btn" type="submit" value="Upload" />
+				</form>
+
+				<form action="BufferedSingleFileUploadPhysical/?handler=Upload" 
+      enctype="multipart/form-data" onsubmit="AJAXSubmit(this);return false;" 
+      method="post">
+    <dl>
+        <dt>
+            <label for="FileUpload_FormFile">File</label>
+        </dt>
+        <dd>
+            <input id="FileUpload_FormFile" type="file" 
+                name="FileUpload.FormFile" />
+        </dd>
+    </dl>
+
+    <input class="btn" type="submit" value="Upload" />
+
+    <div style="margin-top:15px">
+        <output name="result"></output>
+    </div>
+</form>
+
+<script>
+  async function AJAXSubmit (oFormElement) {
+    var resultElement = oFormElement.elements.namedItem("result");
+    const formData = new FormData(oFormElement);
+
+    try {
+    const response = await fetch(oFormElement.action, {
+      method: 'POST',
+      body: formData
+    });
+
+    if (response.ok) {
+      window.location.href = '/';
+    }
+
+    resultElement.value = 'Result: ' + response.status + ' ' + 
+      response.statusText;
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+</script>
+
+
+				<div class="col-sm-6 col-lg-5">
 					<h4 class="d-none d-sm-block">Home</h4>
 
 					<!--
@@ -51,9 +129,11 @@
 						<input type="date" class="form-control shadow-none" id="year-picker">
 					  </div>
 					-->
+
+
 				</div><!-- End of col 1 -->
 	
-				<div class="col-sm-4 col-lg-6">
+				<div class="col">
 					<h5>Search</h5>
 						<!--
 					<form>
@@ -78,7 +158,7 @@
 
 				</div> <!-- End of col 2 -->
 	
-				<div class="col-sm-4 col-lg-3">
+				<div class="col">
 
                 	<h5>Properties</h5>
 					<!--
@@ -106,7 +186,7 @@
 							<div class="col">
 								<div class="mb-2">
 									<label for="Name" class="form-label">Name</label>
-									<input  id="Name" type="text" class="form-control" maxlength="60" required>
+									<input  id="Name" type="text" class="form-control" maxlength="60" required />
 									<div class="valid-feedback">
 										Valid
 									</div>
@@ -116,7 +196,7 @@
 								</div>
 								<div class="mb-2">
 									<label for="EmailAddress" class="form-label">Public Email address</label>
-									<input  id="EmailAddress" type="email" class="form-control">
+									<input  id="EmailAddress" type="email" class="form-control" />
 									<div class="valid-feedback">
 										Valid
 									</div>
@@ -126,7 +206,7 @@
 								</div>
 								<div class="mb-2">
 									<label for="EmailAddressForward" class="form-label">Private Email address</label>
-									<input  id="EmailAddressForward" type="email" class="form-control">
+									<input  id="EmailAddressForward" type="email" class="form-control" />
 									<div class="valid-feedback">
 										Valid
 									</div>
@@ -139,7 +219,7 @@
 							<div class="col">
 								<div class="mb-2">
 									<label for="Position" class="form-label">Position</label>
-									<input  id="Position" type="text" class="form-control" maxlength="40" required>
+									<input  id="Position" type="text" class="form-control" maxlength="40" required />
 									<div class="valid-feedback">
 										Valid
 									</div>
@@ -153,7 +233,7 @@
 									pattern="[A-Za-z0-9]+"  (letters and numbers only)
 									^\d{10}$
 									-->
-									<input  id="PhoneNumber" type="text" class="form-control" pattern="\d{3}-\d{3}-\d{4}">
+									<input  id="PhoneNumber" type="text" class="form-control" pattern="\d{3}-\d{3}-\d{4}" />
 									<div class="valid-feedback">
 										Valid
 									</div>
@@ -163,7 +243,7 @@
 								</div>
 								<div class="mb-2">
 									<label for="ImageUrl" class="form-label">Image URL</label>
-									<input  id="ImageUrl" type="text" class="form-control">
+									<input  id="ImageUrl" type="text" class="form-control" />
 									<div class="valid-feedback">
 										Valid
 									</div>
