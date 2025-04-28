@@ -65,44 +65,64 @@ uploadFileForm.addEventListener('submit', (event) => {
     FileUploadMessageDisplay.textContent = ""
   
     if (!formValid) {
-        FormUploadMessageDisplay.textContent = "Form inputs are NOT valid"
+        FileUploadMessageDisplay.textContent = "Form inputs are NOT valid"
     } else {
         //let trusteeId = TrusteeId.value
         //updateTrustee(trusteeId)
+        uploadFiles()
     }
 
     uploadFileForm.classList.add('was-validated')
 })
-/*
-var url = 'salesUpload.php';
-fetch(url, {
-    method: 'POST',
-    body: new FormData(fileUploadForm)
-})
 
-GOOD INFO
-https://eecs.blog/file-uploads-with-js-and-c-azure-functions/
-*/
-async function AJAXSubmit (oFormElement) {
-    var resultElement = oFormElement.elements.namedItem("result");
-    const formData = new FormData(oFormElement);
-
-    try {
-    const response = await fetch(oFormElement.action, {
-      method: 'POST',
-      body: formData
-    });
-
-    if (response.ok) {
-      window.location.href = '/';
+// Handle the file upload
+async function uploadFiles() {
+    FileUploadMessageDisplay.textContent = "Uploading files..."
+    /*
+    let paramData = {
+        id: trusteeId,
+        TrusteeId: parseInt(trusteeId),
+        Name: Name.value,
+        Position: Position.value,
+        PhoneNumber: PhoneNumber.value,
+        EmailAddress: EmailAddress.value,
+        EmailAddressForward: EmailAddressForward.value,
+        Description: Description.value,
+        ImageUrl: ImageUrl.value
     }
+    */
 
-    resultElement.value = 'Result: ' + response.status + ' ' + 
-      response.statusText;
-    } catch (error) {
-      console.error('Error:', error);
+    // >>>>>>>>>>>>>>>>> figure out how to deal with the data from a file as one of the elements on a FORM
+
+    const endpoint = "/api/UploadFiles";
+    const response = await fetch(endpoint, {
+        method: "POST",
+        //headers: { "Content-Type": "application/json" },
+        body: new FormData(uploadFileForm)
+        //body: JSON.stringify(paramData)
+    })
+    if (!response.ok) {
+        //response.status: 400
+        //response.statusText: "Bad Request"
+        let errMessage = response.statusText
+        try {
+            errMessage = await response.text();
+            // Check if there is a JSON structure in the response (which contains errors)
+            const result = JSON.parse(errMessage);
+            if (result.errors != null) {
+                console.log("Error: "+result.errors[0].message);
+                console.table(result.errors);
+                errMessage = result.errors[0].message
+            }
+        } catch (err) {
+            //console.log("JSON parse failed - text = "+errMessage)
+        }
+        FileUploadMessageDisplay.textContent = errMessage
+    } else {
+        FileUploadMessageDisplay.textContent = "Upload successful"
+        //queryBoardInfo()
     }
-  }
+}
 
 
 
