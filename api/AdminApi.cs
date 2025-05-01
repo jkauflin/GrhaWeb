@@ -10,6 +10,7 @@ Modification History
 2025-04-22 JJK  Re-thinking error handling for api calls from javascript fetch
 ================================================================================*/
 using System.IO;
+//using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
@@ -102,6 +103,14 @@ namespace GrhaWeb.Function
             return new OkObjectResult("Update was successful");
         }
 
+public class UploadRequest
+{
+    public string Username { get; set; }
+    public string Email { get; set; }
+    public string FileName { get; set; }
+    public string FileData { get; set; } // Base64-encoded data
+}
+
         [Function("UploadFiles")]
         public async Task<IActionResult> UploadFiles(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
@@ -113,6 +122,23 @@ namespace GrhaWeb.Function
                 }
                 //log.LogInformation($">>> User is authorized - userName: {userName}");
 
+                //string content = await new StreamReader(req.Body).ReadToEndAsync();
+
+        // Read and deserialize JSON
+        /*
+        string requestBody = new StreamReader(req.Body).ReadToEnd();
+        var data = JsonConvert.DeserializeObject<UploadRequest>(requestBody);
+
+        if (data?.FileData == null)
+        {
+            return new BadRequestObjectResult("Invalid request payload.");
+        }
+
+        // Decode Base64 file data and save it
+        var fileData = Convert.FromBase64String(data.FileData);
+        var path = Path.Combine(Path.GetTempPath(), data.FileName);
+        File.WriteAllBytes(path, fileData);
+        */
 
                 /*
                 var formdata = await req.ReadFormAsync();
