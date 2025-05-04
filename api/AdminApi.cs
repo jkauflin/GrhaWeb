@@ -169,8 +169,8 @@ public class UploadRequest
                     log.LogWarning($"File {file.fileName} from field {file.fieldName}, Size: {file.content.Length} bytes");
                     
                     //byte[] fileBytes = ...; // Your byte array
-                    string filePath = "/Projects/"+file.fileName; // Specify the file path
-                    File.WriteAllBytes(filePath, file.content);
+                    //string filePath = "/Projects/"+file.fileName; // Specify the file path
+                    //File.WriteAllBytes(filePath, file.content);
 
                     /*
                     using (FileStream fs = new FileStream("output.bin", FileMode.Create, FileAccess.Write))
