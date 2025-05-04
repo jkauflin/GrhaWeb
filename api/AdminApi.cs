@@ -20,10 +20,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;     // for IActionResult
 using Newtonsoft.Json.Linq;
 
-using Microsoft.AspNetCore.Http;
+using System.IO;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
-using System.Collections.Generic;
 
 //using Azure.Storage.Blobs;
 
@@ -120,7 +121,6 @@ public class UploadRequest
 */
         [Function("UploadFiles")]
         public async Task<IActionResult> UploadFiles(
- //           [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req)
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
             try {
@@ -130,8 +130,8 @@ public class UploadRequest
                 }
                 //log.LogInformation($">>> User is authorized - userName: {userName}");
 
-                // Get the content from the HTTP request body
-                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.ContentType).Boundary).Value;
+                // Get content from the Request BODY
+                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
                 var reader = new MultipartReader(boundary, req.Body);
                 var section = await reader.ReadNextSectionAsync();
 
@@ -162,85 +162,20 @@ public class UploadRequest
                 // Example usage
                 foreach (var field in formFields)
                 {
-                    log.LogWarning($"Field {field.Key}: {field.Value}");
+                    log.LogInformation($"Field {field.Key}: {field.Value}");
                 }
 
                 foreach (var file in files)
                 {
-                    log.LogWarning($"File {file.fileName} from field {file.fieldName}, Size: {file.content.Length} bytes");
-                    
+                    log.LogInformation($"File {file.fileName} from field {file.fieldName}, Size: {file.content.Length} bytes");
+
                     //byte[] fileBytes = ...; // Your byte array
                     //string filePath = "/Projects/"+file.fileName; // Specify the file path
                     //File.WriteAllBytes(filePath, file.content);
-
-                    /*
-                    using (FileStream fs = new FileStream("output.bin", FileMode.Create, FileAccess.Write))
-                    {
-                        fs.Write(fileBytes, 0, fileBytes.Length);
-                    }
-                    */
                 }
-
-/*
-[2025-05-04T14:49:02.901Z] >>> in UploadFiles
-[2025-05-04T14:49:02.904Z] Field TestName: Jimmy Page
-[2025-05-04T14:49:02.905Z] File (1998) Hero Pup (cd insert front).jpg from field FormFile1, Size: 363844 bytes
-*/
-
 
 
                 /*
-------WebKitFormBoundaryZmAf0g67pRbaZNKj
-Content-Disposition: form-data; name="TestName"
-
-jjk
-------WebKitFormBoundaryZmAf0g67pRbaZNKj--
-
-------WebKitFormBoundary6NdPJ7AGweIoAGKD
-Content-Disposition: form-data; name="file"; filename="(1987) Freedomrock (cover).jpg"
-Content-Type: image/jpeg
-
-                var formdata = await req.ReadFormAsync();
-                var formCollection = await req.ReadFormAsync();
-                var content = await new StreamReader(req.ReadAsStringAsync()).ReadToEndAsync(); 
-                */
-
-        // Read and deserialize JSON
-        /*
-        string requestBody = new StreamReader(req.Body).ReadToEnd();
-        var data = JsonConvert.DeserializeObject<UploadRequest>(requestBody);
-
-        if (data?.FileData == null)
-        {
-            return new BadRequestObjectResult("Invalid request payload.");
-        }
-
-        // Decode Base64 file data and save it
-        var fileData = Convert.FromBase64String(data.FileData);
-        var path = Path.Combine(Path.GetTempPath(), data.FileName);
-        File.WriteAllBytes(path, fileData);
-        */
-
-                /*
-                var formdata = await req.ReadFormAsync();
-                var file = req.Form.Files["file"];
-                return new OkObjectResult(file.FileName + " - " + file.Length.ToString());
-
-
-                var form = await req.ReadFormAsync();
-                var file = form.Files["file"];
-                if (file == null || file.Length == 0)
-                {
-                    return new BadRequestObjectResult("No file uploaded or file is empty.");
-                }
-
-                // File size limit (100 MB)
-                const long maxFileSize = 100 * 1024 * 1024;
-                if (file.Length > maxFileSize)
-                {
-                    return new BadRequestObjectResult($"File size exceeds the limit of {maxFileSize / (1024 * 1024)}MB.");
-                }
-
  // Get MIME type
                 var contentType = MimeUtility.GetMimeMapping(file.FileName);
 
@@ -260,82 +195,9 @@ Content-Type: image/jpeg
 
                 using var stream = file.OpenReadStream();
                 await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = contentType });
-
-
                 */
 
-/*
-var content = await new StreamReader(req.ReadAsStringAsync()).ReadToEndAsync(); 
 
-                if (!req.HasFormContentType)
-                {
-                    return new BadRequestObjectResult("Please send a multipart/form-data request.");
-                }
-
-                var formCollection = await req.ReadFormAsync();
-                var files = formCollection.Files;
-
-                if (files.Count == 0)
-                {
-                    return new BadRequestObjectResult("No files uploaded.");
-                }
-
-                foreach (var file in files)
-                {
-                    var fileName = file.FileName;
-                    log.LogInformation($"Processing file: {fileName}");
-
-                    using (var stream = file.OpenReadStream())
-                    {
-                        // Here you can process the file stream, e.g., upload to Azure Blob Storage
-                        var content = await new StreamReader(stream).ReadToEndAsync();
-                        log.LogInformation($"File {fileName} content length: {content.Length}");
-                    }
-                }
-*/
-
-/*
-
-            <form enctype="multipart/form-data" action="http://localhost:7071/api/FileUpload" method="post">
-                <input name="file" type="file" /> <br>
-                <input type="submit">
-            </form>
-
-
-            function fileUploaded(event){
-  //Get the upload input element.
-  const fileInput = event.target;
-  //Get the first file.
-  const fileData = fileInput.files[0];
-  //Create a form data object.
-  let formData = new FormData();
-  //Add file.
-  formData.append("file", fileData);
-  //Set reqeust properties.
-  const requestProperties = {
-    method: "POST",
-    body: formData //Add form data to request.
-  };
-  //Url of the backend where you want to upload the file to.
-  const fileUploadURL = "http://localhost:7071/api/FileUpload";
-  //Make the request.
-  makeRequest(fileUploadURL, requestProperties);
-}
-async function makeRequest(url, requestProperties){
-  let response = await fetch(url, requestProperties);
-  console.log(response.status);
-}
-
-               var formData = await req.ReadFormAsync();
-                //Get file.
-                var file = formData.Files["file"];
-                //For this demo I will save the file localy to the desktop. 
-                //In a real scenario you could process the file and return some sort of result or save it to a DB/Cloud storage.
-                using(Stream outStream = File.OpenWrite(@"C:\Users\DTPC\Desktop\" + file.FileName))
-                    file.CopyTo(outStream);
-                //Return seccessful response.
-                return new OkObjectResult("File was uploaded.");
-*/
                 //await hoaDbCommon.UpdTrustee(trustee);
             }
             catch (Exception ex) {

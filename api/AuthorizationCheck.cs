@@ -8,8 +8,6 @@ DESCRIPTION:  Functions to parse a request context and look for authentication
 --------------------------------------------------------------------------------
 Modification History
 2024-11-11 JJK  Initial version (check user role from function context for auth)
-2025-05-04 JJK  Added a method for processing an HttpRequest (commented it back 
-                out for now - should be using HttpRequestData in isolated functions)
 ================================================================================*/
 using System.Security.Claims;
 using System.Text;
@@ -17,7 +15,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-//using Microsoft.AspNetCore.Http;
 
 public class AuthorizationCheck
 {
@@ -111,61 +108,6 @@ public class AuthorizationCheck
 
         return userAuthorized;
     }
-
-    /*
-    public bool UserAuthorizedForRole(HttpRequest req, string userRoleToCheck, out string userName)
-    {
-        bool userAuthorized = false;
-        userName = "";
-
-        try {
-            // Use a Security ClaimsPrincipal to check authentication and authoriz  ation
-            ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal();
-
-            // Get the MS client principal from the request header
-            if (req.Headers.TryGetValue("x-ms-client-principal", out var headerValues))
-            {
-                var headerValue = headerValues.FirstOrDefault() ?? "";
-                var decoded = Convert.FromBase64String(headerValue);
-                var jsonStr = Encoding.UTF8.GetString(decoded);
-                // Deserialize the JSON to get values into a class
-                var clientPrincipal = JsonSerializer.Deserialize<ClientPrincipal>(jsonStr, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-                // Check if the identity provider has already created the actual Claims, or if they have to be built from the Roles
-                if (clientPrincipal!.Claims == null) {
-                    if (!string.IsNullOrWhiteSpace(clientPrincipal.identityProvider)) {
-                        if (clientPrincipal.identityProvider.Equals("aad")) {
-                            // If a managed identity from Azure Active Directory (AAD), construct the claims from the user Roles
-                            var claims = new List<Claim>();
-                            claims.Add(new Claim(ClaimTypes.Name, clientPrincipal.userDetails!));
-                            foreach (string userRole in clientPrincipal.userRoles!) {
-                                claims.Add(new Claim(ClaimTypes.Role, userRole));
-                            }
-                            // When using Azure Active Directory (AAD) with a ClaimsPrincipal, the authentication type is typically "Bearer" for OAuth 2.0 tokens    
-                            var claimsIdentity = new ClaimsIdentity(claims, "Bearer"); 
-                            claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-                        }
-                    }
-                } else {
-                    var claimsIdentity = new ClaimsIdentity(clientPrincipal.IdentityProvider, clientPrincipal.NameClaimType, clientPrincipal.RoleClaimType);
-                    claimsIdentity.AddClaims(clientPrincipal.Claims.Select(c => new Claim(c.Type!, c.Value!)));
-                    claimsPrincipal = new ClaimsPrincipal(claimsIdentity);
-                }
-
-                // Use the constructed ClaimsPrincipal to check if the user is authenticated, and in the authorized Role (to return a YES or NO to the caller)
-                if (claimsPrincipal.Identity!.IsAuthenticated) {
-                    userName = claimsPrincipal.Identity.Name ?? "";
-                    userAuthorized = claimsPrincipal.IsInRole(userRoleToCheck);
-                }
-            }
-        } 
-            catch (Exception ex) {
-            log.LogWarning($"Exception in UserAuthorizedForRole, message: {ex.Message} {ex.StackTrace}");
-        }
-
-        return userAuthorized;
-    }
-    */
 
     /*
     public ClaimsPrincipal Parse(HttpRequestData req)
