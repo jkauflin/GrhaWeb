@@ -8,7 +8,8 @@ DESCRIPTION:  Functions to parse a request context and look for authentication
 --------------------------------------------------------------------------------
 Modification History
 2024-11-11 JJK  Initial version (check user role from function context for auth)
-2025-05-04 JJK  Added a method for processing an HttpRequest
+2025-05-04 JJK  Added a method for processing an HttpRequest (commented it back 
+                out for now - should be using HttpRequestData in isolated functions)
 ================================================================================*/
 using System.Security.Claims;
 using System.Text;
@@ -16,7 +17,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using Microsoft.AspNetCore.Http;
+//using Microsoft.AspNetCore.Http;
 
 public class AuthorizationCheck
 {
@@ -111,13 +112,14 @@ public class AuthorizationCheck
         return userAuthorized;
     }
 
+    /*
     public bool UserAuthorizedForRole(HttpRequest req, string userRoleToCheck, out string userName)
     {
         bool userAuthorized = false;
         userName = "";
 
         try {
-            // Use a Security ClaimsPrincipal to check authentication and authorization
+            // Use a Security ClaimsPrincipal to check authentication and authoriz  ation
             ClaimsPrincipal claimsPrincipal = new ClaimsPrincipal();
 
             // Get the MS client principal from the request header
@@ -163,6 +165,7 @@ public class AuthorizationCheck
 
         return userAuthorized;
     }
+    */
 
     /*
     public ClaimsPrincipal Parse(HttpRequestData req)

@@ -78,28 +78,11 @@ uploadFileForm.addEventListener('submit', (event) => {
 // Handle the file upload backend server call
 async function uploadFiles() {
     FileUploadMessageDisplay.textContent = "Uploading files..."
-    /*
-    let paramData = {
-        id: trusteeId,
-        TrusteeId: parseInt(trusteeId),
-        Name: Name.value,
-        Position: Position.value,
-        PhoneNumber: PhoneNumber.value,
-        EmailAddress: EmailAddress.value,
-        EmailAddressForward: EmailAddressForward.value,
-        Description: Description.value,
-        ImageUrl: ImageUrl.value
-    }
-    */
-
-    // >>>>>>>>>>>>>>>>> figure out how to deal with the data from a file as one of the elements on a FORM
 
     const endpoint = "/api/UploadFiles";
     const response = await fetch(endpoint, {
         method: "POST",
-        //headers: { "Content-Type": "application/json" },
         body: new FormData(uploadFileForm)
-        //body: JSON.stringify(paramData)
     })
     if (!response.ok) {
         //response.status: 400

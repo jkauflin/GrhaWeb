@@ -120,7 +120,8 @@ public class UploadRequest
 */
         [Function("UploadFiles")]
         public async Task<IActionResult> UploadFiles(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req)
+ //           [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
             try {
                 string userName = "";
