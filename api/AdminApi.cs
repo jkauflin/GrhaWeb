@@ -11,6 +11,8 @@ Modification History
 ================================================================================*/
 using System.IO;
 //using System.Text;
+using System.Threading.Tasks;
+
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
@@ -18,6 +20,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;     // for IActionResult
 using Newtonsoft.Json.Linq;
 
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Net.Http.Headers;
+using System.Collections.Generic;
 
 //using Azure.Storage.Blobs;
 
@@ -103,6 +109,7 @@ namespace GrhaWeb.Function
             return new OkObjectResult("Update was successful");
         }
 
+/*
 public class UploadRequest
 {
     public string Username { get; set; }
@@ -110,10 +117,10 @@ public class UploadRequest
     public string FileName { get; set; }
     public string FileData { get; set; } // Base64-encoded data
 }
-
+*/
         [Function("UploadFiles")]
         public async Task<IActionResult> UploadFiles(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequest req)
         {
             try {
                 string userName = "";
@@ -122,7 +129,80 @@ public class UploadRequest
                 }
                 //log.LogInformation($">>> User is authorized - userName: {userName}");
 
-                //string content = await new StreamReader(req.Body).ReadToEndAsync();
+                // Get the content from the HTTP request body
+                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.ContentType).Boundary).Value;
+                var reader = new MultipartReader(boundary, req.Body);
+                var section = await reader.ReadNextSectionAsync();
+
+                var formFields = new Dictionary<string, string>();
+                var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                while (section != null)
+                {
+                    var contentDisposition = section.GetContentDispositionHeader();
+                    if (contentDisposition != null)
+                    {
+                        if (contentDisposition.IsFileDisposition())
+                        {
+                            using var memoryStream = new MemoryStream();
+                            await section.Body.CopyToAsync(memoryStream);
+                            files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
+                        }
+                        else if (contentDisposition.IsFormDisposition())
+                        {
+                            using var streamReader = new StreamReader(section.Body);
+                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                        }
+                    }
+
+                    section = await reader.ReadNextSectionAsync();
+                }
+
+                // Example usage
+                foreach (var field in formFields)
+                {
+                    log.LogWarning($"Field {field.Key}: {field.Value}");
+                }
+
+                foreach (var file in files)
+                {
+                    log.LogWarning($"File {file.fileName} from field {file.fieldName}, Size: {file.content.Length} bytes");
+                    
+                    //byte[] fileBytes = ...; // Your byte array
+                    string filePath = "/Projects/"+file.fileName; // Specify the file path
+                    File.WriteAllBytes(filePath, file.content);
+
+                    /*
+                    using (FileStream fs = new FileStream("output.bin", FileMode.Create, FileAccess.Write))
+                    {
+                        fs.Write(fileBytes, 0, fileBytes.Length);
+                    }
+                    */
+                }
+
+/*
+[2025-05-04T14:49:02.901Z] >>> in UploadFiles
+[2025-05-04T14:49:02.904Z] Field TestName: Jimmy Page
+[2025-05-04T14:49:02.905Z] File (1998) Hero Pup (cd insert front).jpg from field FormFile1, Size: 363844 bytes
+*/
+
+
+
+                /*
+------WebKitFormBoundaryZmAf0g67pRbaZNKj
+Content-Disposition: form-data; name="TestName"
+
+jjk
+------WebKitFormBoundaryZmAf0g67pRbaZNKj--
+
+------WebKitFormBoundary6NdPJ7AGweIoAGKD
+Content-Disposition: form-data; name="file"; filename="(1987) Freedomrock (cover).jpg"
+Content-Type: image/jpeg
+
+                var formdata = await req.ReadFormAsync();
+                var formCollection = await req.ReadFormAsync();
+                var content = await new StreamReader(req.ReadAsStringAsync()).ReadToEndAsync(); 
+                */
 
         // Read and deserialize JSON
         /*

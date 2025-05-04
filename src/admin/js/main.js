@@ -54,7 +54,7 @@ document.querySelectorAll('.form-control').forEach(input => {
     })
 })
 
-
+// Handle file upload Form submit/validation
 var FileUploadMessageDisplay = document.getElementById("FileUploadMessageDisplay")
 var uploadFileForm = document.getElementById("UploadFileForm")
 uploadFileForm.addEventListener('submit', (event) => {
@@ -75,7 +75,7 @@ uploadFileForm.addEventListener('submit', (event) => {
     uploadFileForm.classList.add('was-validated')
 })
 
-// Handle the file upload
+// Handle the file upload backend server call
 async function uploadFiles() {
     FileUploadMessageDisplay.textContent = "Uploading files..."
     /*
@@ -122,8 +122,8 @@ async function uploadFiles() {
         FileUploadMessageDisplay.textContent = "Upload successful"
         //queryBoardInfo()
     }
-}
 
+}
 
 
 document.querySelectorAll(".Trustee").forEach(el => el.addEventListener("click", function (event) {

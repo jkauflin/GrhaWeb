@@ -41,67 +41,7 @@
 		<div class="tab-pane show active" role="tabpanel" id="HomePage">
 			<div class="row">
 
-				<form id="UploadFileForm" class="needs-validation" novalidate>
-
-
-
-					<button type="submit" class="btn btn-primary">Upload</button>
-					<div id="FileUploadMessageDisplay" class="m-2"></div>
-				</form>
-
-				
-				  <form action="/upload" method="post" enctype="multipart/form-data">
-					<div class="mb-3">
-					  <label for="formFile" class="form-label">Choose a file to upload</label>
-					  <input  id="formFile" class="form-control" type="file" name="file" accept="image/jpeg,application/pdf" />
-					</div>
-					<!--
-					<div class="progress d-none mb-3">
-					  <div class="progress-bar" role="progressbar" style="width: 0%"></div>
-					</div>
-					-->
-					<button type="submit" class="btn btn-primary">Upload</button>
-				  </form>
-
-
-				  <form enctype="multipart/form-data" method="post">
-					<dl>
-						<dt>
-							<label asp-for="FileUpload.FormFile"></label>
-						</dt>
-						<dd>
-							<input asp-for="FileUpload.FormFile" type="file" />
-							<span asp-validation-for="FileUpload.FormFile"></span>
-						</dd>
-					</dl>
-					<input asp-page-handler="Upload" class="btn" type="submit" value="Upload" />
-				</form>
-
-				<form action="BufferedSingleFileUploadPhysical/?handler=Upload" 
-      				enctype="multipart/form-data" onsubmit="AJAXSubmit(this);return false;" 
-      				method="post">
-					<dl>
-						<dt>
-							<label for="FileUpload_FormFile">File</label>
-						</dt>
-						<dd>
-							<input id="FileUpload_FormFile" type="file" 
-								name="FileUpload.FormFile" />
-						</dd>
-					</dl>
-
-					<input class="btn" type="submit" value="Upload" />
-
-					<div style="margin-top:15px">
-						<output name="result"></output>
-					</div>
-				</form>
-
-<script>
-</script>
-
-
-				<div class="col-sm-6 col-lg-5">
+				<div class="col-sm-4 col-lg-3">
 					<h4 class="d-none d-sm-block">Home</h4>
 
 					<!--
@@ -112,11 +52,41 @@
 					  </div>
 					-->
 
+					<!--
+					  <form action="/upload" method="post" enctype="multipart/form-data">
+					-->
+					<form id="UploadFileForm" class="needs-validation" novalidate>
 
+						<div class="mb-2">
+							<label for="TestName" class="form-label">TestName</label>
+							<input  id="TestName" name="TestName" type="text" class="form-control" maxlength="60" required/>
+							<div class="valid-feedback">
+								Valid
+							</div>
+							<div class="invalid-feedback">
+								Name is required
+							</div>
+						</div>
+	
+						<div class="mb-2">
+							<label for="FormFile1" class="form-label">Choose a file to upload</label>
+							<input  id="FormFile1" class="form-control" type="file" name="FormFile1" accept="image/jpeg,application/pdf" required/>
+							<div class="valid-feedback">
+								File Valid
+							</div>
+							<div class="invalid-feedback">
+								File invalid
+							</div>
+						</div>
+	
+						<button type="submit" class="btn btn-primary">Upload</button>
+						<div id="FileUploadMessageDisplay" class="m-2"></div>
+					</form>
+	
 				</div><!-- End of col 1 -->
 	
-				<div class="col">
-					<h5>Search</h5>
+				<div class="col-sm-4 col-lg-3">
+						<h5>Search</h5>
 						<!--
 					<form>
                     	<input type="text" class="form-control form-control-sm m-1 shadow-none" name="searchStr" id="searchStr" placeholder="Enter value to search">
@@ -153,6 +123,8 @@
 
 				</div><!-- End of col 3 -->
 	
+
+
 			</div><!-- end of row -->
 		</div><!-- end of Home tab -->
 
