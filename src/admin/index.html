@@ -46,21 +46,11 @@
 
 					<!--
 					<input type="number" min="1900" max="2099" step="1" value="2016" />
+					<input type="number" min="1972" max="2050" step="1" value="2025">	
 
 					<div class="input-group mb-3">
 						<input type="date" class="form-control shadow-none" id="year-picker">
-					  </div>
-
-					  						<div class="mb-2">
-							<label for="TestName" class="form-label">TestName</label>
-							<input  id="TestName" name="TestName" type="text" class="form-control" maxlength="60" required/>
-							<div class="valid-feedback">
-								Valid
-							</div>
-							<div class="invalid-feedback">
-								Name is required
-							</div>
-						</div>
+					</div>
 					-->
 
 					<!--
@@ -68,32 +58,48 @@
 						Category (for 4 Docs)
 					-->
 					<form id="UploadFileForm" class="needs-validation" novalidate>
-
-						<select id="DocCategory">
-							<option value="Quail Call newsletter">Quail Call newsletter</option>
-							<option value="Annual Meeting">Annual Meeting</option>
-							<option value="Governing Doc">Governing Doc</option>
-							<option value="Historical Doc">Historical Doc</option>
-						</select>
-
 						<div class="mb-2">
-							<label for="FormFile1" class="form-label">Choose a file to upload</label>
-							<input  id="FormFile1" class="form-control" type="file" name="FormFile1" accept="application/pdf" required/>
+							<label for="DocCategory" class="form-label">Doc Category</label>
+							<select id="DocCategory" class="mt-2 p-1">
+								<option value="Quail Call newsletter">Quail Call newsletter</option>
+								<option value="Annual Meeting">Annual Meeting</option>
+								<option value="Governing Doc">Governing Doc</option>
+								<option value="Historical Doc">Historical Doc</option>
+							</select>
 							<div class="valid-feedback">
-								File Valid
+								Doc category Valid
 							</div>
 							<div class="invalid-feedback">
-								File invalid
+								Doc category invalid
 							</div>
 						</div>
 
-						<input type="number" min="1972" max="2050" step="1" value="2025">	
-						<input type="month">
+						<div class="mb-2">
+							<label for="DocMonth" class="form-label">Year & Month</label>
+							<input id="DocMonth" type="month" class="" required>
+							<div class="valid-feedback">
+								Doc year month Valid
+							</div>
+							<div class="invalid-feedback">
+								Doc year month invalid
+							</div>
+						</div>
 
-						<button type="submit" class="btn btn-primary">Upload</button>
+						<div class="mb-2">
+							<label for="DocFile" class="form-label">PDF document to upload</label>
+							<input  id="DocFile" class="form-control" type="file" name="FormFile1" accept="application/pdf" required/>
+							<div class="valid-feedback">
+								Doc file Valid
+							</div>
+							<div class="invalid-feedback">
+								Doc file invalid
+							</div>
+						</div>
+
+						<button type="submit" class="btn btn-primary">Upload Doc</button>
 						<div id="FileUploadMessageDisplay" class="m-2"></div>
 
-						<select id="EventCategory">
+						<select id="EventCategory" class="p-1">
 							<option value="Christmas">Christmas</option>
 							<option value="Halloween">Halloween</option>
 							<option value="Easter">Easter</option>
@@ -109,6 +115,7 @@
 								File invalid
 							</div>
 						</div>
+						<button type="submit" class="btn btn-primary">Upload Photos</button>
 
 					</form>
 	

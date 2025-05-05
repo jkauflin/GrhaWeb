@@ -55,10 +55,10 @@ document.querySelectorAll('.form-control').forEach(input => {
 })
 
 
-// >>>>>>>>>>>> 5/4/2025 - JJK - have something dynamic that changes the inputs based on doc type??????????????????????
-
 
 // Handle file upload Form submit/validation
+var DocMonth = document.getElementById("DocMonth")
+DocMonth.value = "2025-05";
 var FileUploadMessageDisplay = document.getElementById("FileUploadMessageDisplay")
 var uploadFileForm = document.getElementById("UploadFileForm")
 uploadFileForm.addEventListener('submit', (event) => {
