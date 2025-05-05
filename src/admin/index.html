@@ -50,14 +50,8 @@
 					<div class="input-group mb-3">
 						<input type="date" class="form-control shadow-none" id="year-picker">
 					  </div>
-					-->
 
-					<!--
-					  <form action="/upload" method="post" enctype="multipart/form-data">
-					-->
-					<form id="UploadFileForm" class="needs-validation" novalidate>
-
-						<div class="mb-2">
+					  						<div class="mb-2">
 							<label for="TestName" class="form-label">TestName</label>
 							<input  id="TestName" name="TestName" type="text" class="form-control" maxlength="60" required/>
 							<div class="valid-feedback">
@@ -67,10 +61,24 @@
 								Name is required
 							</div>
 						</div>
-	
+					-->
+
+					<!--
+					  <form action="/upload" method="post" enctype="multipart/form-data">
+						Category (for 4 Docs)
+					-->
+					<form id="UploadFileForm" class="needs-validation" novalidate>
+
+						<select id="DocCategory">
+							<option value="Quail Call newsletter">Quail Call newsletter</option>
+							<option value="Annual Meeting">Annual Meeting</option>
+							<option value="Governing Doc">Governing Doc</option>
+							<option value="Historical Doc">Historical Doc</option>
+						</select>
+
 						<div class="mb-2">
 							<label for="FormFile1" class="form-label">Choose a file to upload</label>
-							<input  id="FormFile1" class="form-control" type="file" name="FormFile1" accept="image/jpeg,application/pdf" required/>
+							<input  id="FormFile1" class="form-control" type="file" name="FormFile1" accept="application/pdf" required/>
 							<div class="valid-feedback">
 								File Valid
 							</div>
@@ -78,9 +86,30 @@
 								File invalid
 							</div>
 						</div>
-	
+
+						<input type="number" min="1972" max="2050" step="1" value="2025">	
+						<input type="month">
+
 						<button type="submit" class="btn btn-primary">Upload</button>
 						<div id="FileUploadMessageDisplay" class="m-2"></div>
+
+						<select id="EventCategory">
+							<option value="Christmas">Christmas</option>
+							<option value="Halloween">Halloween</option>
+							<option value="Easter">Easter</option>
+						</select>
+
+						<div class="mb-2">
+							<label for="FormFile2" class="form-label">Choose a file to upload</label>
+							<input  id="FormFile2" class="form-control" type="file" name="FormFile1" accept="image/jpeg" required/>
+							<div class="valid-feedback">
+								File Valid
+							</div>
+							<div class="invalid-feedback">
+								File invalid
+							</div>
+						</div>
+
 					</form>
 	
 				</div><!-- End of col 1 -->
