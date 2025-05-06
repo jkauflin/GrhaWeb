@@ -41,8 +41,8 @@
 		<div class="tab-pane show active" role="tabpanel" id="HomePage">
 			<div class="row">
 
-				<div class="col-sm-4 col-lg-3">
-					<h4 class="d-none d-sm-block">Home</h4>
+				<div class="col-sm-4 col-lg-4">
+					<h5 class="mt-2">File Upload</h5>
 
 					<!--
 					<input type="number" min="1900" max="2099" step="1" value="2016" />
@@ -59,113 +59,64 @@
 					-->
 					<form id="UploadFileForm" class="needs-validation" novalidate>
 						<div class="mb-2">
-							<label for="DocCategory" class="form-label">Doc Category</label>
-							<select id="DocCategory" class="mt-2 p-1">
+							<label for="DocCategory" class="form-label">Doc Category: </label>
+							<select id="DocCategory" class="p-1">
 								<option value="Quail Call newsletter">Quail Call newsletter</option>
 								<option value="Annual Meeting">Annual Meeting</option>
 								<option value="Governing Doc">Governing Doc</option>
 								<option value="Historical Doc">Historical Doc</option>
 							</select>
-							<div class="valid-feedback">
-								Doc category Valid
-							</div>
-							<div class="invalid-feedback">
-								Doc category invalid
-							</div>
 						</div>
 
 						<div class="mb-2">
-							<label for="DocMonth" class="form-label">Year & Month</label>
+							<label for="DocMonth" class="form-label">Year & Month: </label>
 							<input id="DocMonth" type="month" class="" required>
-							<div class="valid-feedback">
-								Doc year month Valid
-							</div>
-							<div class="invalid-feedback">
-								Doc year month invalid
-							</div>
 						</div>
 
 						<div class="mb-2">
-							<label for="DocFile" class="form-label">PDF document to upload</label>
+							<label for="DocFile" class="form-label">PDF document to upload: </label>
 							<input  id="DocFile" class="form-control" type="file" name="FormFile1" accept="application/pdf" required/>
-							<div class="valid-feedback">
-								Doc file Valid
-							</div>
-							<div class="invalid-feedback">
-								Doc file invalid
-							</div>
 						</div>
 
-						<button type="submit" class="btn btn-primary">Upload Doc</button>
+						<button type="submit" class="btn btn-primary mt-1">Upload Doc</button>
 						<div id="FileUploadMessageDisplay" class="m-2"></div>
-
-						<select id="EventCategory" class="p-1">
-							<option value="Christmas">Christmas</option>
-							<option value="Halloween">Halloween</option>
-							<option value="Easter">Easter</option>
-						</select>
-
-						<div class="mb-2">
-							<label for="FormFile2" class="form-label">Choose a file to upload</label>
-							<input  id="FormFile2" class="form-control" type="file" name="FormFile1" accept="image/jpeg" required/>
-							<div class="valid-feedback">
-								File Valid
-							</div>
-							<div class="invalid-feedback">
-								File invalid
-							</div>
-						</div>
-						<button type="submit" class="btn btn-primary">Upload Photos</button>
-
 					</form>
-	
 				</div><!-- End of col 1 -->
 	
-				<div class="col-sm-4 col-lg-3">
-						<h5>Search</h5>
-						<!--
-					<form>
-                    	<input type="text" class="form-control form-control-sm m-1 shadow-none" name="searchStr" id="searchStr" placeholder="Enter value to search">
-                    	<button id="SearchButton" type="button" class="btn btn-primary mt-2 mb-2">
-							<i class="fa fa-search me-1"></i> Search
-						</button>
+				<div class="col-sm-6 col-lg-6">
+						<h5 class="mt-2">Photos Upload</h5>
+						<form id="UploadPhotosForm" class="needs-validation" novalidate>
+							<div class="mb-2">
+								<label for="EventCategory" class="form-label">Event: </label>
+								<select id="EventCategory" class="p-1">
+									<option value="Christmas">Christmas</option>
+									<option value="Halloween">Halloween</option>
+									<option value="Easter">Easter</option>
+								</select>
+							</div>
 
-                    	<button id="AdvancedOptionsButton" type="button" class="btn btn-info mt-2 ml-2 mb-2" data-bs-toggle="collapse" data-bs-target="#AdvancedSearchOptions">Advanced Options</button>
-						<div id="AdvancedSearchOptions" class="collapse">
-	                    	<div class="form-group">
-	                    		<input type="text" name="parcelId"  	id="parcelId" 	placeholder="Parcel Id (R35617399 0001)" class="form-control form-control-sm mb-1 resetval">
-	                    		<input type="text" name="lotNo"     	id="lotNo"		placeholder="Lot Number" class="form-control form-control-sm mb-1 resetval">
-	                    		<input type="text" name="address"       id="address"   	placeholder="Property Address" class="form-control form-control-sm mb-1 resetval">
-	                    		<input type="text" name="ownerName"     id="ownerName" 	placeholder="Owner Name (Last First)" class="form-control form-control-sm mb-1 resetval">
-	                    		<input type="text" name="phoneNo"       id="phoneNo"   	placeholder="Phone Number" class="form-control form-control-sm mb-1 resetval">
-	                    		<input type="text" name="altAddress"    id="altAddress"	placeholder="Alternate Address" class="form-control form-control-sm mb-1 resetval">
-                            </div>
-                        </div>
-                    </form>
-						-->
+							<div class="mb-2">
+								<label for="FormFile2" class="form-label">1: </label>
+								<input  id="Title1" type="text" class="form-control"  />
+							</div>
+							
+							<div class="mb-2">
+								<!--
+								<label for="FormFile2" class="form-label">Photo to upload: </label>
+								-->
+								<input  id="FormFile2" class="form-control" type="file" name="FormFile1" accept="image/jpeg" required/>
+							</div>
+
+							<button type="submit" class="btn btn-primary mt-1">Upload Photos</button>
+						</form>
 
 				</div> <!-- End of col 2 -->
-	
-				<div class="col">
-
-                	<h5>Properties</h5>
-					<!--
-					<div id="SearchMessageDisplay" class="m-2"></div>
-		            <table class="table table-striped table-sm">
-		            	<tbody id="PropertyListDisplayTbody">
-		               	</tbody>
-		           	</table>
-					-->
-
-				</div><!-- End of col 3 -->
-	
-
 
 			</div><!-- end of row -->
 		</div><!-- end of Home tab -->
 
+
 		<div class="tab-pane" role="tabpanel" id="BoardPage">
-			
 			<form id="UpdateTrusteeForm" class="needs-validation" novalidate>
 				<input id="TrusteeId" type="text" disabled hidden>
 				<div class="row">
