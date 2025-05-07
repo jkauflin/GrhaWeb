@@ -119,8 +119,8 @@ public class UploadRequest
     public string FileData { get; set; } // Base64-encoded data
 }
 */
-        [Function("UploadFiles")]
-        public async Task<IActionResult> UploadFiles(
+        [Function("UploadFile")]
+        public async Task<IActionResult> UploadFile(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
             try {
@@ -159,6 +159,120 @@ public class UploadRequest
                     section = await reader.ReadNextSectionAsync();
                 }
 
+/*
+							<select id="DocCategory" class="p-1">
+								<option value="Quail Call newsletter">Quail Call newsletter</option>
+								<option value="Annual Meeting">Annual Meeting</option>
+								<option value="Governing Doc">Governing Doc</option>
+								<option value="Historical Doc">Historical Doc</option>
+
+							<input id="DocMonth" type="month" class="" required>
+
+							<input  id="DocFile" class="form-control" type="file" name="FormFile1" accept="application/pdf" required/>
+*/
+                // Example usage
+                foreach (var field in formFields)
+                {
+                    log.LogInformation($"Field {field.Key}: {field.Value}");
+                }
+
+                foreach (var file in files)
+                {
+                    log.LogInformation($"File {file.fileName} from field {file.fieldName}, Size: {file.content.Length} bytes");
+
+                    //byte[] fileBytes = ...; // Your byte array
+                    //string filePath = "/Projects/"+file.fileName; // Specify the file path
+                    //File.WriteAllBytes(filePath, file.content);
+                }
+
+
+                /*
+ // Get MIME type
+                var contentType = MimeUtility.GetMimeMapping(file.FileName);
+
+                // Configure storage connection and container
+                var connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+                var containerName = "your-container-name";
+
+                // Initialize Blob client
+                var blobServiceClient = new BlobServiceClient(connectionString);
+                var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+                await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
+
+                // Generate Blob name with folder structure
+                var folderPath = $"uploads/{DateTime.UtcNow:yyyyMMdd}";
+                var blobName = $"{folderPath}/{Path.GetFileNameWithoutExtension(file.FileName)}_{DateTime.UtcNow:HHmmss}{Path.GetExtension(file.FileName)}";
+                var blobClient = containerClient.GetBlobClient(blobName);
+
+                using var stream = file.OpenReadStream();
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = contentType });
+                */
+
+
+                //await hoaDbCommon.UpdTrustee(trustee);
+            }
+            catch (Exception ex) {
+                log.LogError($"Exception in DB update to Board of Trustees, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult("Error in update of Trustee data - check log");
+            }
+            
+            return new OkObjectResult("Update was successful");
+        }
+
+
+        [Function("UploadPhotos")]
+        public async Task<IActionResult> UploadPhotos(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            try {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+                //log.LogInformation($">>> User is authorized - userName: {userName}");
+
+                // Get content from the Request BODY
+                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
+                var reader = new MultipartReader(boundary, req.Body);
+                var section = await reader.ReadNextSectionAsync();
+
+                var formFields = new Dictionary<string, string>();
+                var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                while (section != null)
+                {
+                    var contentDisposition = section.GetContentDispositionHeader();
+                    if (contentDisposition != null)
+                    {
+                        if (contentDisposition.IsFileDisposition())
+                        {
+                            using var memoryStream = new MemoryStream();
+                            await section.Body.CopyToAsync(memoryStream);
+                            files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
+                        }
+                        else if (contentDisposition.IsFormDisposition())
+                        {
+                            using var streamReader = new StreamReader(section.Body);
+                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                        }
+                    }
+
+                    section = await reader.ReadNextSectionAsync();
+                }
+
+/*
+								<select id="EventCategory" class="p-1">
+									<option value="Christmas">Christmas</option>
+									<option value="Halloween">Halloween</option>
+									<option value="Easter">Easter</option>
+
+									<input  id="PhotoTitle1" name="PhotoTitle1" type="text" class="form-control" maxlength="40" placeholder="Enter description"/>
+									<input  id="PhotoFile1" name="PhotoFile1" class="form-control" type="file" accept="image/jpeg" />
+									<input  id="PhotoTitle2" name="PhotoTitle2" type="text" class="form-control" maxlength="40" placeholder="Enter description" />
+									<input  id="PhotoFile2" name="PhotoFile2" class="form-control" type="file" accept="image/jpeg" />
+									<input  id="PhotoTitle3" name="PhotoTitle3" type="text" class="form-control" maxlength="40" placeholder="Enter description" />
+									<input  id="PhotoFile3" name="PhotoFile3" class="form-control" type="file" accept="image/jpeg" />
+*/
                 // Example usage
                 foreach (var field in formFields)
                 {

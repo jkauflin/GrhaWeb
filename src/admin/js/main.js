@@ -7,6 +7,7 @@
  * 2025-01-09 JJK 	Initial version
  * 2025-04-12 JJK   Working on Board maintenance page
  * 2025-04-22 JJK   Implementing new html5/bootstrap input validation logic
+ * 2025-05-07 JJK   Added File doc and Photos upload handling
 *============================================================================*/
 
 import {empty,showLoadingSpinner} from './util.js';
@@ -41,7 +42,6 @@ document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click
     }
 }))
 
-
 document.querySelectorAll('.form-control').forEach(input => {
     input.addEventListener('input', () => {
         if (input.checkValidity()) {
@@ -55,10 +55,15 @@ document.querySelectorAll('.form-control').forEach(input => {
 })
 
 
-
 // Handle file upload Form submit/validation
 var DocMonth = document.getElementById("DocMonth")
-DocMonth.value = "2025-05";
+var tempDate = new Date();
+var tempMonth = tempDate.getMonth() + 1;
+if (tempDate.getMonth() < 9) {
+    tempMonth = '0' + (tempDate.getMonth() + 1);
+}
+DocMonth.value = tempDate.getFullYear() + '-' + tempMonth
+
 var FileUploadMessageDisplay = document.getElementById("FileUploadMessageDisplay")
 var uploadFileForm = document.getElementById("UploadFileForm")
 uploadFileForm.addEventListener('submit', (event) => {
@@ -73,17 +78,17 @@ uploadFileForm.addEventListener('submit', (event) => {
     } else {
         //let trusteeId = TrusteeId.value
         //updateTrustee(trusteeId)
-        uploadFiles()
+        uploadFile()
     }
 
     uploadFileForm.classList.add('was-validated')
 })
 
 // Handle the file upload backend server call
-async function uploadFiles() {
-    FileUploadMessageDisplay.textContent = "Uploading files..."
+async function uploadFile() {
+    FileUploadMessageDisplay.textContent = "Uploading file..."
 
-    const endpoint = "/api/UploadFiles";
+    const endpoint = "/api/UploadFile";
     const response = await fetch(endpoint, {
         method: "POST",
         body: new FormData(uploadFileForm)
@@ -109,7 +114,61 @@ async function uploadFiles() {
         FileUploadMessageDisplay.textContent = "Upload successful"
         //queryBoardInfo()
     }
+}
 
+// Handle Photos upload Form submit/validation
+var FileUploadMessageDisplay = document.getElementById("PhotosUploadMessageDisplay")
+var uploadPhotosForm = document.getElementById("UploadPhotosForm")
+uploadPhotosForm.addEventListener('submit', (event) => {
+    let formValid = uploadPhotosForm.checkValidity()
+    event.preventDefault()
+    event.stopPropagation()
+
+    PhotosUploadMessageDisplay.textContent = ""
+  
+    if (!formValid) {
+        PhotosUploadMessageDisplay.textContent = "Form inputs are NOT valid"
+    } else {
+        //let trusteeId = TrusteeId.value
+        //updateTrustee(trusteeId)
+        uploadPhotos()
+        // clear out fields????????????
+    }
+
+    uploadPhotosForm.classList.add('was-validated')
+})
+
+// Handle the file upload backend server call
+async function uploadPhotos() {
+    FileUploadMessageDisplay.textContent = "Uploading photos..."
+
+    const endpoint = "/api/UploadPhotos";
+    const response = await fetch(endpoint, {
+        method: "POST",
+        body: new FormData(uploadPhotosForm)
+    })
+    if (!response.ok) {
+        //response.status: 400
+        //response.statusText: "Bad Request"
+        let errMessage = response.statusText
+        try {
+            errMessage = await response.text();
+            // Check if there is a JSON structure in the response (which contains errors)
+            const result = JSON.parse(errMessage);
+            if (result.errors != null) {
+                console.log("Error: "+result.errors[0].message);
+                console.table(result.errors);
+                errMessage = result.errors[0].message
+            }
+        } catch (err) {
+            //console.log("JSON parse failed - text = "+errMessage)
+        }
+        PhotosUploadMessageDisplay.textContent = errMessage
+    } else {
+        PhotosUploadMessageDisplay.textContent = "Upload successful"
+        //queryBoardInfo()
+        // Clear out fields???
+    }
 }
 
 
