@@ -47,7 +47,7 @@
 					<form id="UploadFileForm" class="needs-validation" novalidate>
 						<div class="mb-2">
 							<label for="DocCategory" class="form-label">Doc Category: </label>
-							<select id="DocCategory" class="p-1">
+							<select id="DocCategory" name="DocCategory" class="p-1">
 								<option value="Quail Call newsletter">Quail Call newsletter</option>
 								<option value="Annual Meeting">Annual Meeting</option>
 								<option value="Governing Doc">Governing Doc</option>
@@ -57,12 +57,12 @@
 
 						<div class="mb-2">
 							<label for="DocMonth" class="form-label">Year & Month: </label>
-							<input id="DocMonth" type="month" class="" required>
+							<input id="DocMonth" name="DocMonth" type="month" class="" required>
 						</div>
 
 						<div class="mb-2">
 							<label for="DocFile" class="form-label">PDF document to upload: </label>
-							<input  id="DocFile" class="form-control" type="file" name="FormFile1" accept="application/pdf" required/>
+							<input  id="DocFile"  name="DocFile" class="form-control" type="file" accept="application/pdf" required/>
 						</div>
 
 						<button type="submit" class="btn btn-primary mt-1">Upload Doc</button>
@@ -75,7 +75,7 @@
 						<form id="UploadPhotosForm" class="needs-validation" novalidate>
 							<div class="mb-2">
 								<label for="EventCategory" class="form-label">Event: </label>
-								<select id="EventCategory" class="p-1">
+								<select id="EventCategory" name="EventCategory" class="p-1">
 									<option value="Christmas">Christmas</option>
 									<option value="Halloween">Halloween</option>
 									<option value="Easter">Easter</option>

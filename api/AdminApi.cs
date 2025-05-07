@@ -171,6 +171,7 @@ public class UploadRequest
 							<input  id="DocFile" class="form-control" type="file" name="FormFile1" accept="application/pdf" required/>
 */
                 // Example usage
+                /*
                 foreach (var field in formFields)
                 {
                     log.LogInformation($"Field {field.Key}: {field.Value}");
@@ -184,6 +185,19 @@ public class UploadRequest
                     //string filePath = "/Projects/"+file.fileName; // Specify the file path
                     //File.WriteAllBytes(filePath, file.content);
                 }
+                */
+
+                string docCategory = formFields["DocCategory"];
+                string docMonth = formFields["DocMonth"];
+                string year = docMonth.Substring(0,4);
+                string month = docMonth.Substring(5,2);
+                if (files[0].fieldName.Equals("DocFile")) {
+                    //files[0].fileName
+                    // files[0].content)
+
+                    // upload file to blob store
+                    // create doc entry in Cosmos DB
+                } 
 
 
                 /*
@@ -212,7 +226,7 @@ public class UploadRequest
                 //await hoaDbCommon.UpdTrustee(trustee);
             }
             catch (Exception ex) {
-                log.LogError($"Exception in DB update to Board of Trustees, message: {ex.Message} {ex.StackTrace}");
+                log.LogError($"Exception in Doc File upload, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult("Error in update of Trustee data - check log");
             }
             
@@ -260,6 +274,17 @@ public class UploadRequest
                     section = await reader.ReadNextSectionAsync();
                 }
 
+                string eventCategory = formFields["EventCategory"];
+
+                foreach (var file in files)
+                {
+                    log.LogWarning($"File {file.fileName} from field {file.fieldName}, Size: {file.content.Length} bytes");
+
+                    //byte[] fileBytes = ...; // Your byte array
+                    //string filePath = "/Projects/"+file.fileName; // Specify the file path
+                    //File.WriteAllBytes(filePath, file.content);
+                }
+
 /*
 								<select id="EventCategory" class="p-1">
 									<option value="Christmas">Christmas</option>
@@ -273,21 +298,6 @@ public class UploadRequest
 									<input  id="PhotoTitle3" name="PhotoTitle3" type="text" class="form-control" maxlength="40" placeholder="Enter description" />
 									<input  id="PhotoFile3" name="PhotoFile3" class="form-control" type="file" accept="image/jpeg" />
 */
-                // Example usage
-                foreach (var field in formFields)
-                {
-                    log.LogInformation($"Field {field.Key}: {field.Value}");
-                }
-
-                foreach (var file in files)
-                {
-                    log.LogInformation($"File {file.fileName} from field {file.fieldName}, Size: {file.content.Length} bytes");
-
-                    //byte[] fileBytes = ...; // Your byte array
-                    //string filePath = "/Projects/"+file.fileName; // Specify the file path
-                    //File.WriteAllBytes(filePath, file.content);
-                }
-
 
                 /*
  // Get MIME type
@@ -315,7 +325,7 @@ public class UploadRequest
                 //await hoaDbCommon.UpdTrustee(trustee);
             }
             catch (Exception ex) {
-                log.LogError($"Exception in DB update to Board of Trustees, message: {ex.Message} {ex.StackTrace}");
+                log.LogError($"Exception in Photos upload, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult("Error in update of Trustee data - check log");
             }
             

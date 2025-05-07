@@ -117,7 +117,7 @@ async function uploadFile() {
 }
 
 // Handle Photos upload Form submit/validation
-var FileUploadMessageDisplay = document.getElementById("PhotosUploadMessageDisplay")
+var PhotosUploadMessageDisplay = document.getElementById("PhotosUploadMessageDisplay")
 var uploadPhotosForm = document.getElementById("UploadPhotosForm")
 uploadPhotosForm.addEventListener('submit', (event) => {
     let formValid = uploadPhotosForm.checkValidity()
@@ -140,7 +140,7 @@ uploadPhotosForm.addEventListener('submit', (event) => {
 
 // Handle the file upload backend server call
 async function uploadPhotos() {
-    FileUploadMessageDisplay.textContent = "Uploading photos..."
+    PhotosUploadMessageDisplay.textContent = "Uploading photos..."
 
     const endpoint = "/api/UploadPhotos";
     const response = await fetch(endpoint, {
