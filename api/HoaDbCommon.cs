@@ -15,8 +15,7 @@ Modification History
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Cosmos;
-
-//using Azure.Storage.Blobs;
+using Azure.Storage.Blobs;
 
 using GrhaWeb.Function.Model;
 
@@ -496,6 +495,84 @@ namespace GrhaWeb.Function
         public string Description { get; set; }
         */
 
+        /*
+        private async Task UploadImgToStorageAsync(BlobContainerClient containerClient, FileInfo fi, SixLabors.ImageSharp.Image image, int desiredImgSize, bool storageOverwrite)
+        {
+            // Create a client with the URI and the name
+            var blobClient = containerClient.GetBlobClient(fi.Name);
+            //var blobClient = containerClient.GetBlobClient(newName);
+
+            // Makes a call to Azure to see if this URI+name exists
+            if (blobClient.Exists() && !storageOverwrite)
+            {
+                return;
+            }
+
+            if (image is null)
+            {
+                return;
+            }
+
+
+            // If you pass 0 as any of the values for width and height dimensions then ImageSharp will
+            // automatically determine the correct opposite dimensions size to preserve the original aspect ratio.
+            //thumbnails just make img.height = 110   (used to use 130)
+
+            int newImgSize = desiredImgSize;
+            if (newImgSize > Math.Max(image.Width, image.Height))
+            {
+                newImgSize = Math.Max(image.Width, image.Height);
+            }
+
+            int width = image.Width;
+            int height = image.Height;
+
+            if (desiredImgSize < 200)
+            {
+                width = 0;
+                height = newImgSize;
+            }
+            else
+            {
+                if (width > height)
+                {
+                    width = newImgSize;
+                    height = 0;
+                }
+                else
+                {
+                    width = 0;
+                    height = newImgSize;
+                }
+            }
+
+            image.Mutate(x => x.Resize(width, height));
+            MemoryStream memoryStream = new MemoryStream();
+            image.Save(memoryStream, image.Metadata.DecodedImageFormat);
+            memoryStream.Position = 0;
+
+            var blobHttpHeaders = new BlobHttpHeaders
+            {
+                ContentType = "image/jpeg"
+            };
+
+            string ext = fi.Extension.ToLower();
+            if (ext.Equals(".png"))
+            {
+                blobHttpHeaders.ContentType = "image/png";
+            }
+            else if (ext.Equals(".gif"))
+            {
+                blobHttpHeaders.ContentType = "image/gif";
+            }
+
+            blobClient.Upload(memoryStream, storageOverwrite);
+            await blobClient.SetHttpHeadersAsync(blobHttpHeaders);
+            
+            return;
+        } // </UploadImgToStorageAsync>
+        */
+        
         public async Task UploadFileToDatabase(int MediaTypeId, string Name )
         {
             //------------------------------------------------------------------------------------------------------------------
@@ -508,6 +585,18 @@ namespace GrhaWeb.Function
             Container container = db.GetContainer(containerId);
 
             //await container.ReplaceItemAsync(trustee,trustee.id,new PartitionKey(trustee.TrusteeId));
+
+            //public static async Task UploadBlobAsync(Stream fileStream, string fileName)
+            /*
+            string connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
+            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("my-container");
+            BlobClient blobClient = containerClient.GetBlobClient(fileName);
+
+            await blobClient.UploadAsync(fileStream, true);
+            */
+
+
 
         } // public async Task UpdTrustee(Trustee trustee)
 
@@ -535,6 +624,33 @@ namespace GrhaWeb.Function
 
 
 /*
+
+                // Load the image, create resized images and upload to the blob storage containers
+                using SixLabors.ImageSharp.Image image = SixLabors.ImageSharp.Image.Load(fi.FullName);
+                await UploadImgToStorageAsync(photosContainer, fi, image, 2000, storageOverwrite);
+                await UploadImgToStorageAsync(thumbsContainer, fi, image, 110, storageOverwrite);
+
+                // Create a metadata object from the media file information
+                MediaInfo mediaInfo = new MediaInfo
+                {
+                    id = Guid.NewGuid().ToString(),
+                    MediaTypeId = mediaTypeId,
+                    Name = fi.Name,
+                    TakenDateTime = takenDT,
+                    //TakenFileTime = takenDT.ToFileTime(),
+                    TakenFileTime = int.Parse(takenDT.ToString("yyyyMMddHH")),
+                    CategoryTags = category,
+                    MenuTags = menu,
+                    AlbumTags = "",
+                    Title = "",
+                    Description = "",
+                    People = "",
+                    ToBeProcessed = false,
+                    SearchStr = fi.Name.ToLower()
+                };
+
+
+
                 var content = await new StreamReader(req.Body).ReadToEndAsync();
                 var updParamData = JsonConvert.DeserializeObject<UpdateParamData>(content);
                 if (updParamData == null) {
@@ -592,6 +708,34 @@ namespace GrhaWeb.Function
                 }
 
 */
+
+                    /*
+                try
+                {
+                    await container.CreateItemAsync<MediaInfo>(mediaInfo, new PartitionKey(mediaInfo.MediaTypeId));
+                }
+                catch (CosmosException cex) when (cex.StatusCode == HttpStatusCode.Conflict)
+                {
+                    // Ignore duplicate error, just continue on
+                    Console.WriteLine($"Conflict with Create on Name (duplicate): {mediaInfo.Name} ");
+
+                    // Delete all previous documents with the filename and insert a brand new document with updated values
+                    // c.Name = "20241012_170906790_iOS.jpg"
+                    var queryText = $"SELECT * FROM c WHERE c.Name = \"{mediaInfo.Name}\" ";
+                    var feed = container.GetItemQueryIterator<MediaInfo>(queryText);
+                    while (feed.HasMoreResults)
+                    {
+                        var response = await feed.ReadNextAsync();
+                        foreach (var item in response)
+                        {
+                            //metricData.kWh_bucket_YEAR = float.Parse(item.TotalValue);
+                            container.DeleteItemAsync<MediaInfo>(item.id, new PartitionKey(mediaInfo.MediaTypeId));
+                        }
+                    }
+                    await container.CreateItemAsync<MediaInfo>(mediaInfo, new PartitionKey(mediaInfo.MediaTypeId));
+                }
+                    */
+
 
     } // public class HoaDbCommon
 
