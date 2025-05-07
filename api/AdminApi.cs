@@ -8,6 +8,7 @@ Modification History
 2025-04-12 JJK  Initial version
 2025-04-13 JJK  Completed the Board of Trustees maintenance functions
 2025-04-22 JJK  Re-thinking error handling for api calls from javascript fetch
+2025-05-07 JJK  Adding function for handling file uploads
 ================================================================================*/
 using System.IO;
 //using System.Text;
@@ -20,13 +21,8 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;     // for IActionResult
 using Newtonsoft.Json.Linq;
 
-using System.IO;
-using System.Threading.Tasks;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
-
-//using Azure.Storage.Blobs;
 
 
 using GrhaWeb.Function.Model;
@@ -195,12 +191,21 @@ public class UploadRequest
                     //files[0].fileName
                     // files[0].content)
 
+                    // should i create the MediaInfo object here or in the DB common function?
+                    // and just send values in the parameter list
+
                     // upload file to blob store
                     // create doc entry in Cosmos DB
                 } 
 
 
                 /*
+    "MediaTypeId": 4,
+    "Name": "2020-02-GRHA-QuailCall.pdf",
+    "MediaDateTime": "2020-02-01T00:00:00",
+    "MediaDateTimeVal": 2020020100,
+    "CategoryTags": "Quail Call newsletters",
+
  // Get MIME type
                 var contentType = MimeUtility.GetMimeMapping(file.FileName);
 
@@ -298,28 +303,6 @@ public class UploadRequest
 									<input  id="PhotoTitle3" name="PhotoTitle3" type="text" class="form-control" maxlength="40" placeholder="Enter description" />
 									<input  id="PhotoFile3" name="PhotoFile3" class="form-control" type="file" accept="image/jpeg" />
 */
-
-                /*
- // Get MIME type
-                var contentType = MimeUtility.GetMimeMapping(file.FileName);
-
-                // Configure storage connection and container
-                var connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-                var containerName = "your-container-name";
-
-                // Initialize Blob client
-                var blobServiceClient = new BlobServiceClient(connectionString);
-                var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-                await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
-
-                // Generate Blob name with folder structure
-                var folderPath = $"uploads/{DateTime.UtcNow:yyyyMMdd}";
-                var blobName = $"{folderPath}/{Path.GetFileNameWithoutExtension(file.FileName)}_{DateTime.UtcNow:HHmmss}{Path.GetExtension(file.FileName)}";
-                var blobClient = containerClient.GetBlobClient(blobName);
-
-                using var stream = file.OpenReadStream();
-                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = contentType });
-                */
 
 
                 //await hoaDbCommon.UpdTrustee(trustee);

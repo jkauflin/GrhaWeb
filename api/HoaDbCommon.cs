@@ -16,6 +16,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Cosmos;
 
+//using Azure.Storage.Blobs;
+
 using GrhaWeb.Function.Model;
 
 namespace GrhaWeb.Function
@@ -482,6 +484,114 @@ namespace GrhaWeb.Function
             await container.ReplaceItemAsync(trustee,trustee.id,new PartitionKey(trustee.TrusteeId));
 
         } // public async Task UpdTrustee(Trustee trustee)
+
+
+        /*
+        public int MediaTypeId { get; set; }                // partitionKey
+        public string Name { get; set; }                    // name of the file
+        public DateTime MediaDateTime { get; set; }         
+        public long MediaDateTimeVal { get; set; }         
+        public string CategoryTags { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        */
+
+        public async Task UploadFileToDatabase(int MediaTypeId, string Name )
+        {
+            //------------------------------------------------------------------------------------------------------------------
+            // Query the NoSQL container to get values
+            //------------------------------------------------------------------------------------------------------------------
+            string databaseId = "hoadb";
+            string containerId = "BoardOfTrustees";
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
+
+            //await container.ReplaceItemAsync(trustee,trustee.id,new PartitionKey(trustee.TrusteeId));
+
+        } // public async Task UpdTrustee(Trustee trustee)
+
+                /*
+ // Get MIME type
+                var contentType = MimeUtility.GetMimeMapping(file.FileName);
+
+                // Configure storage connection and container
+                var connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+                var containerName = "your-container-name";
+
+                // Initialize Blob client
+                var blobServiceClient = new BlobServiceClient(connectionString);
+                var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+                await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
+
+                // Generate Blob name with folder structure
+                var folderPath = $"uploads/{DateTime.UtcNow:yyyyMMdd}";
+                var blobName = $"{folderPath}/{Path.GetFileNameWithoutExtension(file.FileName)}_{DateTime.UtcNow:HHmmss}{Path.GetExtension(file.FileName)}";
+                var blobClient = containerClient.GetBlobClient(blobName);
+
+                using var stream = file.OpenReadStream();
+                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = contentType });
+                */
+
+
+/*
+                var content = await new StreamReader(req.Body).ReadToEndAsync();
+                var updParamData = JsonConvert.DeserializeObject<UpdateParamData>(content);
+                if (updParamData == null) {
+                    return new OkObjectResult("Parameter content was NULL");
+                }
+                string databaseId = "jjkdb1";
+                string containerId = "MediaInfo";
+                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
+                Database db = cosmosClient.GetDatabase(databaseId);
+                Container container = db.GetContainer(containerId);
+                int updCnt = 0;
+                int tempIndex = -1;
+                foreach (Item item in updParamData.MediaInfoFileList) 
+                {
+                    tempIndex++;
+                    if (updParamData.FileListIndex >= 0) {
+                        // Check for update of a particular specified file
+                        if (tempIndex != updParamData.FileListIndex) {
+                            continue;
+                        }
+                    } else {
+                        // If not a particular file, check for "selected" files to update
+                        if (!item.Selected) {
+                            continue;
+                        }
+                    }
+
+                    // Get the existing document from Cosmos DB (by the main unique "id")
+                    var queryText = $"SELECT * FROM c WHERE c.id = \"{item.id}\" ";
+                    var feed = container.GetItemQueryIterator<MediaInfo>(queryText);
+                    while (feed.HasMoreResults)
+                    {
+                        var response = await feed.ReadNextAsync();
+                        foreach (var mediaInfo in response)
+                        {
+                            //log.LogInformation($"Found item id: {mediaInfo.id}  Name: {mediaInfo.Name}");
+
+                            mediaInfo.TakenDateTime = DateTime.Parse(item.TakenDateTime);
+                            mediaInfo.TakenFileTime = int.Parse(mediaInfo.TakenDateTime.ToString("yyyyMMddHH"));
+                            mediaInfo.CategoryTags = item.CategoryTags;
+                            mediaInfo.MenuTags = item.MenuTags;
+                            mediaInfo.AlbumTags = item.AlbumTags;
+                            mediaInfo.Title = item.Title;
+                            mediaInfo.Description = item.Description;
+                            mediaInfo.People = item.People;
+                            mediaInfo.SearchStr = mediaInfo.CategoryTags.ToLower() + " " +
+                                    mediaInfo.MenuTags.ToLower() + " " +
+                                    mediaInfo.Title.ToLower() + " " +
+                                    mediaInfo.Description.ToLower() + " " +
+                                    mediaInfo.People.ToLower();
+                            await container.UpsertItemAsync(mediaInfo,new PartitionKey(mediaInfo.MediaTypeId));
+                            updCnt++;
+                        }
+                    }
+                }
+
+*/
 
     } // public class HoaDbCommon
 
