@@ -115,8 +115,8 @@ public class UploadRequest
     public string FileData { get; set; } // Base64-encoded data
 }
 */
-        [Function("UploadFile")]
-        public async Task<IActionResult> UploadFile(
+        [Function("UploadDoc")]
+        public async Task<IActionResult> UploadDoc(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
             try {
@@ -183,19 +183,21 @@ public class UploadRequest
                 }
                 */
 
+                int mediaTypeId = 4;
                 string docCategory = formFields["DocCategory"];
                 string docMonth = formFields["DocMonth"];
+                
                 string year = docMonth.Substring(0,4);
                 string month = docMonth.Substring(5,2);
+                string docName;
+                DateTime mediaDateTime = new DateTime();  // parse
                 if (files[0].fieldName.Equals("DocFile")) {
-                    //files[0].fileName
-                    // files[0].content)
+                    docName = files[0].fileName;
+                    if (docCategory.Equals("Quail Call newsletters")) {
+                        docName = docMonth+"-GRHA-QuailCall.pdf";
+                    }
 
-                    // should i create the MediaInfo object here or in the DB common function?
-                    // and just send values in the parameter list
-
-                    // upload file to blob store
-                    // create doc entry in Cosmos DB
+                    await hoaDbCommon.UploadFileToDatabase(mediaTypeId, docName, mediaDateTime, docCategory, files[0].content);
                 } 
 
 
@@ -228,7 +230,6 @@ public class UploadRequest
                 */
 
 
-                //await hoaDbCommon.UpdTrustee(trustee);
             }
             catch (Exception ex) {
                 log.LogError($"Exception in Doc File upload, message: {ex.Message} {ex.StackTrace}");

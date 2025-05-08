@@ -573,16 +573,38 @@ namespace GrhaWeb.Function
         } // </UploadImgToStorageAsync>
         */
         
-        public async Task UploadFileToDatabase(int MediaTypeId, string Name )
+        public async Task UploadFileToDatabase(int mediaTypeId, string fileName, DateTime mediaDateTime, string category, byte[] content)
         {
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
             //------------------------------------------------------------------------------------------------------------------
             string databaseId = "hoadb";
-            string containerId = "BoardOfTrustees";
+            string containerId = "MediaInfo";
             CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
+
+            // upload file to blob store
+            // create doc entry in Cosmos DB
+
+            // Create a metadata object from the media file information
+            MediaInfo mediaInfo = new MediaInfo
+            {
+                id = Guid.NewGuid().ToString(),
+                MediaTypeId = mediaTypeId,
+                Name = fileName,
+                MediaDateTime = mediaDateTime,
+                MediaDateTimeVal = int.Parse(mediaDateTime.ToString("yyyyMMddHH")),
+                CategoryTags = category,
+                MenuTags = "",
+                AlbumTags = "",
+                Title = "",
+                Description = "",
+                People = "",
+                ToBeProcessed = false,
+                SearchStr = fileName.ToLower()
+            };
+        
 
             //await container.ReplaceItemAsync(trustee,trustee.id,new PartitionKey(trustee.TrusteeId));
 
@@ -598,7 +620,7 @@ namespace GrhaWeb.Function
 
 
 
-        } // public async Task UpdTrustee(Trustee trustee)
+        } // UploadFileToDatabase
 
                 /*
  // Get MIME type
@@ -630,24 +652,6 @@ namespace GrhaWeb.Function
                 await UploadImgToStorageAsync(photosContainer, fi, image, 2000, storageOverwrite);
                 await UploadImgToStorageAsync(thumbsContainer, fi, image, 110, storageOverwrite);
 
-                // Create a metadata object from the media file information
-                MediaInfo mediaInfo = new MediaInfo
-                {
-                    id = Guid.NewGuid().ToString(),
-                    MediaTypeId = mediaTypeId,
-                    Name = fi.Name,
-                    TakenDateTime = takenDT,
-                    //TakenFileTime = takenDT.ToFileTime(),
-                    TakenFileTime = int.Parse(takenDT.ToString("yyyyMMddHH")),
-                    CategoryTags = category,
-                    MenuTags = menu,
-                    AlbumTags = "",
-                    Title = "",
-                    Description = "",
-                    People = "",
-                    ToBeProcessed = false,
-                    SearchStr = fi.Name.ToLower()
-                };
 
 
 

@@ -88,7 +88,7 @@ uploadFileForm.addEventListener('submit', (event) => {
 async function uploadFile() {
     FileUploadMessageDisplay.textContent = "Uploading file..."
 
-    const endpoint = "/api/UploadFile";
+    const endpoint = "/api/UploadDoc"
     const response = await fetch(endpoint, {
         method: "POST",
         body: new FormData(uploadFileForm)
