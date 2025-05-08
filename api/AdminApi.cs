@@ -155,17 +155,6 @@ public class UploadRequest
                     section = await reader.ReadNextSectionAsync();
                 }
 
-/*
-							<select id="DocCategory" class="p-1">
-								<option value="Quail Call newsletter">Quail Call newsletter</option>
-								<option value="Annual Meeting">Annual Meeting</option>
-								<option value="Governing Doc">Governing Doc</option>
-								<option value="Historical Doc">Historical Doc</option>
-
-							<input id="DocMonth" type="month" class="" required>
-
-							<input  id="DocFile" class="form-control" type="file" name="FormFile1" accept="application/pdf" required/>
-*/
                 // Example usage
                 /*
                 foreach (var field in formFields)
@@ -186,50 +175,17 @@ public class UploadRequest
                 int mediaTypeId = 4;
                 string docCategory = formFields["DocCategory"];
                 string docMonth = formFields["DocMonth"];
-                
-                string year = docMonth.Substring(0,4);
-                string month = docMonth.Substring(5,2);
+                string dateString = docMonth+"-01";
+                DateTime mediaDateTime = DateTime.Parse(dateString);
                 string docName;
-                DateTime mediaDateTime = new DateTime();  // parse
                 if (files[0].fieldName.Equals("DocFile")) {
                     docName = files[0].fileName;
                     if (docCategory.Equals("Quail Call newsletters")) {
                         docName = docMonth+"-GRHA-QuailCall.pdf";
                     }
 
-                    await hoaDbCommon.UploadFileToDatabase(mediaTypeId, docName, mediaDateTime, docCategory, files[0].content);
+                    await hoaDbCommon.UploadFileToDatabase(mediaTypeId, docName, mediaDateTime, files[0].content, docCategory);
                 } 
-
-
-                /*
-    "MediaTypeId": 4,
-    "Name": "2020-02-GRHA-QuailCall.pdf",
-    "MediaDateTime": "2020-02-01T00:00:00",
-    "MediaDateTimeVal": 2020020100,
-    "CategoryTags": "Quail Call newsletters",
-
- // Get MIME type
-                var contentType = MimeUtility.GetMimeMapping(file.FileName);
-
-                // Configure storage connection and container
-                var connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-                var containerName = "your-container-name";
-
-                // Initialize Blob client
-                var blobServiceClient = new BlobServiceClient(connectionString);
-                var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-                await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
-
-                // Generate Blob name with folder structure
-                var folderPath = $"uploads/{DateTime.UtcNow:yyyyMMdd}";
-                var blobName = $"{folderPath}/{Path.GetFileNameWithoutExtension(file.FileName)}_{DateTime.UtcNow:HHmmss}{Path.GetExtension(file.FileName)}";
-                var blobClient = containerClient.GetBlobClient(blobName);
-
-                using var stream = file.OpenReadStream();
-                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = contentType });
-                */
-
-
             }
             catch (Exception ex) {
                 log.LogError($"Exception in Doc File upload, message: {ex.Message} {ex.StackTrace}");
@@ -280,23 +236,31 @@ public class UploadRequest
                     section = await reader.ReadNextSectionAsync();
                 }
 
+                int mediaTypeId = 1;
                 string eventCategory = formFields["EventCategory"];
+                string newFileName;
+                DateTime mediaDateTime = new DateTime();
+
+                /*
+                foreach (var field in formFields)
+                {
+                    log.LogInformation($"Field {field.Key}: {field.Value}");
+                }
+                */
 
                 foreach (var file in files)
                 {
                     log.LogWarning($"File {file.fileName} from field {file.fieldName}, Size: {file.content.Length} bytes");
 
-                    //byte[] fileBytes = ...; // Your byte array
-                    //string filePath = "/Projects/"+file.fileName; // Specify the file path
-                    //File.WriteAllBytes(filePath, file.content);
+                    newFileName = file.fileName;
+
+                    // should I allow the choice on year-month?
+
+                    //UploadFileToDatabase(int mediaTypeId, string fileName, DateTime mediaDateTime, byte[] fileData, string category="", string title="", string description="")
+                    await hoaDbCommon.UploadFileToDatabase(mediaTypeId, newFileName, mediaDateTime, files[0].content, eventCategory);
                 }
 
 /*
-								<select id="EventCategory" class="p-1">
-									<option value="Christmas">Christmas</option>
-									<option value="Halloween">Halloween</option>
-									<option value="Easter">Easter</option>
-
 									<input  id="PhotoTitle1" name="PhotoTitle1" type="text" class="form-control" maxlength="40" placeholder="Enter description"/>
 									<input  id="PhotoFile1" name="PhotoFile1" class="form-control" type="file" accept="image/jpeg" />
 									<input  id="PhotoTitle2" name="PhotoTitle2" type="text" class="form-control" maxlength="40" placeholder="Enter description" />

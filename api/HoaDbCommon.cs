@@ -11,11 +11,16 @@ Modification History
 2025-04-13 JJK  *** NEW philosophy - put the error handling (try/catch) in the
                 main/calling function, and leave it out of the DB Common - DB
                 Common will throw any error, and the caller can log and handle
+2025-05-08 JJK  Added function to convert images and upload to 
 ================================================================================*/
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Cosmos;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 
 using GrhaWeb.Function.Model;
 
@@ -26,6 +31,7 @@ namespace GrhaWeb.Function
         private readonly ILogger log;
         private readonly IConfiguration config;
         private readonly string? apiCosmosDbConnStr;
+        private readonly string? apiStorageConnStr;
         private readonly string databaseId;
         private readonly CommonUtil util;
 
@@ -34,6 +40,7 @@ namespace GrhaWeb.Function
             log = logger;
             config = configuration;
             apiCosmosDbConnStr = config["API_COSMOS_DB_CONN_STR"];
+            apiStorageConnStr = config["API_STORAGE_CONN_STR"];
             databaseId = "hoadb";
             util = new CommonUtil(log);
         }
@@ -485,95 +492,93 @@ namespace GrhaWeb.Function
         } // public async Task UpdTrustee(Trustee trustee)
 
 
-        /*
-        public int MediaTypeId { get; set; }                // partitionKey
-        public string Name { get; set; }                    // name of the file
-        public DateTime MediaDateTime { get; set; }         
-        public long MediaDateTimeVal { get; set; }         
-        public string CategoryTags { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        */
-
-        /*
-        private async Task UploadImgToStorageAsync(BlobContainerClient containerClient, FileInfo fi, SixLabors.ImageSharp.Image image, int desiredImgSize, bool storageOverwrite)
+        private async Task UploadFileToStorageAsync(string containerName, string fileName, byte[] fileData, bool storageOverwrite=true, bool fileIsImage=false, int desiredImgSize=0)
         {
+            var blobContainerClient = new BlobContainerClient(apiStorageConnStr, containerName);
             // Create a client with the URI and the name
-            var blobClient = containerClient.GetBlobClient(fi.Name);
-            //var blobClient = containerClient.GetBlobClient(newName);
-
+            var blobClient = blobContainerClient.GetBlobClient(fileName);
             // Makes a call to Azure to see if this URI+name exists
             if (blobClient.Exists() && !storageOverwrite)
             {
                 return;
             }
 
-            if (image is null)
-            {
-                return;
-            }
+            // Set a default type
+            string contentType = "application/pdf";
+            MemoryStream memoryStream = new MemoryStream();
 
-
-            // If you pass 0 as any of the values for width and height dimensions then ImageSharp will
-            // automatically determine the correct opposite dimensions size to preserve the original aspect ratio.
-            //thumbnails just make img.height = 110   (used to use 130)
-
-            int newImgSize = desiredImgSize;
-            if (newImgSize > Math.Max(image.Width, image.Height))
-            {
-                newImgSize = Math.Max(image.Width, image.Height);
-            }
-
-            int width = image.Width;
-            int height = image.Height;
-
-            if (desiredImgSize < 200)
-            {
-                width = 0;
-                height = newImgSize;
-            }
-            else
-            {
-                if (width > height)
+            if (fileIsImage) {
+                // Create an image from the file data
+                using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(fileData);
+                if (image is null)
                 {
-                    width = newImgSize;
-                    height = 0;
+                    throw new Exception("Image is NULL");
                 }
-                else
+                contentType = "image/jpeg";
+                /*
+                string ext = fi.Extension.ToLower();
+                if (ext.Equals(".png"))
+                {
+                    blobHttpHeaders.ContentType = "image/png";
+                }
+                else if (ext.Equals(".gif"))
+                {
+                    blobHttpHeaders.ContentType = "image/gif";
+                }
+                */
+
+                // If you pass 0 as any of the values for width and height dimensions then ImageSharp will
+                // automatically determine the correct opposite dimensions size to preserve the original aspect ratio.
+                //thumbnails just make img.height = 110   (used to use 130)
+                int newImgSize = desiredImgSize;
+                if (newImgSize > Math.Max(image.Width, image.Height))
+                {
+                    newImgSize = Math.Max(image.Width, image.Height);
+                }
+
+                int width = image.Width;
+                int height = image.Height;
+
+                if (desiredImgSize < 200)
                 {
                     width = 0;
                     height = newImgSize;
                 }
+                else
+                {
+                    if (width > height)
+                    {
+                        width = newImgSize;
+                        height = 0;
+                    }
+                    else
+                    {
+                        width = 0;
+                        height = newImgSize;
+                    }
+                }
+
+                image.Mutate(x => x.Resize(width, height));
+                image.Save(memoryStream, image.Metadata.DecodedImageFormat);
+
+            } else {
+                memoryStream = new MemoryStream(fileData);
             }
 
-            image.Mutate(x => x.Resize(width, height));
-            MemoryStream memoryStream = new MemoryStream();
-            image.Save(memoryStream, image.Metadata.DecodedImageFormat);
             memoryStream.Position = 0;
-
             var blobHttpHeaders = new BlobHttpHeaders
             {
-                ContentType = "image/jpeg"
+                ContentType = contentType
             };
-
-            string ext = fi.Extension.ToLower();
-            if (ext.Equals(".png"))
-            {
-                blobHttpHeaders.ContentType = "image/png";
-            }
-            else if (ext.Equals(".gif"))
-            {
-                blobHttpHeaders.ContentType = "image/gif";
-            }
 
             blobClient.Upload(memoryStream, storageOverwrite);
             await blobClient.SetHttpHeadersAsync(blobHttpHeaders);
             
             return;
-        } // </UploadImgToStorageAsync>
-        */
-        
-        public async Task UploadFileToDatabase(int mediaTypeId, string fileName, DateTime mediaDateTime, string category, byte[] content)
+        } // private async Task UploadFileToStorageAsync
+
+
+        public async Task UploadFileToDatabase(int mediaTypeId, string fileName, DateTime mediaDateTime, byte[] fileData, string category="", string title="", string description="")
         {
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
@@ -584,8 +589,12 @@ namespace GrhaWeb.Function
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
 
-            // upload file to blob store
-            // create doc entry in Cosmos DB
+            if (mediaTypeId == 1) {
+                await UploadFileToStorageAsync("photos", fileName, fileData, true, true, 2000);
+                await UploadFileToStorageAsync("thumbs", fileName, fileData, true, true, 110);
+            } else if (mediaTypeId == 4) {
+                await UploadFileToStorageAsync("docs", fileName, fileData, true);
+            }
 
             // Create a metadata object from the media file information
             MediaInfo mediaInfo = new MediaInfo
@@ -598,149 +607,31 @@ namespace GrhaWeb.Function
                 CategoryTags = category,
                 MenuTags = "",
                 AlbumTags = "",
-                Title = "",
-                Description = "",
+                Title = title,
+                Description = description,
                 People = "",
                 ToBeProcessed = false,
                 SearchStr = fileName.ToLower()
             };
         
+            // Check if there is an existing doc entry in Cosmos DB (by media type and Name)
+            var queryText = $"SELECT * FROM c WHERE c.MediaTypeId = {mediaTypeId} AND c.Name = \"{fileName}\" ";
+            var feed = container.GetItemQueryIterator<MediaInfo>(queryText);
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    // If you find an existing doc with the same type and name, just get the "id" for the Upsert (so it updates the existing doc)
+                    mediaInfo.id = item.id;
+                }
+            }
 
-            //await container.ReplaceItemAsync(trustee,trustee.id,new PartitionKey(trustee.TrusteeId));
-
-            //public static async Task UploadBlobAsync(Stream fileStream, string fileName)
-            /*
-            string connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
-            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("my-container");
-            BlobClient blobClient = containerClient.GetBlobClient(fileName);
-
-            await blobClient.UploadAsync(fileStream, true);
-            */
-
-
+            // Insert a new doc, or update an existing one
+            await container.UpsertItemAsync(mediaInfo,new PartitionKey(mediaInfo.MediaTypeId));
 
         } // UploadFileToDatabase
 
-                /*
- // Get MIME type
-                var contentType = MimeUtility.GetMimeMapping(file.FileName);
-
-                // Configure storage connection and container
-                var connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-                var containerName = "your-container-name";
-
-                // Initialize Blob client
-                var blobServiceClient = new BlobServiceClient(connectionString);
-                var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-                await containerClient.CreateIfNotExistsAsync(PublicAccessType.None);
-
-                // Generate Blob name with folder structure
-                var folderPath = $"uploads/{DateTime.UtcNow:yyyyMMdd}";
-                var blobName = $"{folderPath}/{Path.GetFileNameWithoutExtension(file.FileName)}_{DateTime.UtcNow:HHmmss}{Path.GetExtension(file.FileName)}";
-                var blobClient = containerClient.GetBlobClient(blobName);
-
-                using var stream = file.OpenReadStream();
-                await blobClient.UploadAsync(stream, new BlobHttpHeaders { ContentType = contentType });
-                */
-
-
-/*
-
-                // Load the image, create resized images and upload to the blob storage containers
-                using SixLabors.ImageSharp.Image image = SixLabors.ImageSharp.Image.Load(fi.FullName);
-                await UploadImgToStorageAsync(photosContainer, fi, image, 2000, storageOverwrite);
-                await UploadImgToStorageAsync(thumbsContainer, fi, image, 110, storageOverwrite);
-
-
-
-
-                var content = await new StreamReader(req.Body).ReadToEndAsync();
-                var updParamData = JsonConvert.DeserializeObject<UpdateParamData>(content);
-                if (updParamData == null) {
-                    return new OkObjectResult("Parameter content was NULL");
-                }
-                string databaseId = "jjkdb1";
-                string containerId = "MediaInfo";
-                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
-                Database db = cosmosClient.GetDatabase(databaseId);
-                Container container = db.GetContainer(containerId);
-                int updCnt = 0;
-                int tempIndex = -1;
-                foreach (Item item in updParamData.MediaInfoFileList) 
-                {
-                    tempIndex++;
-                    if (updParamData.FileListIndex >= 0) {
-                        // Check for update of a particular specified file
-                        if (tempIndex != updParamData.FileListIndex) {
-                            continue;
-                        }
-                    } else {
-                        // If not a particular file, check for "selected" files to update
-                        if (!item.Selected) {
-                            continue;
-                        }
-                    }
-
-                    // Get the existing document from Cosmos DB (by the main unique "id")
-                    var queryText = $"SELECT * FROM c WHERE c.id = \"{item.id}\" ";
-                    var feed = container.GetItemQueryIterator<MediaInfo>(queryText);
-                    while (feed.HasMoreResults)
-                    {
-                        var response = await feed.ReadNextAsync();
-                        foreach (var mediaInfo in response)
-                        {
-                            //log.LogInformation($"Found item id: {mediaInfo.id}  Name: {mediaInfo.Name}");
-
-                            mediaInfo.TakenDateTime = DateTime.Parse(item.TakenDateTime);
-                            mediaInfo.TakenFileTime = int.Parse(mediaInfo.TakenDateTime.ToString("yyyyMMddHH"));
-                            mediaInfo.CategoryTags = item.CategoryTags;
-                            mediaInfo.MenuTags = item.MenuTags;
-                            mediaInfo.AlbumTags = item.AlbumTags;
-                            mediaInfo.Title = item.Title;
-                            mediaInfo.Description = item.Description;
-                            mediaInfo.People = item.People;
-                            mediaInfo.SearchStr = mediaInfo.CategoryTags.ToLower() + " " +
-                                    mediaInfo.MenuTags.ToLower() + " " +
-                                    mediaInfo.Title.ToLower() + " " +
-                                    mediaInfo.Description.ToLower() + " " +
-                                    mediaInfo.People.ToLower();
-                            await container.UpsertItemAsync(mediaInfo,new PartitionKey(mediaInfo.MediaTypeId));
-                            updCnt++;
-                        }
-                    }
-                }
-
-*/
-
-                    /*
-                try
-                {
-                    await container.CreateItemAsync<MediaInfo>(mediaInfo, new PartitionKey(mediaInfo.MediaTypeId));
-                }
-                catch (CosmosException cex) when (cex.StatusCode == HttpStatusCode.Conflict)
-                {
-                    // Ignore duplicate error, just continue on
-                    Console.WriteLine($"Conflict with Create on Name (duplicate): {mediaInfo.Name} ");
-
-                    // Delete all previous documents with the filename and insert a brand new document with updated values
-                    // c.Name = "20241012_170906790_iOS.jpg"
-                    var queryText = $"SELECT * FROM c WHERE c.Name = \"{mediaInfo.Name}\" ";
-                    var feed = container.GetItemQueryIterator<MediaInfo>(queryText);
-                    while (feed.HasMoreResults)
-                    {
-                        var response = await feed.ReadNextAsync();
-                        foreach (var item in response)
-                        {
-                            //metricData.kWh_bucket_YEAR = float.Parse(item.TotalValue);
-                            container.DeleteItemAsync<MediaInfo>(item.id, new PartitionKey(mediaInfo.MediaTypeId));
-                        }
-                    }
-                    await container.CreateItemAsync<MediaInfo>(mediaInfo, new PartitionKey(mediaInfo.MediaTypeId));
-                }
-                    */
-
 
     } // public class HoaDbCommon
-
 } // namespace GrhaWeb.Function
