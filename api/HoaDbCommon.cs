@@ -584,7 +584,7 @@ namespace GrhaWeb.Function
             // Query the NoSQL container to get values
             //------------------------------------------------------------------------------------------------------------------
             string databaseId = "hoadb";
-            string containerId = "MediaInfo";
+            string containerId = "MediaInfoDoc";
             CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
@@ -615,6 +615,12 @@ namespace GrhaWeb.Function
             };
         
             // Check if there is an existing doc entry in Cosmos DB (by media type and Name)
+/*
+var queryDefinition = new QueryDefinition(
+    "SELECT * FROM c WHERE c.MediaTypeId = @mediaTypeId AND c.Name = @fileName")
+    .WithParameter("@mediaTypeId", mediaTypeId)
+    .WithParameter("@fileName", fileName);
+*/
             var queryText = $"SELECT * FROM c WHERE c.MediaTypeId = {mediaTypeId} AND c.Name = \"{fileName}\" ";
             var feed = container.GetItemQueryIterator<MediaInfo>(queryText);
             while (feed.HasMoreResults)

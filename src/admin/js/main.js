@@ -79,6 +79,7 @@ uploadFileForm.addEventListener('submit', (event) => {
         //let trusteeId = TrusteeId.value
         //updateTrustee(trusteeId)
         uploadFile()
+        // >>>>>>>>>>>>>>> should this set it back to needs-validated after update is done???????????????
     }
 
     uploadFileForm.classList.add('was-validated')

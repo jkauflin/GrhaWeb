@@ -106,15 +106,7 @@ namespace GrhaWeb.Function
             return new OkObjectResult("Update was successful");
         }
 
-/*
-public class UploadRequest
-{
-    public string Username { get; set; }
-    public string Email { get; set; }
-    public string FileName { get; set; }
-    public string FileData { get; set; } // Base64-encoded data
-}
-*/
+
         [Function("UploadDoc")]
         public async Task<IActionResult> UploadDoc(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
@@ -189,10 +181,10 @@ public class UploadRequest
             }
             catch (Exception ex) {
                 log.LogError($"Exception in Doc File upload, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult("Error in update of Trustee data - check log");
+                return new BadRequestObjectResult("Error Doc File upload - check log");
             }
             
-            return new OkObjectResult("Update was successful");
+            return new OkObjectResult("Upload was successful");
         }
 
 
@@ -239,45 +231,35 @@ public class UploadRequest
                 int mediaTypeId = 1;
                 string eventCategory = formFields["EventCategory"];
                 string newFileName;
+                string title = "";
                 DateTime mediaDateTime = new DateTime();
-
-                /*
-                foreach (var field in formFields)
-                {
-                    log.LogInformation($"Field {field.Key}: {field.Value}");
-                }
-                */
-
+                int cnt = 0;
                 foreach (var file in files)
                 {
-                    log.LogWarning($"File {file.fileName} from field {file.fieldName}, Size: {file.content.Length} bytes");
+                    cnt++;
+                    //log.LogWarning($"File {file.fileName} from field {file.fieldName}, Size: {file.content.Length} bytes");
+                    newFileName = mediaDateTime.ToString("yyyy-MM ") + file.fileName;
 
-                    newFileName = file.fileName;
+                    // Maybe I could get the title by position, but I want to make sure it matches the file
+                    //var entry = myDictionary.ElementAt(1);
+                    //Console.WriteLine($"Key: {entry.Key}, Value: {entry.Value}");
+                    if (cnt == 1) {
+                        title = formFields["PhotoTitle1"];
+                    } else if (cnt == 2) {
+                        title = formFields["PhotoTitle2"];
+                    } else if (cnt == 3) {
+                        title = formFields["PhotoTitle3"];
+                    }
 
-                    // should I allow the choice on year-month?
-
-                    //UploadFileToDatabase(int mediaTypeId, string fileName, DateTime mediaDateTime, byte[] fileData, string category="", string title="", string description="")
-                    await hoaDbCommon.UploadFileToDatabase(mediaTypeId, newFileName, mediaDateTime, files[0].content, eventCategory);
+                    await hoaDbCommon.UploadFileToDatabase(mediaTypeId, newFileName, mediaDateTime, files[0].content, eventCategory, title);
                 }
-
-/*
-									<input  id="PhotoTitle1" name="PhotoTitle1" type="text" class="form-control" maxlength="40" placeholder="Enter description"/>
-									<input  id="PhotoFile1" name="PhotoFile1" class="form-control" type="file" accept="image/jpeg" />
-									<input  id="PhotoTitle2" name="PhotoTitle2" type="text" class="form-control" maxlength="40" placeholder="Enter description" />
-									<input  id="PhotoFile2" name="PhotoFile2" class="form-control" type="file" accept="image/jpeg" />
-									<input  id="PhotoTitle3" name="PhotoTitle3" type="text" class="form-control" maxlength="40" placeholder="Enter description" />
-									<input  id="PhotoFile3" name="PhotoFile3" class="form-control" type="file" accept="image/jpeg" />
-*/
-
-
-                //await hoaDbCommon.UpdTrustee(trustee);
             }
             catch (Exception ex) {
                 log.LogError($"Exception in Photos upload, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult("Error in update of Trustee data - check log");
+                return new BadRequestObjectResult("Error in upload of Photos - check log");
             }
             
-            return new OkObjectResult("Update was successful");
+            return new OkObjectResult("Upload was successful");
         }
 
 
