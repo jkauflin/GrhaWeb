@@ -256,7 +256,7 @@ namespace GrhaWeb.Function
                         title = formFields["PhotoTitle3"].Trim();
                     }
 
-                    await hoaDbCommon.UploadFileToDatabase(mediaTypeId, newFileName, mediaDateTime, files[0].content, eventCategory, title);
+                    await hoaDbCommon.UploadFileToDatabase(mediaTypeId, newFileName, mediaDateTime, files[cnt-1].content, eventCategory, title);
                 }
             }
             catch (Exception ex) {
