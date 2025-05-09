@@ -170,13 +170,16 @@ namespace GrhaWeb.Function
                 string dateString = docMonth+"-01";
                 DateTime mediaDateTime = DateTime.Parse(dateString);
                 string docName;
+                string docTitle;
                 if (files[0].fieldName.Equals("DocFile")) {
                     docName = files[0].fileName;
+                    docTitle = files[0].fileName;
                     if (docCategory.Equals("Quail Call newsletters")) {
                         docName = docMonth+"-GRHA-QuailCall.pdf";
+                        docTitle = docMonth+"-GRHA-QuailCall";
                     }
 
-                    await hoaDbCommon.UploadFileToDatabase(mediaTypeId, docName, mediaDateTime, files[0].content, docCategory);
+                    await hoaDbCommon.UploadFileToDatabase(mediaTypeId, docName, mediaDateTime, files[0].content, docCategory, docTitle);
                 } 
             }
             catch (Exception ex) {
@@ -230,9 +233,11 @@ namespace GrhaWeb.Function
 
                 int mediaTypeId = 1;
                 string eventCategory = formFields["EventCategory"];
+                string eventMonth = formFields["EventMonth"];
+                string dateString = eventMonth+"-01";
+                DateTime mediaDateTime = DateTime.Parse(dateString);
                 string newFileName;
                 string title = "";
-                DateTime mediaDateTime = new DateTime();
                 int cnt = 0;
                 foreach (var file in files)
                 {
@@ -244,11 +249,11 @@ namespace GrhaWeb.Function
                     //var entry = myDictionary.ElementAt(1);
                     //Console.WriteLine($"Key: {entry.Key}, Value: {entry.Value}");
                     if (cnt == 1) {
-                        title = formFields["PhotoTitle1"];
+                        title = formFields["PhotoTitle1"].Trim();
                     } else if (cnt == 2) {
-                        title = formFields["PhotoTitle2"];
+                        title = formFields["PhotoTitle2"].Trim();
                     } else if (cnt == 3) {
-                        title = formFields["PhotoTitle3"];
+                        title = formFields["PhotoTitle3"].Trim();
                     }
 
                     await hoaDbCommon.UploadFileToDatabase(mediaTypeId, newFileName, mediaDateTime, files[0].content, eventCategory, title);

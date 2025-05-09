@@ -615,14 +615,11 @@ namespace GrhaWeb.Function
             };
         
             // Check if there is an existing doc entry in Cosmos DB (by media type and Name)
-/*
-var queryDefinition = new QueryDefinition(
-    "SELECT * FROM c WHERE c.MediaTypeId = @mediaTypeId AND c.Name = @fileName")
-    .WithParameter("@mediaTypeId", mediaTypeId)
-    .WithParameter("@fileName", fileName);
-*/
-            var queryText = $"SELECT * FROM c WHERE c.MediaTypeId = {mediaTypeId} AND c.Name = \"{fileName}\" ";
-            var feed = container.GetItemQueryIterator<MediaInfo>(queryText);
+            var queryDefinition = new QueryDefinition(
+                "SELECT * FROM c WHERE c.MediaTypeId = @mediaTypeId AND c.Name = @fileName")
+                .WithParameter("@mediaTypeId", mediaTypeId)
+                .WithParameter("@fileName", fileName);
+            var feed = container.GetItemQueryIterator<MediaInfo>(queryDefinition);
             while (feed.HasMoreResults)
             {
                 var response = await feed.ReadNextAsync();

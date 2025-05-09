@@ -57,12 +57,14 @@ document.querySelectorAll('.form-control').forEach(input => {
 
 // Handle file upload Form submit/validation
 var DocMonth = document.getElementById("DocMonth")
+var EventMonth = document.getElementById("EventMonth")
 var tempDate = new Date();
 var tempMonth = tempDate.getMonth() + 1;
 if (tempDate.getMonth() < 9) {
     tempMonth = '0' + (tempDate.getMonth() + 1);
 }
 DocMonth.value = tempDate.getFullYear() + '-' + tempMonth
+EventMonth.value = tempDate.getFullYear() + '-' + tempMonth
 
 var FileUploadMessageDisplay = document.getElementById("FileUploadMessageDisplay")
 var uploadFileForm = document.getElementById("UploadFileForm")
