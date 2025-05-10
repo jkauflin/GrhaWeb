@@ -130,7 +130,6 @@ const MediaPageLinkClass = "media-page"
 // (These link-tile-tab's also have media-page for creating the Menu, but these handled from the listener on that class)
 document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("click", function (event) {
     setMediaType(event.target.getAttribute('data-MediaType'))
-    console.log("link-tile-tab click, mediaType = " + mediaType)
 
     // Get the target tab based on the the MediaType specified, and use the new Bootstrap v5.2 js for showing the tab
     // the link ('a') with the correct MediaType, within the ".navbar-nav" list
@@ -149,12 +148,15 @@ document.querySelectorAll(".link-tile-tab").forEach(el => el.addEventListener("c
 // </div><!-- end of Media -->
 document.querySelectorAll("."+MediaPageLinkClass).forEach(el => el.addEventListener("click", function (event) {
     setMediaType(event.target.getAttribute('data-MediaType'))
-    console.log("media-page click, mediaType = " + mediaType)
     let mediaCategory = event.target.getAttribute('data-MediaCategory')
     if (typeof mediaCategory == "undefined" || mediaCategory == null) {
         mediaCategory = "DEFAULT"
     }
-
+    let category = event.target.getAttribute('data-Category')
+    if (category != null) {
+        mediaCategory = category
+    }
+    //console.log("media-page click, mediaType = " + mediaType+", category = "+category+", mediaCategory = "+mediaCategory)
 
     // data-MediaCategory
     // data-MediaYear <<<<<<<<<<<<<<<   StartDate????????????????????????????

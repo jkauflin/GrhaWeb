@@ -21,6 +21,7 @@ Modification History
 
 2024-12-20 JJK  Got the Photos query working for GRHA
 2024-12-30 JJK  Working on Docs and filter options
+2025-05-10 JJK  Adding a Year-Month filter
 ================================================================================*/
 
 import {empty,showLoadingSpinner,addDays,getDateInt} from './util.js';
@@ -99,6 +100,7 @@ export async function queryMediaInfo(paramData) {
     let maxRows = 200
     let mti = mediaType - 1
     defaultCategory = mediaTypeData[mti].Category[0].CategoryName
+    
     queryCategory = defaultCategory
 
     // FilterCategory
@@ -124,7 +126,7 @@ export async function queryMediaInfo(paramData) {
     }
 
     let startDateQuery = ""
-    console.log("paramData.MediaFilterStartDate = "+paramData.MediaFilterStartDate)
+    //console.log("paramData.MediaFilterStartDate = "+paramData.MediaFilterStartDate)
 	if (paramData.MediaFilterStartDate != null && paramData.MediaFilterStartDate != '') {
 		if (paramData.MediaFilterStartDate == "DEFAULT") {
 			paramData.MediaFilterStartDate = mediaInfo.startDate
@@ -165,7 +167,7 @@ export async function queryMediaInfo(paramData) {
             }
         }`
 
-    console.log(">>> query gql = "+gql)
+    //console.log(">>> query gql = "+gql)
 
     const apiQuery = {
         query: gql,

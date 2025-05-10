@@ -386,6 +386,7 @@ async function queryBoardInfo() {
                         trusteeImg.src = result.data.boards.items[i].ImageUrl
                     }
                     let trusteeNamePosition = document.createElement('h6')
+                    trusteeNamePosition.classList.add('fw-bold')
                     trusteeNamePosition.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
                     let trusteePhone = document.createElement('b')
                     trusteePhone.textContent = result.data.boards.items[i].PhoneNumber 
