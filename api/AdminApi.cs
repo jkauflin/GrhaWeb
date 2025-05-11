@@ -111,6 +111,7 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> UploadDoc(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
+            string returnMessage = "No files uploaded";
             try {
                 string userName = "";
                 if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
@@ -180,6 +181,7 @@ namespace GrhaWeb.Function
                     }
 
                     await hoaDbCommon.UploadFileToDatabase(mediaTypeId, docName, mediaDateTime, files[0].content, docCategory, docTitle);
+                    returnMessage = "Upload was successful";
                 } 
             }
             catch (Exception ex) {
@@ -187,7 +189,7 @@ namespace GrhaWeb.Function
                 return new BadRequestObjectResult("Error Doc File upload - check log");
             }
             
-            return new OkObjectResult("Upload was successful");
+            return new OkObjectResult(returnMessage);
         }
 
 
@@ -195,6 +197,7 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> UploadPhotos(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
+            string returnMessage = "No files uploaded";
             try {
                 string userName = "";
                 if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
@@ -245,9 +248,6 @@ namespace GrhaWeb.Function
                     //log.LogWarning($"File {file.fileName} from field {file.fieldName}, Size: {file.content.Length} bytes");
                     newFileName = mediaDateTime.ToString("yyyy-MM ") + file.fileName;
 
-                    // Maybe I could get the title by position, but I want to make sure it matches the file
-                    //var entry = myDictionary.ElementAt(1);
-                    //Console.WriteLine($"Key: {entry.Key}, Value: {entry.Value}");
                     if (cnt == 1) {
                         title = formFields["PhotoTitle1"].Trim();
                     } else if (cnt == 2) {
@@ -257,6 +257,7 @@ namespace GrhaWeb.Function
                     }
 
                     await hoaDbCommon.UploadFileToDatabase(mediaTypeId, newFileName, mediaDateTime, files[cnt-1].content, eventCategory, title);
+                    returnMessage = "Upload was successful";
                 }
             }
             catch (Exception ex) {
@@ -264,7 +265,7 @@ namespace GrhaWeb.Function
                 return new BadRequestObjectResult("Error in upload of Photos - check log");
             }
             
-            return new OkObjectResult("Upload was successful");
+            return new OkObjectResult(returnMessage);
         }
 
 

@@ -78,10 +78,7 @@ uploadFileForm.addEventListener('submit', (event) => {
     if (!formValid) {
         FileUploadMessageDisplay.textContent = "Form inputs are NOT valid"
     } else {
-        //let trusteeId = TrusteeId.value
-        //updateTrustee(trusteeId)
         uploadFile()
-        // >>>>>>>>>>>>>>> should this set it back to needs-validated after update is done???????????????
     }
 
     uploadFileForm.classList.add('was-validated')
@@ -114,8 +111,7 @@ async function uploadFile() {
         }
         FileUploadMessageDisplay.textContent = errMessage
     } else {
-        FileUploadMessageDisplay.textContent = "Upload successful"
-        //queryBoardInfo()
+        FileUploadMessageDisplay.textContent = await response.text();
     }
 }
 
@@ -168,9 +164,7 @@ async function uploadPhotos() {
         }
         PhotosUploadMessageDisplay.textContent = errMessage
     } else {
-        PhotosUploadMessageDisplay.textContent = "Upload successful"
-        //queryBoardInfo()
-        // Clear out fields???
+        PhotosUploadMessageDisplay.textContent = await response.text();
     }
 }
 

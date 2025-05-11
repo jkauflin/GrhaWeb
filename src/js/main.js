@@ -415,23 +415,37 @@ async function queryBoardInfo() {
 } // async function queryBoardInfo()
 
 
-// Call the function to load Board of Trustees data every time the page is loaded
+// When the page loads, check what month it is and display any Event photos (if they exist)
 queryEventPhotos()
 async function queryEventPhotos() {
     setMediaType(1)
-    let mediaCategory = "Christmas"
+    let currDate = new Date();
+    let tempMonth = currDate.getMonth() + 1
+    let mediaCategory = ""
+    let startDate = ""
 
-    let eventYear = "2024"
-    let startDate = eventYear + "-12-01"
+    if (tempMonth == 12 || tempMonth == 1) {
+        mediaCategory = "Christmas"
+        if (tempMonth == 12) {
+            startDate = '' + currDate.getFullYear() + "-12-01"
+        } else if (tempMonth == 1) {
+            startDate = '' + currDate.getFullYear()-1 + "-12-01"
+        }
+    } else if (tempMonth == 3 || tempMonth == 4) {
+        mediaCategory = "Easter"
+        startDate = '' + currDate.getFullYear() + "-03-01"
+    } else if (tempMonth == 10 || tempMonth == 11) {
+        mediaCategory = "Halloween"
+        startDate = '' + currDate.getFullYear() + "-10-01"
+    }
 
-    let paramData = {
-        MediaFilterMediaType: mediaType, 
-        getMenu: false,
-        eventPhotos: true,
-        MediaFilterCategory: mediaCategory,
-        MediaFilterStartDate: startDate}
-    
-    queryMediaInfo(paramData);
-
- 
+    if (mediaCategory != "") {
+        let paramData = {
+            MediaFilterMediaType: mediaType, 
+            getMenu: false,
+            eventPhotos: true,
+            MediaFilterCategory: mediaCategory,
+            MediaFilterStartDate: startDate}
+        queryMediaInfo(paramData);
+    }
 }
