@@ -118,6 +118,7 @@ Modification History
                 for queries.  Also, removing Admin functions to make this just
                 the presentation functions with no edit
 2025-01-11 JJK  Cleaned up the link-tile-tab and media-page display logic
+2025-05-10 JJK  Modified to set category for newsletter tile click
 ================================================================================*/
 import {mediaType,setMediaType,queryMediaInfo} from './mg-data-repository.js'
 
@@ -157,9 +158,6 @@ document.querySelectorAll("."+MediaPageLinkClass).forEach(el => el.addEventListe
         mediaCategory = category
     }
     //console.log("media-page click, mediaType = " + mediaType+", category = "+category+", mediaCategory = "+mediaCategory)
-
-    // data-MediaCategory
-    // data-MediaYear <<<<<<<<<<<<<<<   StartDate????????????????????????????
 
     if (typeof mediaType !== "undefined" && mediaType !== null) {
         // >>>>>>>>>>>>>>>>>>>>>>>> this is the START of things <<<<<<<<<<<<<<<<<<<

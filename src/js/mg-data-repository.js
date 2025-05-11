@@ -86,11 +86,11 @@ export function getFileName(index) {
 // Query the database for menu and file information and store in js variables
 //------------------------------------------------------------------------------------------------------------
 export async function queryMediaInfo(paramData) {
-    //console.log(">>>>> in the QueryMediaInfo, paramData.MediaFilterMediaType = "+paramData.MediaFilterMediaType)
     //console.log("--------------------------------------------------------------------")
     //console.log("$$$$$ in the QueryMediaInfo, mediaType = "+mediaType)
 
     getMenu = paramData.getMenu
+    let eventPhotos = paramData.eventPhotos
 
     // Set a default start date of 60 days back from current date
     mediaInfo.startDate = "1972-01-01"
@@ -137,9 +137,11 @@ export async function queryMediaInfo(paramData) {
         //console.log("      int MediaFilterStartDate = "+getDateInt(paramData.MediaFilterStartDate))
 	}
 
-    if (paramData.MediaFilterCategory != prevCategory) {
-        prevCategory = paramData.MediaFilterCategory
-        startDateQuery = ""
+    if (!eventPhotos) {
+        if (paramData.MediaFilterCategory != prevCategory) {
+            prevCategory = paramData.MediaFilterCategory
+            startDateQuery = ""
+        }
     }
 
     let orderByQuery = "orderBy: { MediaDateTime: ASC },"
@@ -187,6 +189,7 @@ export async function queryMediaInfo(paramData) {
         console.table(result.errors);
     } else {
         //console.log("result.data = "+result.data)
+        //console.log("# result items = "+result.data.books.items.length)
         mediaInfo.fileList.length = 0
         mediaInfo.fileList = result.data.books.items
         mediaInfo.filterList = []
@@ -274,8 +277,76 @@ export async function queryMediaInfo(paramData) {
 
         contentDesc = mediaTypeDesc + " - " + queryCategory
 
-        createMediaPage()
+        if (eventPhotos) {
+            // create the display for the event photos
+            createEventPhotos()
+        } else {
+            createMediaPage()
+        }
     }
+}
+
+function createEventPhotos() {
+    var eventPhotosDiv = document.getElementById("EventPhotos")
+    empty(eventPhotosDiv)
+
+        let mediaCategory = "Christmas"
+
+    let eventYear = "2024"
+
+       /*
+                <div class="mt-4 mb-2">
+                    <h6 class="fw-bold">Photos from the GRHA 2022 Christmas event:</h6>
+                    <ul>
+                        <li>1st Place - 4403 Summit Ridge</li>
+                        <li>2nd Place - 6140 Gander Rd East</li>
+                        <li>3rd Place - 4525 Falcon Circle</li>
+                    </ul>
+                    <img class="me-1" src="https://grhawebstorage.blob.core.windows.net/images/xmas1.jpg" width="30%">
+                    <img class="me-1" src="https://grhawebstorage.blob.core.windows.net/images/xmas2.jpg" width="30%">
+                    <img class="me-1" src="https://grhawebstorage.blob.core.windows.net/images/xmas3.jpg" width="30%">
+                </div>
+    */              
+
+    let eventDesc = document.createElement("h6")
+    eventDesc.classList.add('fw-bold')
+    eventDesc.textContent = "Photos from the GRHA "+eventYear+" "+mediaCategory+" event:"
+    
+    eventPhotosDiv.appendChild(eventDesc)
+
+    let ul = document.createElement("ul")
+    for (let index in mediaInfo.fileList) {
+        let fi = mediaInfo.fileList[index]
+        if (fi.Title != "") {
+            let li = document.createElement("li")
+            li.textContent = fi.Title
+            console.log("title = "+fi.Title)
+            ul.appendChild(li)
+        }
+
+
+/*
+                        let img = document.createElement("img");
+                        // add a class for event click
+                        img.classList.add('rounded','float-start','mt-2','me-2',imgThumbnailClass)
+                        img.setAttribute('onerror', "this.onerror=null; this.remove()")
+                        img.src = getFilePath(index,"Thumbs")
+                        //img.src = getFilePath(index,"Smaller")
+                        img.setAttribute('data-index', index)
+                        img.height = 110
+        
+                        // Make sure the 1st image is cached (for the lightbox display)
+                        if (index == 0) {
+                            var imgCache = document.createElement('img')
+                            imgCache.src = getFilePath(index,"Smaller")
+                        }
+                        thumb = img
+                        thumbnailRow2Col1.appendChild(thumb)
+  */
+    }
+
+    eventPhotosDiv.appendChild(ul)
+
 }
 
 

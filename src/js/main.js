@@ -30,9 +30,12 @@
  *                  an Azure Cosmos NoSQL container
  * 2025-01-11 JJK   Cleaned up the logic for handling link-tile-tab for
  *                  non-mediagallery links
+ * 2025-05-10 JJK   Implemented display of Event pictures for selected time
+ *                  periods (if they exist)
  *============================================================================*/
 
 import {empty,formatMoney,setCheckbox} from './util.js'
+import {mediaInfo,mediaType,setMediaType,queryMediaInfo,getFilePath,getFileName} from './mg-data-repository.js'
   
 var duesPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("DuesPageNavLink"))
 var duesLinkTile = document.getElementById("DuesLinkTile");
@@ -411,3 +414,24 @@ async function queryBoardInfo() {
     }
 } // async function queryBoardInfo()
 
+
+// Call the function to load Board of Trustees data every time the page is loaded
+queryEventPhotos()
+async function queryEventPhotos() {
+    setMediaType(1)
+    let mediaCategory = "Christmas"
+
+    let eventYear = "2024"
+    let startDate = eventYear + "-12-01"
+
+    let paramData = {
+        MediaFilterMediaType: mediaType, 
+        getMenu: false,
+        eventPhotos: true,
+        MediaFilterCategory: mediaCategory,
+        MediaFilterStartDate: startDate}
+    
+    queryMediaInfo(paramData);
+
+ 
+}
