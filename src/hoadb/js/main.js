@@ -65,6 +65,7 @@
  * --------------------------------------------------------------------------
  * 2024-08-30 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
  *                  js module, and move from PHP/MySQL to Azure SWA
+ *                  and C# API's
 *============================================================================*/
 
 import {empty} from './util.js';

@@ -57,26 +57,56 @@ async function getHoaPropertiesList() {
     showLoadingSpinner(searchButton)
 
     const endpoint = "/api/GetPropertyList";
-    try {
-        messageDisplay.textContent = "Fetching property list..."
-        const response = await fetch(endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: searchStr.value
-        })
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
+    messageDisplay.textContent = "Fetching property list..."
+    const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: searchStr.value
+    })
+    if (!response.ok) {
+        //response.status: 400
+        //response.statusText: "Bad Request"
+        let errMessage = response.statusText
+        try {
+            errMessage = await response.text();
+            // Check if there is a JSON structure in the response (which contains errors)
+            const result = JSON.parse(errMessage);
+            if (result.errors != null) {
+                console.log("Error: "+result.errors[0].message);
+                console.table(result.errors);
+                errMessage = result.errors[0].message
+            }
+        } catch (err) {
+            //console.log("JSON parse failed - text = "+errMessage)
         }
+
+        console.error(`Error in Fetch to ${endpoint}, ${err}`)
+        messageDisplay.textContent = "Fetch data FAILED - check log"
+
+        //FileUploadMessageDisplay.textContent = errMessage
+    } else {
+
         const hoaPropertyRecList = await response.json();
         messageDisplay.textContent = ""
         searchButton.innerHTML = searchButtonHTML
         displayPropertyList(hoaPropertyRecList)
 
-    } catch (err) {
-        console.error(`Error in Fetch to ${endpoint}, ${err}`)
-        messageDisplay.textContent = "Fetch data FAILED - check log"
     }
+
+
 }
+
+/*
+async function uploadFile() {
+    FileUploadMessageDisplay.textContent = "Uploading file..."
+    const endpoint = "/api/UploadDoc"
+    const response = await fetch(endpoint, {
+        method: "POST",
+        body: new FormData(uploadFileForm)
+    })
+}
+*/
+
 
 function displayPropertyList(hoaPropertyRecList) {
     //let propertyListDisplay = document.getElementById("PropertyListDisplay")
