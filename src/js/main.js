@@ -428,10 +428,10 @@ async function queryEventPhotos() {
         mediaCategory = "Christmas"
         if (tempMonth == 12) {
             startDate = '' + currDate.getFullYear() + "-12-01"
-        } else if (tempMonth == 1) {
+        } else if (tempMonth == 1 || tempMonth == 2) {
             startDate = '' + currDate.getFullYear()-1 + "-12-01"
         }
-    } else if (tempMonth == 3 || tempMonth == 4) {
+    } else if (tempMonth == 3 || tempMonth == 4 || tempMonth == 5) {
         mediaCategory = "Easter"
         startDate = '' + currDate.getFullYear() + "-03-01"
     } else if (tempMonth == 10 || tempMonth == 11) {

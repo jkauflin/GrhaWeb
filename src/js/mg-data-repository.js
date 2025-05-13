@@ -282,20 +282,6 @@ function createEventPhotos() {
     var eventPhotosDiv = document.getElementById("EventPhotos")
     empty(eventPhotosDiv)
 
-    /*
-                <div class="mt-4 mb-2">
-                    <h6 class="fw-bold">Photos from the GRHA 2022 Christmas event:</h6>
-                    <ul>
-                        <li>1st Place - 4403 Summit Ridge</li>
-                        <li>2nd Place - 6140 Gander Rd East</li>
-                        <li>3rd Place - 4525 Falcon Circle</li>
-                    </ul>
-                    <img class="me-1" src="https://grhawebstorage.blob.core.windows.net/images/xmas1.jpg" width="30%">
-                    <img class="me-1" src="https://grhawebstorage.blob.core.windows.net/images/xmas2.jpg" width="30%">
-                    <img class="me-1" src="https://grhawebstorage.blob.core.windows.net/images/xmas3.jpg" width="30%">
-                </div>
-    */              
-
     // If there are some photos, create the display
     if (mediaInfo.fileList.length > 0) {
         let eventYear = mediaInfo.startDate.substring(0,4)

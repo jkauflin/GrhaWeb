@@ -57,12 +57,37 @@ async function getHoaPropertiesList() {
     showLoadingSpinner(searchButton)
 
     const endpoint = "/api/GetPropertyList";
+    /*
+    try {
+        messageDisplay.textContent = "Fetching property list..."
+        const response = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: searchStr.value
+        })
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        const hoaPropertyRecList = await response.json();
+        messageDisplay.textContent = ""
+        searchButton.innerHTML = searchButtonHTML
+        displayPropertyList(hoaPropertyRecList)
+
+    } catch (err) {
+        console.error(`Error in Fetch to ${endpoint}, ${err}`)
+        messageDisplay.textContent = "Fetch data FAILED - check log"
+    }
+    */
+
     messageDisplay.textContent = "Fetching property list..."
     const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: searchStr.value
     })
+
+    searchButton.innerHTML = searchButtonHTML
+
     if (!response.ok) {
         let errMessage = response.statusText
         try {
@@ -80,8 +105,7 @@ async function getHoaPropertiesList() {
         messageDisplay.textContent = errMessage
     } else {
         const hoaPropertyRecList = await response.json();
-        messageDisplay.textContent = ""
-        searchButton.innerHTML = searchButtonHTML
+        //messageDisplay.textContent = ""
         displayPropertyList(hoaPropertyRecList)
     }
 }
