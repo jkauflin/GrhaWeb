@@ -64,8 +64,6 @@ async function getHoaPropertiesList() {
         body: searchStr.value
     })
     if (!response.ok) {
-        //response.status: 400
-        //response.statusText: "Bad Request"
         let errMessage = response.statusText
         try {
             errMessage = await response.text();
@@ -79,33 +77,14 @@ async function getHoaPropertiesList() {
         } catch (err) {
             //console.log("JSON parse failed - text = "+errMessage)
         }
-
-        console.error(`Error in Fetch to ${endpoint}, ${err}`)
-        messageDisplay.textContent = "Fetch data FAILED - check log"
-
-        //FileUploadMessageDisplay.textContent = errMessage
+        messageDisplay.textContent = errMessage
     } else {
-
         const hoaPropertyRecList = await response.json();
         messageDisplay.textContent = ""
         searchButton.innerHTML = searchButtonHTML
         displayPropertyList(hoaPropertyRecList)
-
     }
-
-
 }
-
-/*
-async function uploadFile() {
-    FileUploadMessageDisplay.textContent = "Uploading file..."
-    const endpoint = "/api/UploadDoc"
-    const response = await fetch(endpoint, {
-        method: "POST",
-        body: new FormData(uploadFileForm)
-    })
-}
-*/
 
 
 function displayPropertyList(hoaPropertyRecList) {
