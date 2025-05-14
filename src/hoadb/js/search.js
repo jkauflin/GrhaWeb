@@ -18,9 +18,10 @@
  *                  js module, and move from PHP/MySQL to Azure SWA
  * 2024-11-21 JJK   Completed initial work for SWA version with API calls
  * 2024-11-30 JJK   Added showLoadingSpinner for loading... display
+ * 2025-05-14 JJK   Added checkFetchResponse from util
  *============================================================================*/
 
-import {empty,showLoadingSpinner} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -40,20 +41,16 @@ searchButton.addEventListener("click", function () {
     getHoaPropertiesList()
 })
 
-
 if (!isTouchDevice) {
     searchStr.addEventListener("keypress", function(event) {
         // If the user presses the "Enter" key on the keyboard
-        /*
         if (event.key === "Enter") {
           // Cancel the default action, if needed
           event.preventDefault()
           getHoaPropertiesList()
-+       }
-        */
+        }
     })
 }
-
 
 async function getHoaPropertiesList() {
     // Create a parameters object to send via JSON in the POST request
@@ -61,57 +58,25 @@ async function getHoaPropertiesList() {
     showLoadingSpinner(searchButton)
     messageDisplay.textContent = "Fetching property list..."
 
-    //const endpoint = "/api/GetPropertyList";
     try {
         const response = await fetch("/api/GetPropertyList", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: searchStr.value
         })
-        if (!response.ok) {
-            let errMessage = response.statusText
-            try {
-                errMessage = await response.text();
-                // Check if there is a JSON structure in the response (which contains errors)
-                const result = JSON.parse(errMessage);
-                if (result.errors != null) {
-                    console.log("Error: "+result.errors[0].message);
-                    console.table(result.errors);
-                    errMessage = result.errors[0].message
-                }
-            } catch (err) {
-                //console.log("JSON parse failed - text = "+errMessage)
-            }
-            searchButton.innerHTML = searchButtonHTML
-            messageDisplay.textContent = errMessage
-            throw new Error(errMessage);
-        } 
-        
+        await checkFetchResponse(response)
+        // Success
         const hoaPropertyRecList = await response.json();
         searchButton.innerHTML = searchButtonHTML
         messageDisplay.textContent = ""
         displayPropertyList(hoaPropertyRecList)
-
-        /*
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
-        const hoaPropertyRecList = await response.json();
-        messageDisplay.textContent = ""
-        searchButton.innerHTML = searchButtonHTML
-        displayPropertyList(hoaPropertyRecList)
-        */
 
     } catch (err) {
-        //console.error(`Error in Fetch, err = ${err}`)
+        console.error(err)
         searchButton.innerHTML = searchButtonHTML
-        messageDisplay.textContent = err
+        messageDisplay.textContent = `Error in Fetch: ${err.message}`
     }
-
-
-    
 }
-
 
 function displayPropertyList(hoaPropertyRecList) {
     //let propertyListDisplay = document.getElementById("PropertyListDisplay")

@@ -66,9 +66,10 @@
  * 2024-08-30 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
  *                  js module, and move from PHP/MySQL to Azure SWA
  *                  and C# API's
+ * 2025-05-14 JJK   Added checkFetchResponse from util
 *============================================================================*/
 
-import {empty} from './util.js';
+import {empty,checkFetchResponse} from './util.js';
 import {} from './search.js';
 import {} from './detail.js';
 

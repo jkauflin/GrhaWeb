@@ -38,9 +38,10 @@
  * 2024-09-16 JJK   Added set and use of detailPageTab to show the tab page
  * 2024-11-05 JJK   Completed getHoaRec, working on detail display
  * 2024-11-30 JJK   Added showLoadingSpinner for loading... display
+ * 2025-05-14 JJK   Added checkFetchResponse for Fetch
  *============================================================================*/
 
-import {empty,showLoadingSpinner} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -172,24 +173,22 @@ async function getHoaRec(parcelId) {
     showLoadingSpinner(messageDisplay)
     detailPageTab.show()
 
-    const endpoint = "/api/GetHoaRec";
     try {
-        const response = await fetch(endpoint, {
+        const response = await fetch("/api/GetHoaRec", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: parcelId
         })
-        if (!response.ok) {
-            throw new Error('Network response was not ok');
-        }
+        await checkFetchResponse(response)
+        // Success
         hoaRec = await response.json();
         messageDisplay.innerHTML = ""
- 
         displayDetail(hoaRec)
-        //detailPageTab.show()
+
     } catch (err) {
-        console.error(`Error in Fetch to ${endpoint}, ${err}`)
-        messageDisplay.textContent = "Fetch data FAILED - check log"
+        console.error(err)
+        searchButton.innerHTML = searchButtonHTML
+        messageDisplay.textContent = `Error in Fetch: ${err.message}`
     }
 }
 
