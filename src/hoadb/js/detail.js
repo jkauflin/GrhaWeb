@@ -41,7 +41,7 @@
  * 2025-05-14 JJK   Added checkFetchResponse for Fetch
  *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,formatMoney} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -69,6 +69,7 @@ var Property_Street_Name = document.getElementById("Property_Street_Name")
 var Property_City = document.getElementById("Property_City")
 var Property_State = document.getElementById("Property_State")
 var Property_Zip = document.getElementById("Property_Zip")
+var TotalDue = document.getElementById("TotalDue")
 var Rental = document.getElementById("Rental")
 var Managed = document.getElementById("Managed")
 var Foreclosure = document.getElementById("Foreclosure")
@@ -160,12 +161,14 @@ async function getHoaRec(parcelId) {
     Property_City.textContent = ""
     Property_State.textContent = ""
     Property_Zip.textContent = ""
+    TotalDue.textContent = ""
     Rental.checked = false
     Managed.checked = false
     Foreclosure.checked = false
     Bankruptcy.checked = false
     UseEmail.checked = false
     Comments.textContent = ""
+
     // Clear out the display tables for Owner and Assessment lists
     empty(propertyOwnersTbody)
     empty(propertyAssessmentsTbody)
@@ -182,17 +185,17 @@ async function getHoaRec(parcelId) {
         await checkFetchResponse(response)
         // Success
         hoaRec = await response.json();
-        messageDisplay.innerHTML = ""
+        messageDisplay.textContent = ""
         displayDetail(hoaRec)
 
     } catch (err) {
         console.error(err)
-        searchButton.innerHTML = searchButtonHTML
         messageDisplay.textContent = `Error in Fetch: ${err.message}`
     }
 }
 
 function displayDetail(hoaRec) {
+    // *** Remember C# object to JS JSON structure object has different camel-case rules (makes 1st character lowercase, etc.) ***
     let tr = ''
     let th = ''
     let td = ''
@@ -205,6 +208,7 @@ function displayDetail(hoaRec) {
     Property_City.textContent = hoaRec.property.property_City
     Property_State.textContent = hoaRec.property.property_State
     Property_Zip.textContent = hoaRec.property.property_Zip
+    TotalDue.textContent = "$"+hoaRec.totalDue
     Rental.checked = (hoaRec.property.rental == 1) ? Rental.checked = true : false
     Managed.checked = (hoaRec.property.managed == 1) ? Managed.checked = true : false
     Foreclosure.checked = (hoaRec.property.foreclosure == 1) ? Foreclosure.checked = true : false
@@ -259,6 +263,122 @@ function displayDetail(hoaRec) {
     }
 
     tbody = propertyAssessmentsTbody
+    var TaxYear = ''
+    let lienButton = ''
+    let buttonColor = ''
+    var ButtonType = ''
+    let checkbox = ''
+
+    tr = document.createElement('tr')
+    //tr.classList.add('small')
+    // Append the header elements
+    th = document.createElement("th"); th.textContent = "OwnId"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "FY"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Dues Amt"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Lien"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Paid"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Non-Coll"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Paid"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Due"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Payment"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Comments"; tr.appendChild(th)
+    tbody.appendChild(tr)
+
+    // Append a row for every record in list
+    for (let index in hoaRec.assessmentsList) {
+        let assessmentRec = hoaRec.assessmentsList[index]
+
+        lienButton = ''
+        ButtonType = ''
+
+        if (index == 0) {
+            //TaxYear = assessmentRec.DateDue.substring(0, 4)
+        }
+
+        tr = document.createElement('tr')
+        tr.classList.add('small')
+
+        td = document.createElement("td"); td.textContent = assessmentRec.ownerID; tr.appendChild(td)
+
+        let a = document.createElement("a")
+        a.href = ""
+        a.setAttribute('data-parcelId', hoaRec.property.parcel_ID);
+        a.setAttribute('data-fy', assessmentRec.fy);
+        a.textContent = assessmentRec.fy
+        td = document.createElement("td"); 
+        td.appendChild(a);
+        tr.appendChild(td)
+
+        td = document.createElement("td"); td.textContent = formatMoney(assessmentRec.duesAmt); tr.appendChild(td)
+
+        td = document.createElement("td")
+        if (assessmentRec.lien) {
+            if (assessmentRec.disposition == 'Open') {
+                buttonColor = 'btn-danger';
+            } else if (assessmentRec.disposition == 'Paid') {
+                buttonColor = 'btn-success';
+            } else {
+                buttonColor = 'btn-sm btn-info';
+            }
+            lienButton = document.createElement("button")
+            lienButton.setAttribute('type',"button")
+            lienButton.setAttribute('role',"button")
+            lienButton.setAttribute('data-parcelId', hoaRec.property.parcel_ID)
+            lienButton.setAttribute('data-fy', assessmentRec.fy)
+            //lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
+            lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none')
+            lienButton.textContent = "Lien"
+            td.appendChild(lienButton)
+        } else {
+            if (assessmentRec.duesDue) {
+                buttonColor = 'btn-warning';
+                lienButton = document.createElement("button")
+                lienButton.setAttribute('type',"button")
+                lienButton.setAttribute('role',"button")
+                lienButton.setAttribute('data-parcelId', hoaRec.property.parcel_ID)
+                lienButton.setAttribute('data-fy', assessmentRec.fy)
+                //lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
+                lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none')
+                lienButton.textContent = "Create Lien"
+                td.appendChild(lienButton)
+            }
+        }
+        tr.appendChild(td)
+
+        checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.classList.add('form-check-input','shadow-none')
+        //checkbox.id = "myCheckbox";
+        //checkbox.name = "myCheckboxName";
+        //checkbox.value = "checkedValue";
+        checkbox.checked = (assessmentRec.paid == 1) ? checkbox.checked = true : false
+        checkbox.disabled = true;
+        td = document.createElement("td")
+        td.appendChild(checkbox)
+        tr.appendChild(td)
+
+        checkbox = document.createElement("input");
+        checkbox.type = "checkbox";
+        checkbox.classList.add('form-check-input','shadow-none')
+        checkbox.checked = (assessmentRec.nonCollectible == 1) ? checkbox.checked = true : false
+        checkbox.disabled = true;
+        td = document.createElement("td")
+        td.appendChild(checkbox)
+        tr.appendChild(td)
+
+        /*
+            tr = tr + '<td>' + util.setCheckbox(assessmentRec.paid) + '</td>';
+
+            tr = tr + '<td class="d-none d-sm-table-cell">' + util.setCheckbox(assessmentRec.NonCollectible) + '</td>';
+            tr = tr + '<td class="d-none d-md-table-cell">' + assessmentRec.DatePaid + '</td>';
+            tr = tr + '<td class="d-none d-md-table-cell">' + assessmentRec.DateDue + '</td>';
+            tr = tr + '<td class="d-none d-md-table-cell">' + assessmentRec.PaymentMethod + '</td>';
+            tr = tr + '<td class="d-none d-sm-table-cell">' + assessmentRec.Comments + ' ' + assessmentRec.LienComment + '</td>';
+            tr = tr + '</tr>';
+        */
+
+        tbody.appendChild(tr)
+    }
 
     /*
         >>>>>>>>>>> is it still the best idea to:

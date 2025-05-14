@@ -80,6 +80,18 @@ export async function checkFetchResponse(response) {
     } 
 }
 
+//Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
+var nonMoneyCharsStr = "[\x01-\x2D\x2F\x3A-\x7F]";
+//"g" global so it does more than 1 substitution
+var regexNonMoneyChars = new RegExp(nonMoneyCharsStr, "g");
+export function formatMoney(inAmount) {
+    var inAmountStr = '' + inAmount;
+    inAmountStr = inAmountStr.replace(regexNonMoneyChars, '');
+    return parseFloat(inAmountStr).toFixed(2);
+}
+
+
+
     function urlParam(name) {
         var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
         if (results == null) {
@@ -109,16 +121,6 @@ export async function checkFetchResponse(response) {
     var regexCommaHexStr = new RegExp(commaHexStr, "g");
     function csvFilter(inVal) {
         return inVal.toString().replace(regexCommaHexStr, '');
-    }
-
-    //Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
-    var nonMoneyCharsStr = "[\x01-\x2D\x2F\x3A-\x7F]";
-    //"g" global so it does more than 1 substitution
-    var regexNonMoneyChars = new RegExp(nonMoneyCharsStr, "g");
-    function formatMoney(inAmount) {
-        var inAmountStr = '' + inAmount;
-        inAmountStr = inAmountStr.replace(regexNonMoneyChars, '');
-        return parseFloat(inAmountStr).toFixed(2);
     }
 
     function formatDate(inDate) {

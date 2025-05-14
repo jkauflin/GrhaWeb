@@ -12,6 +12,7 @@ Modification History
                 main/calling function, and leave it out of the DB Common - DB
                 Common will throw any error, and the caller can log and handle
 2025-05-08 JJK  Added function to convert images and upload to 
+2025-05-14 JJK  Added calc of DuesDue in the assessments record
 ================================================================================*/
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -303,6 +304,14 @@ namespace GrhaWeb.Function
                             }
                             dateTime = DateTime.Parse(item.DatePaid);
                             item.DatePaid = dateTime.ToString("yyyy-MM-dd");
+                        }
+
+                        item.DuesDue = false;
+                        if (item.Paid != 1 && item.NonCollectible != 1) {
+                            // check dates (if NOT PAID)
+                            if (currDate > dateDue) {
+                                item.DuesDue = true;
+                            } 
                         }
 
                         hoaRec.assessmentsList.Add(item);

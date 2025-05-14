@@ -26,6 +26,8 @@
  *                  js module, and move from PHP/MySQL to Azure SWA
  * 2024-11-30 JJK   Added the showLoadingSpinner function to display a 
  *                  Loading... message with a built-in Bootstrap spinner
+ * 2025-05-14 JJK   Added checkFetchResponse to check status and get
+ *                  error messages from a Fetch response
  *============================================================================*/
 
 //=================================================================================================================
@@ -51,6 +53,31 @@ export function empty(node) {
     while (node.firstChild) {
         node.removeChild(node.firstChild)
     }
+}
+
+export async function checkFetchResponse(response) {
+    if (!response.ok) {
+        let errMessage = "Error unknown"
+        if (response.statusText != "") {
+            errMessage = response.statusText
+        }
+        try {
+            let responseText = await response.text()
+            if (responseText != "") {
+                errMessage = responseText
+            }
+            // Check if there is a JSON structure in the response (which contains errors)
+            const result = JSON.parse(errMessage)
+            if (result.errors != null) {
+                console.log("Error: "+result.errors[0].message)
+                console.table(result.errors)
+                errMessage = result.errors[0].message
+            }
+        } catch (err) {
+            // Ignore JSON parse errors from trying to find structures in the response
+        }
+        throw new Error(errMessage)
+    } 
 }
 
 export function setCheckbox(checkVal) {

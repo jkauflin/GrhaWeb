@@ -79,6 +79,7 @@ uploadFileForm.addEventListener('submit', (event) => {
         FileUploadMessageDisplay.textContent = "Form inputs are NOT valid"
     } else {
         uploadFile()
+        // Clear file inputs
     }
 
     uploadFileForm.classList.add('was-validated')
@@ -88,30 +89,18 @@ uploadFileForm.addEventListener('submit', (event) => {
 async function uploadFile() {
     FileUploadMessageDisplay.textContent = "Uploading file..."
 
-    const endpoint = "/api/UploadDoc"
-    const response = await fetch(endpoint, {
-        method: "POST",
-        body: new FormData(uploadFileForm)
-    })
-    if (!response.ok) {
-        //response.status: 400
-        //response.statusText: "Bad Request"
-        let errMessage = response.statusText
-        try {
-            errMessage = await response.text();
-            // Check if there is a JSON structure in the response (which contains errors)
-            const result = JSON.parse(errMessage);
-            if (result.errors != null) {
-                console.log("Error: "+result.errors[0].message);
-                console.table(result.errors);
-                errMessage = result.errors[0].message
-            }
-        } catch (err) {
-            //console.log("JSON parse failed - text = "+errMessage)
-        }
-        FileUploadMessageDisplay.textContent = errMessage
-    } else {
+    try {
+        const response = await fetch("/api/UploadDoc", {
+            method: "POST",
+            body: new FormData(uploadFileForm)
+        })
+        await checkFetchResponse(response)
+        // Success
         FileUploadMessageDisplay.textContent = await response.text();
+
+    } catch (err) {
+        console.error(err)
+        FileUploadMessageDisplay.textContent = `Error in Fetch: ${err.message}`
     }
 }
 
@@ -141,30 +130,18 @@ uploadPhotosForm.addEventListener('submit', (event) => {
 async function uploadPhotos() {
     PhotosUploadMessageDisplay.textContent = "Uploading photos..."
 
-    const endpoint = "/api/UploadPhotos";
-    const response = await fetch(endpoint, {
-        method: "POST",
-        body: new FormData(uploadPhotosForm)
-    })
-    if (!response.ok) {
-        //response.status: 400
-        //response.statusText: "Bad Request"
-        let errMessage = response.statusText
-        try {
-            errMessage = await response.text();
-            // Check if there is a JSON structure in the response (which contains errors)
-            const result = JSON.parse(errMessage);
-            if (result.errors != null) {
-                console.log("Error: "+result.errors[0].message);
-                console.table(result.errors);
-                errMessage = result.errors[0].message
-            }
-        } catch (err) {
-            //console.log("JSON parse failed - text = "+errMessage)
-        }
-        PhotosUploadMessageDisplay.textContent = errMessage
-    } else {
+    try {
+        const response = await fetch("/api/UploadPhotos", {
+            method: "POST",
+            body: new FormData(uploadPhotosForm)
+        })
+        await checkFetchResponse(response)
+        // Success
         PhotosUploadMessageDisplay.textContent = await response.text();
+
+    } catch (err) {
+        console.error(err)
+        PhotosUploadMessageDisplay.textContent = `Error in Fetch: ${err.message}`
     }
 }
 
