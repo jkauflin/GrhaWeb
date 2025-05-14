@@ -62,6 +62,7 @@ namespace GrhaWeb.Function
                 }
 
                 //log.LogInformation($">>> User is authorized - userName: {userName}");
+                //return new BadRequestObjectResult("JJK test error");
 
                 // Get the content string from the HTTP request body
                 string searchStr = await new StreamReader(req.Body).ReadToEndAsync();

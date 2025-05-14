@@ -40,31 +40,59 @@ searchButton.addEventListener("click", function () {
     getHoaPropertiesList()
 })
 
+
 if (!isTouchDevice) {
     searchStr.addEventListener("keypress", function(event) {
         // If the user presses the "Enter" key on the keyboard
+        /*
         if (event.key === "Enter") {
           // Cancel the default action, if needed
-          event.preventDefault();
+          event.preventDefault()
           getHoaPropertiesList()
-        }
++       }
+        */
     })
 }
+
 
 async function getHoaPropertiesList() {
     // Create a parameters object to send via JSON in the POST request
     empty(propertyListDisplayTbody)
     showLoadingSpinner(searchButton)
+    messageDisplay.textContent = "Fetching property list..."
 
-    const endpoint = "/api/GetPropertyList";
-    /*
+    //const endpoint = "/api/GetPropertyList";
     try {
-        messageDisplay.textContent = "Fetching property list..."
-        const response = await fetch(endpoint, {
+        const response = await fetch("/api/GetPropertyList", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: searchStr.value
         })
+        if (!response.ok) {
+            let errMessage = response.statusText
+            try {
+                errMessage = await response.text();
+                // Check if there is a JSON structure in the response (which contains errors)
+                const result = JSON.parse(errMessage);
+                if (result.errors != null) {
+                    console.log("Error: "+result.errors[0].message);
+                    console.table(result.errors);
+                    errMessage = result.errors[0].message
+                }
+            } catch (err) {
+                //console.log("JSON parse failed - text = "+errMessage)
+            }
+            searchButton.innerHTML = searchButtonHTML
+            messageDisplay.textContent = errMessage
+            throw new Error(errMessage);
+        } 
+        
+        const hoaPropertyRecList = await response.json();
+        searchButton.innerHTML = searchButtonHTML
+        messageDisplay.textContent = ""
+        displayPropertyList(hoaPropertyRecList)
+
+        /*
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -72,42 +100,16 @@ async function getHoaPropertiesList() {
         messageDisplay.textContent = ""
         searchButton.innerHTML = searchButtonHTML
         displayPropertyList(hoaPropertyRecList)
+        */
 
     } catch (err) {
-        console.error(`Error in Fetch to ${endpoint}, ${err}`)
-        messageDisplay.textContent = "Fetch data FAILED - check log"
+        //console.error(`Error in Fetch, err = ${err}`)
+        searchButton.innerHTML = searchButtonHTML
+        messageDisplay.textContent = err
     }
-    */
 
-    messageDisplay.textContent = "Fetching property list..."
-    const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: searchStr.value
-    })
 
-    searchButton.innerHTML = searchButtonHTML
-
-    if (!response.ok) {
-        let errMessage = response.statusText
-        try {
-            errMessage = await response.text();
-            // Check if there is a JSON structure in the response (which contains errors)
-            const result = JSON.parse(errMessage);
-            if (result.errors != null) {
-                console.log("Error: "+result.errors[0].message);
-                console.table(result.errors);
-                errMessage = result.errors[0].message
-            }
-        } catch (err) {
-            //console.log("JSON parse failed - text = "+errMessage)
-        }
-        messageDisplay.textContent = errMessage
-    } else {
-        const hoaPropertyRecList = await response.json();
-        //messageDisplay.textContent = ""
-        displayPropertyList(hoaPropertyRecList)
-    }
+    
 }
 
 
