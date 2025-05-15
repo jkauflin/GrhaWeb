@@ -358,6 +358,43 @@ function displayDetail(hoaRec) {
         tbody.appendChild(tr)
     }
 
+    MCTreasLink.href = "" // get values from Config
+    MCAuditorLink.href = "" // get values from Config
+    DuesStatementButton.dataset.parcelId = hoaRec.property.parcel_ID
+    //DuesStatementButton.dataset.ownerId = is this needed???
+
+    NewOwnerButton.dataset.parcelId = hoaRec.property.parcel_ID
+    //NewOwnerButton.dataset.ownerId = 
+
+    CommunicationsButton.dataset.parcelId = hoaRec.property.parcel_ID
+    //CommunicationsButton.dataset.ownerId = 
+
+    // element.dataset.value = "newValue"; // Changes `data-value` to "newValue"
+
+
+    /*
+var MCTreasLink = document.getElementById("MCTreasLink")
+var MCAuditorLink = document.getElementById("MCAuditorLink")
+var DuesStatementButton = document.getElementById("DuesStatementButton")
+var NewOwnerButton = document.getElementById("NewOwnerButton")
+var CommunicationsButton = document.getElementById("CommunicationsButton")
+
+    // Set the buttons from configuration values and current parcel id
+    var mcTreasURI = config.getVal('countyTreasurerUrl') + '?parid=' + hoaRec.Parcel_ID + '&taxyr=' + TaxYear + '&own1=' + ownName1;
+    $MCTreasLink.html('<a href="' + encodeURI(mcTreasURI) + '" class="btn btn-sm btn-primary mr-1 mb-1 float-left d-none d-md-block" role="button" target="_blank">County<br>Treasurer</a>');
+
+    var mcAuditorURI = config.getVal('countyAuditorUrl') + '?mode=PARID';
+    $MCAuditorLink.html('<a href="' + encodeURI(mcAuditorURI) + '" class="btn btn-sm btn-primary mr-1 mb-1 float-left d-none d-md-block" role="button" target="_blank">County<br>Property</a>');
+
+    $DuesStatement.html('<a id="DuesStatementButton" data-parcelId="' + hoaRec.Parcel_ID + '" data-ownerId="' + currOwnerID + '" href="#" class="btn btn-sm btn-success mr-1 mb-1 float-left" role="button">Dues Statement</a>');
+
+    $Communications.html('<a id="CommunicationsButton" data-parcelId="' + hoaRec.Parcel_ID + '" data-ownerId="' + currOwnerID + '" href="#" class="btn btn-sm btn-info mr-1 mb-1 float-left" role="button">Communications</a>');
+
+    $NewOwner.html('<a id="NewOwnerButton" data-parcelId="' + hoaRec.Parcel_ID + '" data-ownerId="' + currOwnerID + '" href="#" class="btn btn-sm btn-warning mr-1 mb-1 float-left" role="button">New Owner</a>');
+    //$AddAssessment.html('<a id="AddAssessmentButton" href="#" class="btn btn-sm btn-info" role="button">Add Assessment</a>');
+    */
+
+
     /*
         >>>>>>>>>>> is it still the best idea to:
             1) display property details as rows in a table - *** check some of the other WEB UI displays you've done - Genv?
