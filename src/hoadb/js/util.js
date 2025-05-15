@@ -28,6 +28,7 @@
  *                  Loading... message with a built-in Bootstrap spinner
  * 2025-05-14 JJK   Added checkFetchResponse to check status and get
  *                  error messages from a Fetch response
+ * 2025-05-15 JJK   Added standardizeDate
  *============================================================================*/
 
 //=================================================================================================================
@@ -92,11 +93,17 @@ export function formatMoney(inAmount) {
 
 export function setTD(tdType,value,classStr="") {
     let td = document.createElement("td")
-    td.classList.add(classStr.split(" "))
+    if (classStr != "") {
+        // The .split(" ") method converts the string into an array of class names
+        // The spread operator (...) ensures each class is added individually
+        td.classList.add(...classStr.split(" "))
+    }
     if (tdType == "text") {
         td.textContent = value
     } else if (tdType == "date") {
-        td.textContent = value    
+        td.textContent = standardizeDate(value)
+    } else if (tdType == "money") {
+        td.textContent = formatMoney(value)
     } else if (tdType == "checkbox") {
         let checkbox = document.createElement("input");
         checkbox.type = tdType;
@@ -106,6 +113,16 @@ export function setTD(tdType,value,classStr="") {
         td.appendChild(checkbox)
     }
     return td
+}
+
+function standardizeDate(dateStr) {
+    let outDateStr = dateStr
+    const containsSlash = dateStr.includes("/")
+    if (containsSlash) {
+        const [month, day, year] = slashDate.split("/")
+        outDateStr = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+    }
+    return outDateStr
 }
 
 

@@ -218,7 +218,7 @@ function displayDetail(hoaRec) {
 
     tbody = propertyOwnersTbody
     tr = document.createElement('tr')
-    //tr.classList.add('small')
+    tr.classList.add('small')
     // Append the header elements
     th = document.createElement("th"); th.textContent = "OwnId"; tr.appendChild(th)
     th = document.createElement("th"); th.textContent = "Owner"; tr.appendChild(th)
@@ -270,7 +270,7 @@ function displayDetail(hoaRec) {
     let checkbox = ''
 
     tr = document.createElement('tr')
-    //tr.classList.add('small')
+    tr.classList.add('small')
     // Append the header elements
     th = document.createElement("th"); th.textContent = "OwnId"; tr.appendChild(th)
     th = document.createElement("th"); th.textContent = "FY"; tr.appendChild(th)
@@ -309,7 +309,10 @@ function displayDetail(hoaRec) {
         td.appendChild(a);
         tr.appendChild(td)
 
-        td = document.createElement("td"); td.textContent = formatMoney(assessmentRec.duesAmt); tr.appendChild(td)
+
+        //td = document.createElement("td"); td.textContent = formatMoney(assessmentRec.duesAmt); tr.appendChild(td)
+        tr.appendChild(setTD("money",assessmentRec.duesAmt))
+
 
         td = document.createElement("td")
         if (assessmentRec.lien) {
@@ -351,18 +354,6 @@ function displayDetail(hoaRec) {
         tr.appendChild(setTD("date",assessmentRec.dateDue,"d-none d-sm-table-cell"))
         tr.appendChild(setTD("text",assessmentRec.paymentMethod,"d-none d-sm-table-cell"))
         tr.appendChild(setTD("text",assessmentRec.comments+' '+assessmentRec.lienComment,"d-none d-sm-table-cell"))
-
-
-        /*
-            tr = tr + '<td>' + util.setCheckbox(assessmentRec.paid) + '</td>';
-
-            tr = tr + '<td class="d-none d-sm-table-cell">' + util.setCheckbox(assessmentRec.NonCollectible) + '</td>';
-            tr = tr + '<td class="d-none d-md-table-cell">' + assessmentRec.DatePaid + '</td>';
-            tr = tr + '<td class="d-none d-md-table-cell">' + assessmentRec.DateDue + '</td>';
-            tr = tr + '<td class="d-none d-md-table-cell">' + assessmentRec.PaymentMethod + '</td>';
-            tr = tr + '<td class="d-none d-sm-table-cell">' +  + '</td>';
-            tr = tr + '</tr>';
-        */
 
         tbody.appendChild(tr)
     }
