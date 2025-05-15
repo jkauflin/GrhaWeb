@@ -41,7 +41,7 @@
  * 2025-05-14 JJK   Added checkFetchResponse for Fetch
  *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse,formatMoney} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,formatMoney,setTD} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -345,26 +345,13 @@ function displayDetail(hoaRec) {
         }
         tr.appendChild(td)
 
-        checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.classList.add('form-check-input','shadow-none')
-        //checkbox.id = "myCheckbox";
-        //checkbox.name = "myCheckboxName";
-        //checkbox.value = "checkedValue";
-        checkbox.checked = (assessmentRec.paid == 1) ? checkbox.checked = true : false
-        checkbox.disabled = true;
-        td = document.createElement("td")
-        td.appendChild(checkbox)
-        tr.appendChild(td)
+        tr.appendChild(setTD("checkbox",assessmentRec.paid,"d-none d-sm-table-cell"))
+        tr.appendChild(setTD("checkbox",assessmentRec.nonCollectible,"d-none d-sm-table-cell"))
+        tr.appendChild(setTD("date",assessmentRec.datePaid,"d-none d-sm-table-cell"))
+        tr.appendChild(setTD("date",assessmentRec.dateDue,"d-none d-sm-table-cell"))
+        tr.appendChild(setTD("text",assessmentRec.paymentMethod,"d-none d-sm-table-cell"))
+        tr.appendChild(setTD("text",assessmentRec.comments+' '+assessmentRec.lienComment,"d-none d-sm-table-cell"))
 
-        checkbox = document.createElement("input");
-        checkbox.type = "checkbox";
-        checkbox.classList.add('form-check-input','shadow-none')
-        checkbox.checked = (assessmentRec.nonCollectible == 1) ? checkbox.checked = true : false
-        checkbox.disabled = true;
-        td = document.createElement("td")
-        td.appendChild(checkbox)
-        tr.appendChild(td)
 
         /*
             tr = tr + '<td>' + util.setCheckbox(assessmentRec.paid) + '</td>';
@@ -373,7 +360,7 @@ function displayDetail(hoaRec) {
             tr = tr + '<td class="d-none d-md-table-cell">' + assessmentRec.DatePaid + '</td>';
             tr = tr + '<td class="d-none d-md-table-cell">' + assessmentRec.DateDue + '</td>';
             tr = tr + '<td class="d-none d-md-table-cell">' + assessmentRec.PaymentMethod + '</td>';
-            tr = tr + '<td class="d-none d-sm-table-cell">' + assessmentRec.Comments + ' ' + assessmentRec.LienComment + '</td>';
+            tr = tr + '<td class="d-none d-sm-table-cell">' +  + '</td>';
             tr = tr + '</tr>';
         */
 

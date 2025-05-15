@@ -90,6 +90,23 @@ export function formatMoney(inAmount) {
     return parseFloat(inAmountStr).toFixed(2);
 }
 
+export function setTD(tdType,value,classStr="") {
+    let td = document.createElement("td")
+    td.classList.add(classStr.split(" "))
+    if (tdType == "text") {
+        td.textContent = value
+    } else if (tdType == "date") {
+        td.textContent = value    
+    } else if (tdType == "checkbox") {
+        let checkbox = document.createElement("input");
+        checkbox.type = tdType;
+        checkbox.classList.add('form-check-input','shadow-none')
+        checkbox.checked = (value == 1) ? checkbox.checked = true : false
+        checkbox.disabled = true;
+        td.appendChild(checkbox)
+    }
+    return td
+}
 
 
     function urlParam(name) {
