@@ -82,28 +82,19 @@
 	    <div class="tab-pane" role="tabpanel" id="DetailPage">
 			<div class="row">
 				<div class="col-sm-6 col-md-4">
-
-
 					<div class="row">
-
 				  		<div class="col-xs-5 col-sm-5">
 			             	<h5>Detail</h5>
 							<div id="DetailMessageDisplay" class="m-2"></div>
-							<a id="MCTreasLink" href="" class="btn btn-sm btn-primary me-1 mb-1 " role="button" target="_blank">
-								County Treasurer
-							</a>
-							<a id="MCAuditorLink" href="" class="btn btn-sm btn-primary me-1 mb-1 " role="button" target="_blank">
-								County Property
-							</a>
-							<a id="DuesStatementButton" data-parcelId="" data-ownerId="" href="" class="btn btn-sm btn-success me-1 mb-1 " role="button">
+                    		<button id="DuesStatementButton" data-parcel-id="" class="btn btn-sm btn-success me-1 mb-1 " type="button" role="button">
 								Dues Statement
-							</a>
-							<a id="NewOwnerButton" data-parcelId="" data-ownerId="" href="" class="btn btn-sm btn-warning me-1 mb-1 " role="button">
+							</button>
+							<button id="NewOwnerButton" data-parcel-id="" data-owner-id="" class="btn btn-sm btn-warning me-1 mb-1 " type="button" role="button">
 								New Owner
-							</a>
-							<a id="CommunicationsButton" data-parcelId="" data-ownerId="" href="" class="btn btn-sm btn-info me-1 mb-1 " role="button">
+							</button>
+							<button id="CommunicationsButton" data-parcel-id="" data-owner-id="" class="btn btn-sm btn-info me-1 mb-1 " type="button" role="button">
 								Communications
-							</a>
+							</button>
 							<!--
 							<div id="AddAssessment">
 							</div>
@@ -408,6 +399,7 @@
     </div>
 </div>
 
+<!--
 <div id="DuesStatementPage" class="modal fade" role="dialog" tabindex="-1">
 	    <div class="modal-dialog modal-lg">
 	      <div class="modal-content">
@@ -453,7 +445,55 @@
 	        </div>
 	      </div>
 	    </div>
-</div><!-- /DuesStatementPage -->
+</div>
+-->
+
+<div id="duesStatementModal" class="modal fade" role="dialog" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <img class="m-2" src="https://grhawebstorage.blob.core.windows.net/images/logo-photo.jpg"> GRHA Dues Statement
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div id="DuesStatementContent" class="modal-body">
+                    <div id="DuesStatementDownloadLinks" class="float-right"></div>
+                    <table id="DuesStatementPropertyTable" class="table table-striped table-sm">
+                        <tbody>
+                        </tbody>
+                    </table>
+    
+                    <div class="row">
+                        <div class="col-sm-4"></div>
+                        <div class="col-sm-3">
+                            <div id="PayDues"></div>
+                        </div>
+                        <div class="col-sm-5">
+                            <div id="PayDuesInstructions"></div>
+                        </div>
+                    </div>
+    
+                    <h5>Total Due calculation details</h5>
+                    <table id="DuesStatementCalculationTable" class="table table-striped table-sm">
+                        <tbody>
+                        </tbody>
+                    </table>
+    
+                    <h5>Payment history</h5>
+                    <table id="DuesStatementAssessmentsTable" class="table table-striped table-sm">
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+</div>
+
+
 
     <!-- Bootstrap core JavaScript ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->

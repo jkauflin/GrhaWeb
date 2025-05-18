@@ -55,9 +55,11 @@ namespace GrhaWeb.Function
         {
             List<HoaProperty> hoaPropertyList = new List<HoaProperty>();
 
-            try {
+            try
+            {
                 string userName = "";
-                if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
                     return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
 
@@ -91,7 +93,9 @@ namespace GrhaWeb.Function
                 */
                 hoaPropertyList = await hoaDbCommon.GetPropertyList(searchStr);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
             
@@ -109,9 +113,11 @@ namespace GrhaWeb.Function
         {
             HoaRec hoaRec = new HoaRec();
 
-            try {
+            try
+            {
                 string userName = "";
-                if (!authCheck.UserAuthorizedForRole(req,userAdminRole,out userName)) {
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
                     return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
 
@@ -119,6 +125,10 @@ namespace GrhaWeb.Function
 
                 // Get the content string from the HTTP request body
                 string parcelId = await new StreamReader(req.Body).ReadToEndAsync();
+                if (parcelId.Equals(""))
+                {
+                    return new BadRequestObjectResult("GetHoaRec failed because parcelId was blank");
+                }
 
                 /*
                 // Get the content string from the HTTP request body
@@ -149,8 +159,11 @@ namespace GrhaWeb.Function
                 */
 
                 hoaRec = await hoaDbCommon.GetHoaRec(parcelId);
+                
+
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }

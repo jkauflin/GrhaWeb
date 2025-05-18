@@ -115,6 +115,14 @@ export function setTD(tdType,value,classStr="") {
     return td
 }
 
+export function setCheckbox(checkVal) {
+    var tempStr = '';
+    if (checkVal == 1) {
+        tempStr = 'checked=true';
+    }
+    return '<input type="checkbox" ' + tempStr + ' disabled="disabled">';
+}
+
 function standardizeDate(dateStr) {
     let outDateStr = dateStr
     const containsSlash = dateStr.includes("/")
@@ -206,13 +214,6 @@ function standardizeDate(dateStr) {
             tempStr = "YES";
         }
         return tempStr;
-    }
-    function setCheckbox(checkVal) {
-        var tempStr = '';
-        if (checkVal == 1) {
-            tempStr = 'checked=true';
-        }
-        return '<input type="checkbox" ' + tempStr + ' disabled="disabled">';
     }
     //function setCheckboxEdit(checkVal, idName) {
     function setCheckboxEdit(idName, checkVal) {

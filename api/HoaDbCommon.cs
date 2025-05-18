@@ -13,6 +13,7 @@ Modification History
                 Common will throw any error, and the caller can log and handle
 2025-05-08 JJK  Added function to convert images and upload to 
 2025-05-14 JJK  Added calc of DuesDue in the assessments record
+2025-05=16 JJK  Working on DuesStatement (and PDF)
 ================================================================================*/
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -47,7 +48,7 @@ namespace GrhaWeb.Function
         }
 
         // Common internal function to lookup configuration values
-        private async Task<string> getConfigVal(Database db, Container container, string configName) {
+        private async Task<string> getConfigVal(Container container, string configName) {
             string configVal = "";
             string sql = $"SELECT * FROM c WHERE c.ConfigName = '{configName}' ";
             var feed = container.GetItemQueryIterator<hoa_config>(sql);
@@ -80,7 +81,6 @@ namespace GrhaWeb.Function
             List<HoaProperty> hoaPropertyList = new List<HoaProperty>();
             HoaProperty hoaProperty = new HoaProperty();
 
-            try {
                 CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
                 Database db = cosmosClient.GetDatabase(databaseId);
                 Container container = db.GetContainer(containerId);
@@ -103,10 +103,6 @@ namespace GrhaWeb.Function
                         hoaPropertyList.Add(hoaProperty);
                     }
                 }
-            }
-            catch (Exception ex) {
-                log.LogError($"Exception in DB query to {containerId}, message: {ex.Message} {ex.StackTrace}");
-            }
             
             return hoaPropertyList;
         }
@@ -123,7 +119,6 @@ namespace GrhaWeb.Function
 
             HoaProperty2 hoaProperty2 = new HoaProperty2();
 
-            try {
                 //var mySetting = _configuration["MY_ENV_VARIABLE"];
                 CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
                 Database db = cosmosClient.GetDatabase(databaseId);
@@ -154,10 +149,6 @@ namespace GrhaWeb.Function
                         hoaProperty2List.Add(hoaProperty2);
                     }
                 }
-            }
-            catch (Exception ex) {
-                log.LogError($"Exception in DB query to {containerId}, message: {ex.Message} {ex.StackTrace}");
-            }
 
             return hoaProperty2List;
         }
@@ -187,16 +178,20 @@ namespace GrhaWeb.Function
             hoaRec.totalDuesCalcList = new List<TotalDuesCalcRec>();
             hoaRec.emailAddrList = new List<string>();
 
-            try {
-                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
-                Database db = cosmosClient.GetDatabase(databaseId);
-                Container configContainer = db.GetContainer("hoa_config");
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container configContainer = db.GetContainer("hoa_config");
 
-                //----------------------------------- Property --------------------------------------------------------
-                containerId = "hoa_properties";
-                Container container = db.GetContainer(containerId);
-                sql = $"SELECT * FROM c WHERE c.id = '{parcelId}' ";
-                var feed = container.GetItemQueryIterator<hoa_properties>(sql);
+            //----------------------------------- Property --------------------------------------------------------
+            containerId = "hoa_properties";
+            Container container = db.GetContainer(containerId);
+            //sql = $"SELECT * FROM c WHERE c.id = '{parcelId}' ";
+
+            var queryDefinition = new QueryDefinition(
+                "SELECT * FROM c WHERE c.id = @parcelId ")
+                    .WithParameter("@parcelId", parcelId);
+
+                var feed = container.GetItemQueryIterator<hoa_properties>(queryDefinition);
                 int cnt = 0;
                 while (feed.HasMoreResults)
                 {
@@ -211,9 +206,12 @@ namespace GrhaWeb.Function
                 //----------------------------------- Owners ----------------------------------------------------------
                 containerId = "hoa_owners";
                 Container ownersContainer = db.GetContainer(containerId);
-                if (!ownerId.Equals("")) {
+                if (!ownerId.Equals(""))
+                {
                     sql = $"SELECT * FROM c WHERE c.id = '{ownerId}' AND c.Parcel_ID = '{parcelId}' ";
-                } else {
+                }
+                else
+                {
                     sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' ORDER BY c.OwnerID DESC ";
                 }
                 var ownersFeed = ownersContainer.GetItemQueryIterator<hoa_owners>(sql);
@@ -226,13 +224,16 @@ namespace GrhaWeb.Function
                         cnt++;
                         hoaRec.ownersList.Add(item);
 
-                        if (item.CurrentOwner == 1) {
+                        if (item.CurrentOwner == 1)
+                        {
                             // Current Owner fields are already part of the properties record (including property.OwnerID)
                             hoaRec.duesEmailAddr = item.EmailAddr;
-                            if (!string.IsNullOrWhiteSpace(item.EmailAddr)) {
+                            if (!string.IsNullOrWhiteSpace(item.EmailAddr))
+                            {
                                 hoaRec.emailAddrList.Add(item.EmailAddr);
                             }
-                            if (!string.IsNullOrWhiteSpace(item.EmailAddr2)) {
+                            if (!string.IsNullOrWhiteSpace(item.EmailAddr2))
+                            {
                                 hoaRec.emailAddrList.Add(item.EmailAddr2);
                             }
                         }
@@ -255,11 +256,13 @@ namespace GrhaWeb.Function
                     foreach (var item in response)
                     {
                         cnt++;
-                        if (!string.IsNullOrWhiteSpace(item.payer_email)) {
+                        if (!string.IsNullOrWhiteSpace(item.payer_email))
+                        {
                             // If there is an email from the last electronic payment, for the current Owner,
-				            // add it to the email list (if not already in the array)
+                            // add it to the email list (if not already in the array)
                             string compareStr = item.payer_email.ToLower();
-                            if (Array.IndexOf(hoaRec.emailAddrList.ToArray(), compareStr) < 0) {
+                            if (Array.IndexOf(hoaRec.emailAddrList.ToArray(), compareStr) < 0)
+                            {
                                 hoaRec.emailAddrList.Add(compareStr);
                             }
                         }
@@ -269,9 +272,12 @@ namespace GrhaWeb.Function
                 //----------------------------------- Assessments -----------------------------------------------------
                 containerId = "hoa_assessments";
                 Container assessmentsContainer = db.GetContainer(containerId);
-                if (fy.Equals("") || fy.Equals("LATEST")) {
+                if (fy.Equals("") || fy.Equals("LATEST"))
+                {
                     sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' ORDER BY c.FY DESC ";
-                } else {
+                }
+                else
+                {
                     sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' AND c.FY = {fy} ORDER BY c.FY DESC ";
                 }
                 var assessmentsFeed = assessmentsContainer.GetItemQueryIterator<hoa_assessments>(sql);
@@ -285,21 +291,27 @@ namespace GrhaWeb.Function
                     foreach (var item in response)
                     {
                         cnt++;
-                        if (fy.Equals("LATEST") && cnt > 1) {
+                        if (fy.Equals("LATEST") && cnt > 1)
+                        {
                             continue;
                         }
 
-                        if (item.DateDue is null) {
-                            dateDue = DateTime.Parse((item.FY-1).ToString()+"-10-01");
-                        } else {
+                        if (item.DateDue is null)
+                        {
+                            dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
+                        }
+                        else
+                        {
                             dateDue = DateTime.Parse(item.DateDue);
                         }
                         item.DateDue = dateDue.ToString("yyyy-MM-dd");
                         // If you don't need the DateTime object, you can do it in 1 line
                         //item.DateDue = DateTime.Parse(item.DateDue).ToString("yyyy-MM-dd");
 
-                        if (item.Paid == 1) {
-                            if (string.IsNullOrWhiteSpace(item.DatePaid)) {
+                        if (item.Paid == 1)
+                        {
+                            if (string.IsNullOrWhiteSpace(item.DatePaid))
+                            {
                                 item.DatePaid = item.DateDue;
                             }
                             dateTime = DateTime.Parse(item.DatePaid);
@@ -307,11 +319,13 @@ namespace GrhaWeb.Function
                         }
 
                         item.DuesDue = false;
-                        if (item.Paid != 1 && item.NonCollectible != 1) {
+                        if (item.Paid != 1 && item.NonCollectible != 1)
+                        {
                             // check dates (if NOT PAID)
-                            if (currDate > dateDue) {
+                            if (currDate > dateDue)
+                            {
                                 item.DuesDue = true;
-                            } 
+                            }
                         }
 
                         hoaRec.assessmentsList.Add(item);
@@ -330,20 +344,25 @@ namespace GrhaWeb.Function
                 //---------------------------------------------------------------------------------------------------
                 // Only display payment button if something is owed
                 // For now, only set payment button if just the current year dues are owed (no other years or open liens)
-                if (hoaRec.totalDue > 0.0m) {
-                    hoaRec.paymentInstructions = await getConfigVal(db, configContainer, "OfflinePaymentInstructions");
-                    hoaRec.paymentFee = decimal.Parse(await getConfigVal(db, configContainer, "paymentFee"));
-                    if (onlyCurrYearDue) {
-                        hoaRec.paymentInstructions = await getConfigVal(db, configContainer, "OnlinePaymentInstructions");
+                if (hoaRec.totalDue > 0.0m)
+                {
+                    hoaRec.paymentInstructions = await getConfigVal(configContainer, "OfflinePaymentInstructions");
+                    hoaRec.paymentFee = decimal.Parse(await getConfigVal(configContainer, "paymentFee"));
+                    if (onlyCurrYearDue)
+                    {
+                        hoaRec.paymentInstructions = await getConfigVal(configContainer, "OnlinePaymentInstructions");
                     }
                 }
 
                 //----------------------------------- Sales -----------------------------------------------------------
                 containerId = "hoa_sales";
                 Container salesContainer = db.GetContainer(containerId);
-                if (saleDate.Equals("")) {
+                if (saleDate.Equals(""))
+                {
                     sql = $"SELECT * FROM c WHERE c.id = '{parcelId}' ORDER BY c.CreateTimestamp DESC ";
-                } else {
+                }
+                else
+                {
                     sql = $"SELECT * FROM c WHERE c.id = '{parcelId}' AND c.SALEDT = {saleDate} ";
                 }
                 var salesFeed = salesContainer.GetItemQueryIterator<hoa_sales>(sql);
@@ -358,12 +377,6 @@ namespace GrhaWeb.Function
                     } // Sales loop
                 }
 
-            }
-            catch (Exception ex) {
-                log.LogError($"Exception in DB query to {containerId}, message: {ex.Message} {ex.StackTrace}");
-                //return new BadRequestObjectResult($"Exception in DB query to {containerId}, message = {ex.Message}");
-            }
-            
             return hoaRec;
         }
 
@@ -383,16 +396,20 @@ namespace GrhaWeb.Function
             string containerId = "hoa_properties";
             string sql;
 
-            try {
-                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
-                Database db = cosmosClient.GetDatabase(databaseId);
-                Container configContainer = db.GetContainer("hoa_config");
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container configContainer = db.GetContainer("hoa_config");
 
-                //----------------------------------- Property --------------------------------------------------------
-                containerId = "hoa_properties";
-                Container container = db.GetContainer(containerId);
-                sql = $"SELECT * FROM c WHERE c.id = '{parcelId}' ";
-                var feed = container.GetItemQueryIterator<hoa_properties2>(sql);
+            //----------------------------------- Property --------------------------------------------------------
+            containerId = "hoa_properties";
+            Container container = db.GetContainer(containerId);
+            //sql = $"SELECT * FROM c WHERE c.id = '{parcelId}' ";
+
+            var queryDefinition = new QueryDefinition(
+                "SELECT * FROM c WHERE c.id = @parcelId ")
+                    .WithParameter("@parcelId", parcelId);
+
+                var feed = container.GetItemQueryIterator<hoa_properties2>(queryDefinition);
                 int cnt = 0;
                 while (feed.HasMoreResults)
                 {
@@ -452,16 +469,12 @@ namespace GrhaWeb.Function
                 // Only display payment button if something is owed
                 // For now, only set payment button if just the current year dues are owed (no other years or open liens)
                 if (hoaRec2.totalDue > 0.0m) {
-                    hoaRec2.paymentInstructions = await getConfigVal(db, configContainer, "OfflinePaymentInstructions");
-                    hoaRec2.paymentFee = decimal.Parse(await getConfigVal(db, configContainer, "paymentFee"));
+                    hoaRec2.paymentInstructions = await getConfigVal(configContainer, "OfflinePaymentInstructions");
+                    hoaRec2.paymentFee = decimal.Parse(await getConfigVal(configContainer, "paymentFee"));
                     if (onlyCurrYearDue) {
-                        hoaRec2.paymentInstructions = await getConfigVal(db, configContainer, "OnlinePaymentInstructions");
+                        hoaRec2.paymentInstructions = await getConfigVal(configContainer, "OnlinePaymentInstructions");
                     }
                 }
-            }
-            catch (Exception ex) {
-                log.LogError($"Exception in DB query to {containerId}, message: {ex.Message} {ex.StackTrace}");
-            }
 
             return hoaRec2;
         }

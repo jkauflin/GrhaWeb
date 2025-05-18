@@ -109,7 +109,8 @@ function displayPropertyList(hoaPropertyRecList) {
             let td = document.createElement("td"); td.textContent = Number(index) + 1; tr.appendChild(td)
             let a = document.createElement("a")
             a.classList.add("DetailDisplay")
-            a.setAttribute('data-parcelId', hoaPropertyRec.parcelId);
+            //a.setAttribute('data-parcelId', hoaPropertyRec.parcelId);
+            a.dataset.parcelId = hoaPropertyRec.parcelId
             a.textContent = hoaPropertyRec.parcelLocation
             td = document.createElement("td"); 
             //td.classList.add('w-25');
