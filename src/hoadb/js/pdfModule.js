@@ -15,9 +15,10 @@
  * 2025-05-18 JJK   Converted to js module (to be imported by other js)
  *============================================================================*/
 
-import { jsPDF } from "./jspdf.js";
+import { jsPDF } from "./jspdf.es.min.js";
+//import { jsPDF } from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.es.min.js";
 
-    //=================================================================================================================
+//=================================================================================================================
     // Private variables for the Module
     var defaultOrientation = 'letter';
     var defaultFontSize = 11;
