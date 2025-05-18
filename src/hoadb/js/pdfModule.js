@@ -12,9 +12,10 @@
  * 2018-11-25 JJK   Renamed to pdfModule and implemented configuration object
  *                  rather than global variables
  * 2018-11-27 JJK   Added EmailAddr2
+ * 2025-05-18 JJK   Converted to js module (to be imported by other js)
  *============================================================================*/
-var pdfModule = (function () {
-    'use strict';
+
+import { jsPDF } from "./jspdf.js";
 
     //=================================================================================================================
     // Private variables for the Module
@@ -24,7 +25,7 @@ var pdfModule = (function () {
 
     //=================================================================================================================
     // Module methods
-    function init(inTitle,inOrientation) {
+    export function init(inTitle,inOrientation) {
         var currSysDate = new Date();
         var tempOrientation = defaultOrientation;
         if (inOrientation !== 'undefined') {
@@ -59,7 +60,7 @@ var pdfModule = (function () {
         return pdfRec;
     }
 
-    function addPage(pdfRec) {
+    export function addPage(pdfRec) {
         pdfRec.pdf.addPage(pdfRec.orientation, 'p');
         pdfRec.lineCnt = 0;
         pdfRec.header = true;
@@ -67,7 +68,7 @@ var pdfModule = (function () {
     }
 
     // function to format a Yearly dues statement and add to the PDF
-    function formatYearlyDuesStatement(pdfRec, hoaRec, firstNotice) {
+    export function formatYearlyDuesStatement(pdfRec, hoaRec, firstNotice) {
         var ownerRec = hoaRec.ownersList[0];
         pdfRec.maxLineChars = 95;
 
@@ -258,7 +259,7 @@ var pdfModule = (function () {
     } // End of function formatYearlyDuesStatement(hoaRec) {
 
     //Function to add a line to the Yearly Dues Statement PDF
-    function yearlyDuesStatementAddLine(pdfRec, pdfLineArray, pdfLineHeaderArray, fontSize, lineYStart) {
+    export function yearlyDuesStatementAddLine(pdfRec, pdfLineArray, pdfLineHeaderArray, fontSize, lineYStart) {
         pdfRec.lineCnt++;
         var X = 0.0;
         // X (horizontal), Y (vertical)
@@ -398,7 +399,7 @@ var pdfModule = (function () {
 
 
     //Function to add a line to the Dues Statement PDF
-    function duesStatementAddLine(pdfRec, pdfLineArray, pdfLineHeaderArray) {
+    export function duesStatementAddLine(pdfRec, pdfLineArray, pdfLineHeaderArray) {
         pdfRec.lineCnt++;
         var X = 0.0;
         // X (horizontal), Y (vertical)
@@ -511,15 +512,3 @@ var pdfModule = (function () {
 
         return pdfRec;
     }
-
-    //=================================================================================================================
-    // This is what is exposed from this Module
-    return {
-        init:                       init,
-        addPage:                    addPage,
-        formatYearlyDuesStatement:  formatYearlyDuesStatement,
-        yearlyDuesStatementAddLine: yearlyDuesStatementAddLine,
-        duesStatementAddLine:       duesStatementAddLine
-    };
-
-})(); // var pdfModule = (function(){

@@ -39,10 +39,11 @@
  * 2024-11-05 JJK   Completed getHoaRec, working on detail display
  * 2024-11-30 JJK   Added showLoadingSpinner for loading... display
  * 2025-05-14 JJK   Added checkFetchResponse for Fetch
- * 2025-05-16 JJK   Working on DuesStatement functions
+ * 2025-05-16 JJK   Working on DuesStatement functions (and PDF)
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,formatMoney,setTD,setCheckbox} from './util.js';
+import {init,addPage,formatYearlyDuesStatement,yearlyDuesStatementAddLine,duesStatementAddLine} from './pdfModule.js'
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -81,6 +82,9 @@ var PropertyUpdateButton = document.getElementById("PropertyUpdateButton")
 
 var propertyOwnersTbody = document.getElementById("PropertyOwnersTbody")
 var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody")
+
+var duesStatementDownloadLinks = document.getElementById("DuesStatementDownloadLinks")
+
 
 //var duesPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("DuesPageNavLink"))
 //var duesLinkTile = document.getElementById("DuesLinkTile");
@@ -124,7 +128,6 @@ var $EditPage2ColButton = $("#EditPage2ColButton");
 var $DuesStatementPage = $document.find("#DuesStatementPage");
 var $DuesStatementPropertyTable = $("#DuesStatementPropertyTable tbody");
 var $DuesStatementAssessmentsTable = $("#DuesStatementAssessmentsTable tbody");
-var duesStatementDownloadLinks = $("#DuesStatementDownloadLinks");
 */
 
 /*
@@ -514,260 +517,185 @@ function downloadDuesStatement(event) {
 }
 
 function formatDuesStatementResults(hoaRec) {
-        let duesStatementPropertyTable = document.getElementById("DuesStatementPropertyTable")
-        let payDues = document.getElementById("PayDues")
-        let payDuesInstructions = document.getElementById("PayDuesInstructions")
-            
-        empty(payDues)
-        empty(payDuesInstructions)
-    
-        let tbody = duesStatementPropertyTable.getElementsByTagName("tbody")[0]
-        empty(tbody)
-    
-        let tr = document.createElement('tr')
-        let th = document.createElement("th"); th.textContent = "Parcel Id: "; tr.appendChild(th)
-        let td = document.createElement("td"); td.textContent = hoaRec.property.parcel_ID; tr.appendChild(td)
-            tbody.appendChild(tr)
-            tr = document.createElement('tr')
-            th = document.createElement("th"); th.textContent = "Lot No: "; tr.appendChild(th)
-            td = document.createElement("td"); td.textContent = hoaRec.property.lotNo; tr.appendChild(td)
-            tbody.appendChild(tr)
-            tr = document.createElement('tr')
-            th = document.createElement("th"); th.textContent = "Location: "; tr.appendChild(th)
-            td = document.createElement("td"); td.textContent = hoaRec.property.parcel_Location; tr.appendChild(td)
-            tbody.appendChild(tr)
-            tr = document.createElement('tr')
-            th = document.createElement("th"); th.textContent = "City State Zip: "; tr.appendChild(th)
-            td = document.createElement("td"); td.textContent = hoaRec.property.property_City + ', ' + hoaRec.property.property_State + ' ' + hoaRec.property.property_Zip
-            tr.appendChild(td)
-            tbody.appendChild(tr)
-            tr = document.createElement('tr')
-            th = document.createElement("th"); th.textContent = "Total Due: "; tr.appendChild(th)
-            td = document.createElement("td")
-            let tempTotalDue = '' + hoaRec.totalDue;
-            td.textContent = formatMoney(tempTotalDue)
-            tr.appendChild(td)
-            tbody.appendChild(tr)
-    
-            //var tempDuesAmt = formatMoney(hoaRec.assessmentsList[0].DuesAmt);
-            var tempDuesAmt = formatMoney(hoaRec.assessmentsList[0].duesAmt);
-    
-            // If enabled, payment button and instructions will have values, else they will be blank if online payment is not allowed
-            if (hoaRec.totalDue > 0) {
-                // Only offer online payment if total due is just the current assessment (i.e. prior year due needs to contact the Treasurer)
-                if (tempDuesAmt == hoaRec.totalDue) {
-                    let i = document.createElement("i");
-                    i.classList.add('fa','fa-usd','float-start','mr-1')
-                    i.textContent = ' Click HERE to make payment online'
-                    let a = document.createElement("a")
-                    a.href = "payDues.html?parcelId=" + hoaRec.parcel_ID
-                    a.classList.add('btn','btn-success','m-2','link-tile')
-                    a.appendChild(i)
-                    payDues.appendChild(a)
-                }
-                payDuesInstructions.classList.add("mb-3")
-                payDuesInstructions.innerHTML = hoaRec.paymentInstructions
-            }
-    
-    
-            let duesStatementCalculationTable = document.getElementById("DuesStatementCalculationTable")
-            tbody = duesStatementCalculationTable.getElementsByTagName("tbody")[0]
-            empty(tbody)
-    
-            // Display the dues calculation lines
-            if (hoaRec.totalDuesCalcList != null && hoaRec.totalDuesCalcList.length > 0) {
-                for (let index in hoaRec.totalDuesCalcList) {
-                    let rec = hoaRec.totalDuesCalcList[index]
-                    tr = document.createElement('tr')
-                    td = document.createElement("td"); td.textContent = rec.calcDesc; tr.appendChild(td)
-                    td = document.createElement("td"); td.textContent = '$'; tr.appendChild(td)
-                    td = document.createElement("td"); td.style.textAlign = "right";
-                    td.textContent = parseFloat('' + rec.calcValue).toFixed(2); tr.appendChild(td)
-                    tbody.appendChild(tr)
-                }
-            }
-    
-            tr = document.createElement('tr')
-            td = document.createElement("td"); td.textContent = "Total Due: "; tr.appendChild(td)
-            td = document.createElement("td"); td.textContent = '$'; tr.appendChild(td)
-            td = document.createElement("td"); td.style.textAlign = "right";
-            td.textContent = parseFloat('' + hoaRec.totalDue).toFixed(2) ; tr.appendChild(td)
-            tbody.appendChild(tr)
-    
-            tr = document.createElement('tr')
-            td = document.createElement("td"); td.textContent = hoaRec.assessmentsList[0].lienComment; tr.appendChild(td)
-            td = document.createElement("td"); td.textContent = ''; tr.appendChild(td)
-            td = document.createElement("td"); td.style.textAlign = "right"; td.textContent = ''; tr.appendChild(td)
-            tbody.appendChild(tr)
-    
-    
-            let duesStatementAssessmentsTable = document.getElementById("DuesStatementAssessmentsTable")
-            tbody = duesStatementAssessmentsTable.getElementsByTagName("tbody")[0]
-            empty(tbody)
-    
-        // Display the assessment lines
-        if (hoaRec.assessmentsList != null && hoaRec.assessmentsList.length > 0) {
-            tr = document.createElement('tr')
-            th = document.createElement("th"); th.textContent = 'Year'; tr.appendChild(th)
-            th = document.createElement("th"); th.textContent = 'Dues Amt'; tr.appendChild(th)
-            th = document.createElement("th"); th.textContent = 'Date Due'; tr.appendChild(th)
-            th = document.createElement("th"); th.textContent = 'Paid'; tr.appendChild(th)
-            th = document.createElement("th"); th.textContent = 'Date Paid'; tr.appendChild(th)
-            tbody.appendChild(tr)
-    
-            let tempDuesAmt = '';
-            let maxPaymentHistoryLines = 6;
-            for (let index in hoaRec.assessmentsList) {
-                let rec = hoaRec.assessmentsList[index]
-                // 2024-11-08 JJK - new logic to limit display of historical PAID (or Non-Collectible)
-                if ((!rec.paid && !rec.nonCollectible) || index < maxPaymentHistoryLines) {
-                    tempDuesAmt = '' + rec.duesAmt;
-                    tr = document.createElement('tr')
-                    td = document.createElement("td"); td.textContent = rec.fy ; tr.appendChild(td)
-                    td = document.createElement("td"); td.textContent = formatMoney(tempDuesAmt); tr.appendChild(td)
-                    //td = document.createElement("td"); td.textContent = rec.DateDue.substring(0, 10); tr.appendChild(td)
-                    td = document.createElement("td"); td.textContent = rec.dateDue; tr.appendChild(td)
-                    td = document.createElement("td"); td.innerHTML = setCheckbox(rec.paid); tr.appendChild(td)
-                    //td = document.createElement("td"); td.textContent = rec.DatePaid.substring(0, 10); tr.appendChild(td)
-                    td = document.createElement("td"); td.textContent = rec.datePaid; tr.appendChild(td)
-                    tbody.appendChild(tr)
-                }
-            }
+    let ownerRec = hoaRec.ownersList[0];
+    let duesStatementPropertyTable = document.getElementById("DuesStatementPropertyTable")
+    let payDues = document.getElementById("PayDues")
+    let payDuesInstructions = document.getElementById("PayDuesInstructions")        
+    empty(payDues)
+    empty(payDuesInstructions)
+    let tbody = duesStatementPropertyTable.getElementsByTagName("tbody")[0]
+    empty(tbody)
+    empty(duesStatementDownloadLinks)
+
+    // Initialize the PDF object
+    currPdfRec = init(hoaRec.hoaNameShort + ' Dues Statement');
+
+    if (hoaRec.duesStatementNotes != null) {
+        if (hoaRec.duesStatementNotes.length > 0) {
+            currPdfRec.lineColIncrArray = [1.4];
+            currPdfRec = duesStatementAddLine(currPdfRec,[hoaRec.duesStatementNotes], null);
+            currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
         }
+    }
+
+    var pdfLineHeaderArray = [
+        'Parcel Id',
+        'Lot No',
+        'Location',
+        'Owner and Alt Address',
+        'Phone'];
+    currPdfRec.lineColIncrArray = [0.6, 1.4, 0.8, 2.2, 1.9];
+
+    currPdfRec = duesStatementAddLine(currPdfRec,[hoaRec.Parcel_ID, hoaRec.LotNo, hoaRec.Parcel_Location, 
+        ownerRec.Mailing_Name,ownerRec.Owner_Phone], pdfLineHeaderArray);
+
+    if (hoaRec.ownersList[0].AlternateMailing) {
+        currPdfRec = duesStatementAddLine(currPdfRec,['', '', '', ownerRec.Alt_Address_Line1, ''], null);
+        if (ownerRec.Alt_Address_Line2 != '') {
+            currPdfRec = duesStatementAddLine(currPdfRec,['', '', '', ownerRec.Alt_Address_Line2, ''], null);
+        }
+        currPdfRec = duesStatementAddLine(currPdfRec,['', '', '', ownerRec.Alt_City + ', ' + ownerRec.Alt_State + ' ' + ownerRec.Alt_Zip, ''], null);
+    }
+
+    let tr = document.createElement('tr')
+    let th = document.createElement("th"); th.textContent = "Parcel Id: "; tr.appendChild(th)
+    let td = document.createElement("td"); td.textContent = hoaRec.property.parcel_ID; tr.appendChild(td)
+    tbody.appendChild(tr)
+    tr = document.createElement('tr')
+    th = document.createElement("th"); th.textContent = "Lot No: "; tr.appendChild(th)
+    td = document.createElement("td"); td.textContent = hoaRec.property.lotNo; tr.appendChild(td)
+    tbody.appendChild(tr)
+    tr = document.createElement('tr')
+    th = document.createElement("th"); th.textContent = "Location: "; tr.appendChild(th)
+    td = document.createElement("td"); td.textContent = hoaRec.property.parcel_Location; tr.appendChild(td)
+    tbody.appendChild(tr)
+    tr = document.createElement('tr')
+    th = document.createElement("th"); th.textContent = "City State Zip: "; tr.appendChild(th)
+    td = document.createElement("td"); td.textContent = hoaRec.property.property_City + ', ' + hoaRec.property.property_State + ' ' + hoaRec.property.property_Zip
+    tr.appendChild(td)
+    tbody.appendChild(tr)
+    tr = document.createElement('tr')
+    th = document.createElement("th"); th.textContent = "Owner Name: "; tr.appendChild(th)
+    td = document.createElement("td"); td.textContent = ownerRec.Owner_Name1 + ' ' + ownerRec.Owner_Name2 
+    tr.appendChild(td)
+    tbody.appendChild(tr)
+
+    tr = document.createElement('tr')
+    th = document.createElement("th"); th.textContent = "Total Due: "; tr.appendChild(th)
+    td = document.createElement("td")
+    let tempTotalDue = '' + hoaRec.totalDue;
+    td.textContent = formatMoney(tempTotalDue)
+    tr.appendChild(td)
+    tbody.appendChild(tr)
     
-} // End of function formatDuesStatementResults(hoaRec){
-/*
-    function formatDuesStatementResults(hoaRec) {
-        var ownerRec = hoaRec.ownersList[0];
-        var tr = '';
-        var duesStatementNotes = config.getVal('duesStatementNotes');
-        duesStatementDownloadLinks.empty();
+    //var tempDuesAmt = formatMoney(hoaRec.assessmentsList[0].duesAmt);
 
-        // Initialize the PDF object
-        currPdfRec = pdfModule.init(config.getVal('hoaNameShort') + ' Dues Statement');
+    // If enabled, payment button and instructions will have values, else they will be blank if online payment is not allowed
+    if (hoaRec.totalDue > 0) {
+        payDuesInstructions.classList.add("mb-3")
+        payDuesInstructions.innerHTML = hoaRec.paymentInstructions
+    }
 
-        if (duesStatementNotes != null) {
-            if (duesStatementNotes.length > 0) {
-                currPdfRec.lineColIncrArray = [1.4];
-                currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,[duesStatementNotes], null);
-                currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,[''], null);
-            }
-        }
-
-        var pdfLineHeaderArray = [
-            'Parcel Id',
-            'Lot No',
-            'Location',
-            'Owner and Alt Address',
-            'Phone'];
-        currPdfRec.lineColIncrArray = [0.6, 1.4, 0.8, 2.2, 1.9];
-
-        currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,[hoaRec.Parcel_ID, hoaRec.LotNo, hoaRec.Parcel_Location, 
-            ownerRec.Mailing_Name,ownerRec.Owner_Phone], pdfLineHeaderArray);
-
-        if (hoaRec.ownersList[0].AlternateMailing) {
-            currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,['', '', '', ownerRec.Alt_Address_Line1, ''], null);
-            if (ownerRec.Alt_Address_Line2 != '') {
-                currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,['', '', '', ownerRec.Alt_Address_Line2, ''], null);
-            }
-            currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,['', '', '', ownerRec.Alt_City + ', ' + ownerRec.Alt_State + ' ' + ownerRec.Alt_Zip, ''], null);
-        }
-
-        tr += '<tr><th>Parcel Id:</th><td>' + hoaRec.Parcel_ID + '</a></td></tr>';
-        tr += '<tr><th>Lot No:</th><td>' + hoaRec.LotNo + '</td></tr>';
-        tr += '<tr><th>Location: </th><td>' + hoaRec.Parcel_Location + '</td></tr>';
-        tr += '<tr><th>City State Zip: </th><td>' + hoaRec.Property_City + ', ' + hoaRec.Property_State + ' ' + hoaRec.Property_Zip + '</td></tr>';
-        tr += '<tr><th>Owner Name:</th><td>' + ownerRec.Owner_Name1 + ' ' + ownerRec.Owner_Name2 + '</td></tr>';
-
-        var tempTotalDue = '' + hoaRec.TotalDue;
-        tr += '<tr><th>Total Due: </th><td>$' + util.formatMoney(tempTotalDue) + '</td></tr>';
-        $DuesStatementPropertyTable.html(tr);
-
-        // If enabled, payment button and instructions will have values, else they will be blank if online payment is not allowed
-        if (hoaRec.TotalDue > 0) {
-            $("#PayDuesInstructions").html(hoaRec.paymentInstructions);
-        }
-
+    /*
         duesStatementDownloadLinks.append(
             $('<a>').prop('id', 'DownloadDuesStatement')
                 .attr('href', '#')
                 .attr('class', "btn btn-danger ml-1")
                 .attr('data-pdfName', 'DuesStatement')
                 .html('PDF'));
+    */
+    currPdfRec.lineColIncrArray = [0.6, 4.2, 0.5];
+    currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
 
-        currPdfRec.lineColIncrArray = [0.6, 4.2, 0.5];
-        currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,[''], null);
 
-        tr = '';
-        $.each(hoaRec.totalDuesCalcList, function (index, rec) {
-            tr = tr + '<tr>';
-            tr = tr + '<td>' + rec.calcDesc + '</td>';
-            tr = tr + '<td>$</td>';
-            tr = tr + '<td align="right">' + parseFloat('' + rec.calcValue).toFixed(2) + '</td>';
-            tr = tr + '</tr>';
-            currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,[rec.calcDesc, '$', parseFloat('' + rec.calcValue).toFixed(2)], null);
-        });
-        tr = tr + '<tr>';
-        tr = tr + '<td><b>Total Due:</b></td>';
-        tr = tr + '<td><b>$</b></td>';
-        tr = tr + '<td align="right"><b>' + parseFloat('' + hoaRec.TotalDue).toFixed(2) + '</b></td>';
-        tr = tr + '</tr>';
-        currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,['Total Due:', '$', parseFloat('' + hoaRec.TotalDue).toFixed(2)], null);
+    let duesStatementCalculationTable = document.getElementById("DuesStatementCalculationTable")
+    tbody = duesStatementCalculationTable.getElementsByTagName("tbody")[0]
+    empty(tbody)
+    
+    // Display the dues calculation lines
+    if (hoaRec.totalDuesCalcList != null && hoaRec.totalDuesCalcList.length > 0) {
+        for (let index in hoaRec.totalDuesCalcList) {
+            let rec = hoaRec.totalDuesCalcList[index]
+            tr = document.createElement('tr')
+            td = document.createElement("td"); td.textContent = rec.calcDesc; tr.appendChild(td)
+            td = document.createElement("td"); td.textContent = '$'; tr.appendChild(td)
+            td = document.createElement("td"); td.style.textAlign = "right";
+            td.textContent = parseFloat('' + rec.calcValue).toFixed(2); tr.appendChild(td)
+            tbody.appendChild(tr)
 
-        tr = tr + '<tr>';
-        tr = tr + '<td>' + hoaRec.assessmentsList[0].LienComment + '</td>';
-        tr = tr + '<td></td>';
-        tr = tr + '<td align="right"></td>';
-        tr = tr + '</tr>';
-        $("#DuesStatementCalculationTable tbody").html(tr);
-        currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,[hoaRec.assessmentsList[0].LienComment, '', ''], null);
+            currPdfRec = duesStatementAddLine(currPdfRec,[rec.calcDesc, '$', parseFloat('' + rec.calcValue).toFixed(2)], null);
+        }
+    }
+    
+    tr = document.createElement('tr')
+    td = document.createElement("td"); td.textContent = "Total Due: "; tr.appendChild(td)
+    td = document.createElement("td"); td.textContent = '$'; tr.appendChild(td)
+    td = document.createElement("td"); td.style.textAlign = "right";
+    td.textContent = parseFloat('' + hoaRec.totalDue).toFixed(2) ; tr.appendChild(td)
+    tbody.appendChild(tr)
+    currPdfRec = duesStatementAddLine(currPdfRec,['Total Due:', '$', parseFloat('' + hoaRec.TotalDue).toFixed(2)], null);
+    
+    tr = document.createElement('tr')
+    td = document.createElement("td"); td.textContent = hoaRec.assessmentsList[0].lienComment; tr.appendChild(td)
+    td = document.createElement("td"); td.textContent = ''; tr.appendChild(td)
+    td = document.createElement("td"); td.style.textAlign = "right"; td.textContent = ''; tr.appendChild(td)
+    tbody.appendChild(tr)
 
-        currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,[''], null);
+    currPdfRec = duesStatementAddLine(currPdfRec,[hoaRec.assessmentsList[0].LienComment, '', ''], null);
+    currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
+    
+    let duesStatementAssessmentsTable = document.getElementById("DuesStatementAssessmentsTable")
+    tbody = duesStatementAssessmentsTable.getElementsByTagName("tbody")[0]
+    empty(tbody)
+    
+    // Display the assessment lines
+    if (hoaRec.assessmentsList != null && hoaRec.assessmentsList.length > 0) {
+        tr = document.createElement('tr')
+        th = document.createElement("th"); th.textContent = 'Year'; tr.appendChild(th)
+        th = document.createElement("th"); th.textContent = 'Dues Amt'; tr.appendChild(th)
+        th = document.createElement("th"); th.textContent = 'Date Due'; tr.appendChild(th)
+        th = document.createElement("th"); th.textContent = 'Paid'; tr.appendChild(th)
+        th = document.createElement("th"); th.textContent = 'Non-Collectible'; tr.appendChild(th)
+        th = document.createElement("th"); th.textContent = 'Date Paid'; tr.appendChild(th)
+        tbody.appendChild(tr)
 
-        var TaxYear = '';
-        tr = '';
-        var tempDuesAmt = '';
-        $.each(hoaRec.assessmentsList, function (index, rec) {
-            pdfLineHeaderArray = null;
+        pdfLineHeaderArray = null;
+        pdfLineHeaderArray = [
+            'Year',
+            'Dues Amt',
+            'Date Due',
+            'Paid',
+            'Non-Collectible',
+            'Date Paid'];
+        currPdfRec.lineColIncrArray = [0.6, 0.8, 1.0, 1.7, 0.8, 1.5];
 
-            if (index == 0) {
-                tr = tr + '<tr>';
-                tr = tr + '<th>Year</th>';
-                tr = tr + '<th>Dues Amt</th>';
-                tr = tr + '<th>Date Due</th>';
-                tr = tr + '<th>Paid</th>';
-                tr = tr + '<th>Non-Collectible</th>';
-                tr = tr + '<th>Date Paid</th>';
-                tr = tr + '</tr>';
-                TaxYear = rec.DateDue.substring(0, 4);
+        //TaxYear = rec.DateDue.substring(0, 4);
 
-                pdfLineHeaderArray = [
-                    'Year',
-                    'Dues Amt',
-                    'Date Due',
-                    'Paid',
-                    'Non-Collectible',
-                    'Date Paid'];
-                currPdfRec.lineColIncrArray = [0.6, 0.8, 1.0, 1.7, 0.8, 1.5];
+        let tempDuesAmt = '';
+        let maxPaymentHistoryLines = 6;
+        for (let index in hoaRec.assessmentsList) {
+            let rec = hoaRec.assessmentsList[index]
+
+            // 2024-11-08 JJK - new logic to limit display of historical PAID (or Non-Collectible)
+            if ((!rec.paid && !rec.nonCollectible) || index < maxPaymentHistoryLines) {
+                tempDuesAmt = '' + rec.duesAmt;
+                tr = document.createElement('tr')
+                td = document.createElement("td"); td.textContent = rec.fy ; tr.appendChild(td)
+                td = document.createElement("td"); td.textContent = formatMoney(tempDuesAmt); tr.appendChild(td)
+                //td = document.createElement("td"); td.textContent = rec.DateDue.substring(0, 10); tr.appendChild(td)
+                td = document.createElement("td"); td.textContent = rec.dateDue; tr.appendChild(td)
+                td = document.createElement("td"); td.innerHTML = setCheckbox(rec.paid); tr.appendChild(td)
+                td = document.createElement("td"); td.innerHTML = setCheckbox(rec.nonCollectible); tr.appendChild(td)
+                //td = document.createElement("td"); td.textContent = rec.DatePaid.substring(0, 10); tr.appendChild(td)
+                td = document.createElement("td"); td.textContent = rec.datePaid; tr.appendChild(td)
+                tbody.appendChild(tr)
+                
+                currPdfRec = duesStatementAddLine(currPdfRec,[rec.FY, rec.DuesAmt, rec.DateDue, util.setBoolText(rec.Paid), util.setBoolText(rec.NonCollectible), rec.DatePaid], pdfLineHeaderArray);
             }
-
-            tempDuesAmt = '' + rec.DuesAmt;
-            tr = tr + '<tr>';
-            tr = tr + '<td>' + rec.FY + '</a></td>';
-            tr = tr + '<td>' + util.formatMoney(tempDuesAmt) + '</td>';
-            tr = tr + '<td>' + rec.DateDue + '</td>';
-            tr = tr + '<td>' + util.setCheckbox(rec.Paid) + '</td>';
-            tr = tr + '<td>' + util.setCheckbox(rec.NonCollectible) + '</td>';
-            tr = tr + '<td>' + rec.DatePaid + '</td>';
-            tr = tr + '</tr>';
-            currPdfRec = pdfModule.duesStatementAddLine(currPdfRec,[rec.FY, rec.DuesAmt, rec.DateDue, util.setBoolText(rec.Paid), util.setBoolText(rec.NonCollectible), rec.DatePaid], pdfLineHeaderArray);
-        });
-
-        $DuesStatementAssessmentsTable.html(tr);
-
-    } // End of function formatDuesStatementResults(hoaRec){
-
-*/    
+        }
+    }
+    
+} // End of function formatDuesStatementResults(hoaRec){
 
 
         /*

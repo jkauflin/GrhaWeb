@@ -377,6 +377,11 @@ namespace GrhaWeb.Function
                     } // Sales loop
                 }
 
+
+            // Get fields needed for Dues Statement PDF
+            hoaRec.duesStatementNotes = await getConfigVal(configContainer, "duesStatementNotes");
+            hoaRec.hoaNameShort = await getConfigVal(configContainer, "hoaNameShort");
+
             return hoaRec;
         }
 
