@@ -71,3 +71,19 @@ a:active {
 	text-decoration:none; 
 }
 */
+
+@media print {
+    body * {
+        display: none; /* Hide everything */
+    }
+    #printArea, #printArea * {
+        display: block; /* Ensure print area is visible */
+    }
+    #printArea {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+}
+

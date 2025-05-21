@@ -43,7 +43,7 @@
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,formatMoney,setTD,setCheckbox} from './util.js';
-import {init,addPage,formatYearlyDuesStatement,yearlyDuesStatementAddLine,duesStatementAddLine} from './pdfModule.js'
+//import {init,addPage,formatYearlyDuesStatement,yearlyDuesStatementAddLine,duesStatementAddLine} from './pdfModule.js'
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -56,7 +56,7 @@ var isTouchDevice = 'ontouchstart' in document.documentElement
 
 // Do I still need these at this level???
 //var hoaRec    5/16/2025 - comment out and see where we really need a global at this level, and can we do something different
-var currPdfRec
+//var currPdfRec
 
 //var MCTreasLink = document.getElementById("MCTreasLink")
 //var MCAuditorLink = document.getElementById("MCAuditorLink")
@@ -511,10 +511,10 @@ async function getDuesStatement(parcelId) {
         }
 }
 
-function downloadDuesStatement(event) {
+//function downloadDuesStatement(event) {
     //currPdfRec.pdf.save(util.formatDate() + "-" + event.target.getAttribute("data-pdfName") + ".pdf");
-    currPdfRec.pdf.save(util.formatDate() + "-" + event.target.dataset.pdfName + ".pdf")
-}
+//    currPdfRec.pdf.save(util.formatDate() + "-" + event.target.dataset.pdfName + ".pdf")
+//}
 
 function formatDuesStatementResults(hoaRec) {
     let ownerRec = hoaRec.ownersList[0];
@@ -528,16 +528,17 @@ function formatDuesStatementResults(hoaRec) {
     empty(duesStatementDownloadLinks)
 
     // Initialize the PDF object
-    currPdfRec = init(hoaRec.hoaNameShort + ' Dues Statement');
+    //currPdfRec = init(hoaRec.hoaNameShort + ' Dues Statement');
 
     if (hoaRec.duesStatementNotes != null) {
         if (hoaRec.duesStatementNotes.length > 0) {
-            currPdfRec.lineColIncrArray = [1.4];
-            currPdfRec = duesStatementAddLine(currPdfRec,[hoaRec.duesStatementNotes], null);
-            currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
+            //currPdfRec.lineColIncrArray = [1.4];
+            //currPdfRec = duesStatementAddLine(currPdfRec,[hoaRec.duesStatementNotes], null);
+            //currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
         }
     }
 
+    /*
     var pdfLineHeaderArray = [
         'Parcel Id',
         'Lot No',
@@ -556,6 +557,7 @@ function formatDuesStatementResults(hoaRec) {
         }
         currPdfRec = duesStatementAddLine(currPdfRec,['', '', '', ownerRec.Alt_City + ', ' + ownerRec.Alt_State + ' ' + ownerRec.Alt_Zip, ''], null);
     }
+    */
 
     let tr = document.createElement('tr')
     let th = document.createElement("th"); th.textContent = "Parcel Id: "; tr.appendChild(th)
@@ -604,8 +606,8 @@ function formatDuesStatementResults(hoaRec) {
                 .attr('data-pdfName', 'DuesStatement')
                 .html('PDF'));
     */
-    currPdfRec.lineColIncrArray = [0.6, 4.2, 0.5];
-    currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
+    //currPdfRec.lineColIncrArray = [0.6, 4.2, 0.5];
+    //currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
 
 
     let duesStatementCalculationTable = document.getElementById("DuesStatementCalculationTable")
@@ -623,7 +625,7 @@ function formatDuesStatementResults(hoaRec) {
             td.textContent = parseFloat('' + rec.calcValue).toFixed(2); tr.appendChild(td)
             tbody.appendChild(tr)
 
-            currPdfRec = duesStatementAddLine(currPdfRec,[rec.calcDesc, '$', parseFloat('' + rec.calcValue).toFixed(2)], null);
+            //currPdfRec = duesStatementAddLine(currPdfRec,[rec.calcDesc, '$', parseFloat('' + rec.calcValue).toFixed(2)], null);
         }
     }
     
@@ -633,7 +635,7 @@ function formatDuesStatementResults(hoaRec) {
     td = document.createElement("td"); td.style.textAlign = "right";
     td.textContent = parseFloat('' + hoaRec.totalDue).toFixed(2) ; tr.appendChild(td)
     tbody.appendChild(tr)
-    currPdfRec = duesStatementAddLine(currPdfRec,['Total Due:', '$', parseFloat('' + hoaRec.TotalDue).toFixed(2)], null);
+    //currPdfRec = duesStatementAddLine(currPdfRec,['Total Due:', '$', parseFloat('' + hoaRec.TotalDue).toFixed(2)], null);
     
     tr = document.createElement('tr')
     td = document.createElement("td"); td.textContent = hoaRec.assessmentsList[0].lienComment; tr.appendChild(td)
@@ -641,8 +643,8 @@ function formatDuesStatementResults(hoaRec) {
     td = document.createElement("td"); td.style.textAlign = "right"; td.textContent = ''; tr.appendChild(td)
     tbody.appendChild(tr)
 
-    currPdfRec = duesStatementAddLine(currPdfRec,[hoaRec.assessmentsList[0].LienComment, '', ''], null);
-    currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
+    //currPdfRec = duesStatementAddLine(currPdfRec,[hoaRec.assessmentsList[0].LienComment, '', ''], null);
+    //currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
     
     let duesStatementAssessmentsTable = document.getElementById("DuesStatementAssessmentsTable")
     tbody = duesStatementAssessmentsTable.getElementsByTagName("tbody")[0]
@@ -659,6 +661,7 @@ function formatDuesStatementResults(hoaRec) {
         th = document.createElement("th"); th.textContent = 'Date Paid'; tr.appendChild(th)
         tbody.appendChild(tr)
 
+        /*
         pdfLineHeaderArray = null;
         pdfLineHeaderArray = [
             'Year',
@@ -668,6 +671,7 @@ function formatDuesStatementResults(hoaRec) {
             'Non-Collectible',
             'Date Paid'];
         currPdfRec.lineColIncrArray = [0.6, 0.8, 1.0, 1.7, 0.8, 1.5];
+        */
 
         //TaxYear = rec.DateDue.substring(0, 4);
 
@@ -690,7 +694,7 @@ function formatDuesStatementResults(hoaRec) {
                 td = document.createElement("td"); td.textContent = rec.datePaid; tr.appendChild(td)
                 tbody.appendChild(tr)
                 
-                currPdfRec = duesStatementAddLine(currPdfRec,[rec.FY, rec.DuesAmt, rec.DateDue, util.setBoolText(rec.Paid), util.setBoolText(rec.NonCollectible), rec.DatePaid], pdfLineHeaderArray);
+                //currPdfRec = duesStatementAddLine(currPdfRec,[rec.FY, rec.DuesAmt, rec.DateDue, util.setBoolText(rec.Paid), util.setBoolText(rec.NonCollectible), rec.DatePaid], pdfLineHeaderArray);
             }
         }
     }
@@ -738,3 +742,27 @@ function formatDuesStatementResults(hoaRec) {
         }
         */
 
+var DuesStatementContent = document.getElementById("DuesStatementContent")
+
+var PrintModalButton = document.getElementById("PrintModalButton")
+PrintModalButton.addEventListener("click", function () {
+    printModal()
+})
+
+function printModal() {
+    // Get modal content
+    let modalContent = DuesStatementContent.innerHTML;
+
+    // Populate hidden div
+    let printArea = document.getElementById("printArea");
+    printArea.innerHTML = modalContent;
+
+    // Temporarily show print area
+    printArea.style.display = "block";
+
+    // Trigger print
+    window.print();
+
+    // Hide print area after print
+    printArea.style.display = "none";
+}

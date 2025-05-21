@@ -448,6 +448,7 @@
 </div>
 -->
 
+
 <div id="duesStatementModal" class="modal fade" role="dialog" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -456,7 +457,13 @@
                         <img class="m-2" src="https://grhawebstorage.blob.core.windows.net/images/logo-photo.jpg"> GRHA Dues Statement
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+					<button id="PrintModalButton" type="button" class="btn btn-primary mt-2 mb-2">
+						<i class="fa fa-print me-1"></i> Print
+					</button>
+
                 </div>
+
                 <div id="DuesStatementContent" class="modal-body">
                     <div id="DuesStatementDownloadLinks" class="float-right"></div>
                     <table id="DuesStatementPropertyTable" class="table table-striped table-sm">
@@ -493,6 +500,11 @@
         </div>
 </div>
 
+<!-- Hidden Print Area -->
+<div id="printArea" ></div>
+<!--
+style="display:none;"
+-->
 
 
     <!-- Bootstrap core JavaScript ================================================== -->
@@ -503,31 +515,7 @@
 
     <script src="js/main.js" type="module"></script>
 
-	<script>
-  //const doc = new jsPDF();
-  //doc.text("Hello world!", 10, 10);
-  //doc.save("example.pdf");
-</script>
-	
 	<!--
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
-	<script>
-  const doc = new jsPDF();
-  //doc.text("Hello world!", 10, 10);
-  //doc.save("example.pdf");
-</script>
-
-
-	https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
-<script>
-  const doc = new jsPDF();
-  doc.text("Hello world!", 10, 10);
-  doc.save("example.pdf");
-</script>
-
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.es.min.js" type="module"></script>
 		>>>>>> I'm now just referencing these as modules from main
 	<script src="js/util.js?ver=2.019"></script>
