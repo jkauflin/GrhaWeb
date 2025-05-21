@@ -72,12 +72,13 @@ a:active {
 }
 */
 
+/*
 @media print {
     body * {
-        display: none; /* Hide everything */
+        display: none; 
     }
     #printArea, #printArea * {
-        display: block; /* Ensure print area is visible */
+        display: block; 
     }
     #printArea {
         position: absolute;
@@ -86,4 +87,4 @@ a:active {
         width: 100%;
     }
 }
-
+*/

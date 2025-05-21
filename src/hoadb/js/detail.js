@@ -42,7 +42,7 @@
  * 2025-05-16 JJK   Working on DuesStatement functions (and PDF)
  *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse,formatMoney,setTD,setCheckbox} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
 //import {init,addPage,formatYearlyDuesStatement,yearlyDuesStatementAddLine,duesStatementAddLine} from './pdfModule.js'
 
 //=================================================================================================================
@@ -82,8 +82,6 @@ var PropertyUpdateButton = document.getElementById("PropertyUpdateButton")
 
 var propertyOwnersTbody = document.getElementById("PropertyOwnersTbody")
 var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody")
-
-var duesStatementDownloadLinks = document.getElementById("DuesStatementDownloadLinks")
 
 
 //var duesPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("DuesPageNavLink"))
@@ -282,7 +280,6 @@ function displayDetail(hoaRec) {
     }
 
     tbody = propertyAssessmentsTbody
-    var TaxYear = ''
     let lienButton = ''
     let buttonColor = ''
     var ButtonType = ''
@@ -310,10 +307,6 @@ function displayDetail(hoaRec) {
         lienButton = ''
         ButtonType = ''
 
-        if (index == 0) {
-            //TaxYear = assessmentRec.DateDue.substring(0, 4)
-        }
-
         tr = document.createElement('tr')
         tr.classList.add('small')
 
@@ -328,10 +321,8 @@ function displayDetail(hoaRec) {
         td.appendChild(a);
         tr.appendChild(td)
 
-
         //td = document.createElement("td"); td.textContent = formatMoney(assessmentRec.duesAmt); tr.appendChild(td)
         tr.appendChild(setTD("money",assessmentRec.duesAmt))
-
 
         td = document.createElement("td")
         if (assessmentRec.lien) {
@@ -469,95 +460,43 @@ function displayDetail(hoaRec) {
     */
 }
 
-    // >>>>>>>>>>>> These are from what I did for the Public web - see if it's the same for HOADB???????????????????????????????????
-    /*
-    function createDuesStatement(event) {
-        //console.log("create dues statement, parcel = " + event.target.getAttribute("data-parcelId") + ", owner = " + event.target.getAttribute("data-ownerId"));
-        $.getJSON("getHoaDbData.php", "parcelId=" + event.target.getAttribute("data-parcelId") + "&ownerId=" + event.target.getAttribute("data-ownerId"), function (hoaRec) {
-            formatDuesStatementResults(hoaRec);
-            $DuesStatementPage.modal();
-        });
-    };
-    */
 
 async function getDuesStatement(parcelId) {
-
-        // Clear out the display tables for Owner and Assessment lists
-        //empty(propertyOwnersTbody)
-
-        showLoadingSpinner(messageDisplay)
-        //detailPageTab.show()
-
-        //let parcelId = event.target.getAttribute("data-parcelId")
-        //console.log("in getDuesStatement, parcelId = "+parcelId)
-
-        try {
-            const response = await fetch("/api/GetHoaRec", {
-                method: "POST",
-                headers: { "Content-Type": "text/plain" },
-                body: parcelId
-            })
-            await checkFetchResponse(response)
-            // Success
-            //hoaRec = await response.json();
-            let hoaRec = await response.json();
-            messageDisplay.textContent = ""
-            formatDuesStatementResults(hoaRec);
-            new bootstrap.Modal(document.getElementById('duesStatementModal')).show();
-
-        } catch (err) {
-            console.error(err)
-            messageDisplay.textContent = `Error in Fetch: ${err.message}`
-        }
+    showLoadingSpinner(messageDisplay)
+    try {
+        const response = await fetch("/api/GetHoaRec", {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: parcelId
+        })
+        await checkFetchResponse(response)
+        // Success
+        let hoaRec = await response.json();
+        messageDisplay.textContent = ""
+        formatDuesStatementResults(hoaRec);
+        new bootstrap.Modal(document.getElementById('duesStatementModal')).show();
+    } catch (err) {
+        console.error(err)
+        messageDisplay.textContent = `Error in Fetch: ${err.message}`
+    }
 }
-
-//function downloadDuesStatement(event) {
-    //currPdfRec.pdf.save(util.formatDate() + "-" + event.target.getAttribute("data-pdfName") + ".pdf");
-//    currPdfRec.pdf.save(util.formatDate() + "-" + event.target.dataset.pdfName + ".pdf")
-//}
 
 function formatDuesStatementResults(hoaRec) {
     let ownerRec = hoaRec.ownersList[0];
     let duesStatementPropertyTable = document.getElementById("DuesStatementPropertyTable")
     let payDues = document.getElementById("PayDues")
-    let payDuesInstructions = document.getElementById("PayDuesInstructions")        
+    let payDuesInstructions = document.getElementById("PayDuesInstructions")      
+    let DuesStatementNotes = document.getElementById("DuesStatementNotes")      
+    let DuesStatementDate = document.getElementById("DuesStatementDate")      
+    
     empty(payDues)
     empty(payDuesInstructions)
+    empty(DuesStatementNotes)
+    empty(DuesStatementDate)
     let tbody = duesStatementPropertyTable.getElementsByTagName("tbody")[0]
     empty(tbody)
-    empty(duesStatementDownloadLinks)
 
-    // Initialize the PDF object
-    //currPdfRec = init(hoaRec.hoaNameShort + ' Dues Statement');
-
-    if (hoaRec.duesStatementNotes != null) {
-        if (hoaRec.duesStatementNotes.length > 0) {
-            //currPdfRec.lineColIncrArray = [1.4];
-            //currPdfRec = duesStatementAddLine(currPdfRec,[hoaRec.duesStatementNotes], null);
-            //currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
-        }
-    }
-
-    /*
-    var pdfLineHeaderArray = [
-        'Parcel Id',
-        'Lot No',
-        'Location',
-        'Owner and Alt Address',
-        'Phone'];
-    currPdfRec.lineColIncrArray = [0.6, 1.4, 0.8, 2.2, 1.9];
-
-    currPdfRec = duesStatementAddLine(currPdfRec,[hoaRec.Parcel_ID, hoaRec.LotNo, hoaRec.Parcel_Location, 
-        ownerRec.Mailing_Name,ownerRec.Owner_Phone], pdfLineHeaderArray);
-
-    if (hoaRec.ownersList[0].AlternateMailing) {
-        currPdfRec = duesStatementAddLine(currPdfRec,['', '', '', ownerRec.Alt_Address_Line1, ''], null);
-        if (ownerRec.Alt_Address_Line2 != '') {
-            currPdfRec = duesStatementAddLine(currPdfRec,['', '', '', ownerRec.Alt_Address_Line2, ''], null);
-        }
-        currPdfRec = duesStatementAddLine(currPdfRec,['', '', '', ownerRec.Alt_City + ', ' + ownerRec.Alt_State + ' ' + ownerRec.Alt_Zip, ''], null);
-    }
-    */
+    DuesStatementDate.textContent = formatDate()
 
     let tr = document.createElement('tr')
     let th = document.createElement("th"); th.textContent = "Parcel Id: "; tr.appendChild(th)
@@ -578,7 +517,7 @@ function formatDuesStatementResults(hoaRec) {
     tbody.appendChild(tr)
     tr = document.createElement('tr')
     th = document.createElement("th"); th.textContent = "Owner Name: "; tr.appendChild(th)
-    td = document.createElement("td"); td.textContent = ownerRec.Owner_Name1 + ' ' + ownerRec.Owner_Name2 
+    td = document.createElement("td"); td.textContent = ownerRec.owner_Name1 + ' ' + ownerRec.owner_Name2
     tr.appendChild(td)
     tbody.appendChild(tr)
 
@@ -590,25 +529,16 @@ function formatDuesStatementResults(hoaRec) {
     tr.appendChild(td)
     tbody.appendChild(tr)
     
-    //var tempDuesAmt = formatMoney(hoaRec.assessmentsList[0].duesAmt);
-
     // If enabled, payment button and instructions will have values, else they will be blank if online payment is not allowed
     if (hoaRec.totalDue > 0) {
         payDuesInstructions.classList.add("mb-3")
         payDuesInstructions.innerHTML = hoaRec.paymentInstructions
+        if (hoaRec.duesStatementNotes != null) {
+            if (hoaRec.duesStatementNotes.length > 0) {
+                DuesStatementNotes.textContent = hoaRec.duesStatementNotes
+            }
+        }
     }
-
-    /*
-        duesStatementDownloadLinks.append(
-            $('<a>').prop('id', 'DownloadDuesStatement')
-                .attr('href', '#')
-                .attr('class', "btn btn-danger ml-1")
-                .attr('data-pdfName', 'DuesStatement')
-                .html('PDF'));
-    */
-    //currPdfRec.lineColIncrArray = [0.6, 4.2, 0.5];
-    //currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
-
 
     let duesStatementCalculationTable = document.getElementById("DuesStatementCalculationTable")
     tbody = duesStatementCalculationTable.getElementsByTagName("tbody")[0]
@@ -624,8 +554,6 @@ function formatDuesStatementResults(hoaRec) {
             td = document.createElement("td"); td.style.textAlign = "right";
             td.textContent = parseFloat('' + rec.calcValue).toFixed(2); tr.appendChild(td)
             tbody.appendChild(tr)
-
-            //currPdfRec = duesStatementAddLine(currPdfRec,[rec.calcDesc, '$', parseFloat('' + rec.calcValue).toFixed(2)], null);
         }
     }
     
@@ -635,7 +563,6 @@ function formatDuesStatementResults(hoaRec) {
     td = document.createElement("td"); td.style.textAlign = "right";
     td.textContent = parseFloat('' + hoaRec.totalDue).toFixed(2) ; tr.appendChild(td)
     tbody.appendChild(tr)
-    //currPdfRec = duesStatementAddLine(currPdfRec,['Total Due:', '$', parseFloat('' + hoaRec.TotalDue).toFixed(2)], null);
     
     tr = document.createElement('tr')
     td = document.createElement("td"); td.textContent = hoaRec.assessmentsList[0].lienComment; tr.appendChild(td)
@@ -643,9 +570,6 @@ function formatDuesStatementResults(hoaRec) {
     td = document.createElement("td"); td.style.textAlign = "right"; td.textContent = ''; tr.appendChild(td)
     tbody.appendChild(tr)
 
-    //currPdfRec = duesStatementAddLine(currPdfRec,[hoaRec.assessmentsList[0].LienComment, '', ''], null);
-    //currPdfRec = duesStatementAddLine(currPdfRec,[''], null);
-    
     let duesStatementAssessmentsTable = document.getElementById("DuesStatementAssessmentsTable")
     tbody = duesStatementAssessmentsTable.getElementsByTagName("tbody")[0]
     empty(tbody)
@@ -660,20 +584,6 @@ function formatDuesStatementResults(hoaRec) {
         th = document.createElement("th"); th.textContent = 'Non-Collectible'; tr.appendChild(th)
         th = document.createElement("th"); th.textContent = 'Date Paid'; tr.appendChild(th)
         tbody.appendChild(tr)
-
-        /*
-        pdfLineHeaderArray = null;
-        pdfLineHeaderArray = [
-            'Year',
-            'Dues Amt',
-            'Date Due',
-            'Paid',
-            'Non-Collectible',
-            'Date Paid'];
-        currPdfRec.lineColIncrArray = [0.6, 0.8, 1.0, 1.7, 0.8, 1.5];
-        */
-
-        //TaxYear = rec.DateDue.substring(0, 4);
 
         let tempDuesAmt = '';
         let maxPaymentHistoryLines = 6;
@@ -693,57 +603,13 @@ function formatDuesStatementResults(hoaRec) {
                 //td = document.createElement("td"); td.textContent = rec.DatePaid.substring(0, 10); tr.appendChild(td)
                 td = document.createElement("td"); td.textContent = rec.datePaid; tr.appendChild(td)
                 tbody.appendChild(tr)
-                
-                //currPdfRec = duesStatementAddLine(currPdfRec,[rec.FY, rec.DuesAmt, rec.DateDue, util.setBoolText(rec.Paid), util.setBoolText(rec.NonCollectible), rec.DatePaid], pdfLineHeaderArray);
             }
         }
     }
     
 } // End of function formatDuesStatementResults(hoaRec){
 
-
-        /*
-        if (hoaPropertyRecList == null || hoaPropertyRecList.length == 0) {
-            let tr = document.createElement('tr')
-            tr.textContent = "No records found - try different search parameters"
-            tbody.appendChild(tr)
-        } else {
-            let tr = document.createElement('tr')
-            tr.classList.add('small')
-            // Append the header elements
-            let th = document.createElement("th"); th.textContent = "Row"; tr.appendChild(th)
-            th = document.createElement("th"); th.textContent = "Parcel Location"; tr.appendChild(th)
-            th = document.createElement("th"); th.classList.add('d-none','d-sm-table-cell'); th.textContent = "Parcel Id"; tr.appendChild(th)
-            th = document.createElement("th"); th.classList.add('d-none','d-lg-table-cell'); th.textContent = "Owner Name"; tr.appendChild(th)
-            th = document.createElement("th"); th.classList.add('d-none','d-lg-table-cell'); th.textContent = "Owner Phone"; tr.appendChild(th)
-            tbody.appendChild(tr)
-
-            // Append a row for every record in list
-            for (let index in hoaPropertyRecList) {
-                let hoaPropertyRec = hoaPropertyRecList[index]
-
-                tr = document.createElement('tr')
-                tr.classList.add('small')
-                let td = document.createElement("td"); td.textContent = Number(index) + 1; tr.appendChild(td)
-
-                let a = document.createElement("a")
-                a.classList.add('class', "DetailDisplay")
-                a.setAttribute('data-parcelId', hoaPropertyRec.parcelId);
-                a.textContent = hoaPropertyRec.parcelLocation
-                td = document.createElement("td"); 
-                td.appendChild(a);
-                tr.appendChild(td)
-
-                td = document.createElement("td"); td.classList.add('d-none','d-sm-table-cell'); td.textContent = hoaPropertyRec.parcelId; tr.appendChild(td)
-                td = document.createElement("td"); td.classList.add('d-none','d-lg-table-cell'); td.textContent = hoaPropertyRec.ownerName; tr.appendChild(td)
-                td = document.createElement("td"); td.classList.add('d-none','d-lg-table-cell'); td.textContent = hoaPropertyRec.ownerPhone; tr.appendChild(td)
-                tbody.appendChild(tr)
-            }
-        }
-        */
-
 var DuesStatementContent = document.getElementById("DuesStatementContent")
-
 var PrintModalButton = document.getElementById("PrintModalButton")
 PrintModalButton.addEventListener("click", function () {
     printModal()
@@ -752,17 +618,9 @@ PrintModalButton.addEventListener("click", function () {
 function printModal() {
     // Get modal content
     let modalContent = DuesStatementContent.innerHTML;
-
     // Populate hidden div
     let printArea = document.getElementById("printArea");
     printArea.innerHTML = modalContent;
-
-    // Temporarily show print area
-    printArea.style.display = "block";
-
     // Trigger print
     window.print();
-
-    // Hide print area after print
-    printArea.style.display = "none";
 }
