@@ -40,10 +40,10 @@
  * 2024-11-30 JJK   Added showLoadingSpinner for loading... display
  * 2025-05-14 JJK   Added checkFetchResponse for Fetch
  * 2025-05-16 JJK   Working on DuesStatement functions (and PDF)
+ * 2025-05-20 JJK   Got rid of PDF and did a Print of the modal contents
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
-//import {init,addPage,formatYearlyDuesStatement,yearlyDuesStatementAddLine,duesStatementAddLine} from './pdfModule.js'
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -58,8 +58,6 @@ var isTouchDevice = 'ontouchstart' in document.documentElement
 //var hoaRec    5/16/2025 - comment out and see where we really need a global at this level, and can we do something different
 //var currPdfRec
 
-//var MCTreasLink = document.getElementById("MCTreasLink")
-//var MCAuditorLink = document.getElementById("MCAuditorLink")
 var DuesStatementButton = document.getElementById("DuesStatementButton")
 var NewOwnerButton = document.getElementById("NewOwnerButton")
 var CommunicationsButton = document.getElementById("CommunicationsButton")
