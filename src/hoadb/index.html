@@ -103,40 +103,49 @@
 
     					<div class="col-xs-7 col-sm-7">
 	                		<h5 class="mt-2">Property Detail</h5>
+							<form id="UpdatePropertyForm" class="needs-validation" novalidate>
 
-	                		<table class="table table-sm table-borderless">
-								<tbody>
-									<tr class="small"><th>Parcel Id:</th><td id="Parcel_ID"></td></tr>
-									<tr class="small"><th>Lot No:</th><td id="LotNo"></td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">Street No: </th><td id="Property_Street_No" class="d-none d-md-table-cell"></td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">Street Name: </th><td id="Property_Street_Name" class="d-none d-md-table-cell"></td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">City: </th><td id="Property_City" class="d-none d-md-table-cell"></td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">State: </th><td id="Property_State" class="d-none d-md-table-cell"></td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">Zip Code: </th><td id="Property_Zip" class="d-none d-md-table-cell"></td></tr>
-									<tr class="small"><th>Total Due: </th><td id="TotalDue"></td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">Rental: </th><td class="d-none d-md-table-cell">
-										<input id="Rental" type="checkbox" class="form-check-input shadow-none">
-									</td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">Managed: </th><td class="d-none d-md-table-cell">
-										<input id="Managed" type="checkbox" class="form-check-input shadow-none">
-									</td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">Foreclosure: </th><td class="d-none d-md-table-cell">
-										<input id="Foreclosure" type="checkbox" class="form-check-input shadow-none">
-									</td></tr>
-									<tr class="small"><th class="d-none d-md-table-cell">Bankruptcy: </th><td class="d-none d-md-table-cell">
-										<input id="Bankruptcy" type="checkbox" class="form-check-input shadow-none">
-									</td></tr>
-									<tr  class="small"><th>Use Email: </th><td>
-										<input id="UseEmail" class="form-check-input shadow-none" type="checkbox">
-									</td></tr>
-									<tr  class="small"><th>Comments: </th><td>
-										<textarea id="Comments" class="form-control shadow-none" rows="2"></textarea>
-									</td></tr>
-	                  			</tbody>
-	                		</table>
-							<button id="PropertyUpdateButton" type="button" class="btn btn-success">
-								<i class="fa fa-floppy-o me-1"></i> Save
-							</button>
+								
+
+								<table class="table table-sm table-borderless">
+									<tbody>
+										<!--
+										<tr class="small"><th>Parcel Id:</th><td id="Parcel_ID" name="Parcel_ID"></td></tr>
+										-->
+										<tr class="small"><th>Parcel Id:</th><td><input id="Parcel_ID" name="Parcel_ID" type="text" readonly></td></tr>
+										<tr class="small"><th>Lot No:</th><td id="LotNo"></td></tr>
+										<tr class="small"><th class="d-none d-md-table-cell">Street No: </th><td id="Property_Street_No" class="d-none d-md-table-cell"></td></tr>
+										<tr class="small"><th class="d-none d-md-table-cell">Street Name: </th><td id="Property_Street_Name" class="d-none d-md-table-cell"></td></tr>
+										<tr class="small"><th class="d-none d-md-table-cell">City: </th><td id="Property_City" class="d-none d-md-table-cell"></td></tr>
+										<tr class="small"><th class="d-none d-md-table-cell">State: </th><td id="Property_State" class="d-none d-md-table-cell"></td></tr>
+										<tr class="small"><th class="d-none d-md-table-cell">Zip Code: </th><td id="Property_Zip" class="d-none d-md-table-cell"></td></tr>
+										<tr class="small"><th>Total Due: </th><td id="TotalDue"></td></tr>
+										<tr class="small"><th class="d-none d-md-table-cell">Rental: </th><td class="d-none d-md-table-cell">
+											<input id="Rental" name="Rental" type="checkbox" class="form-check-input shadow-none">
+										</td></tr>
+										<tr class="small"><th class="d-none d-md-table-cell">Managed: </th><td class="d-none d-md-table-cell">
+											<input id="Managed" name="Managed" type="checkbox" class="form-check-input shadow-none">
+										</td></tr>
+										<tr class="small"><th class="d-none d-md-table-cell">Foreclosure: </th><td class="d-none d-md-table-cell">
+											<input id="Foreclosure" name="Foreclosure" type="checkbox" class="form-check-input shadow-none">
+										</td></tr>
+										<tr class="small"><th class="d-none d-md-table-cell">Bankruptcy: </th><td class="d-none d-md-table-cell">
+											<input id="Bankruptcy" name="Bankruptcy" type="checkbox" class="form-check-input shadow-none">
+										</td></tr>
+										<tr  class="small"><th>Use Email: </th><td>
+											<input id="UseEmail" name="UseEmail" class="form-check-input shadow-none" type="checkbox">
+										</td></tr>
+										<tr  class="small"><th>Comments: </th><td>
+											<textarea id="Comments" name="Comments" class="form-control shadow-none" rows="2"></textarea>
+										</td></tr>
+									</tbody>
+								</table>
+
+								<button type="submit" class="btn btn-success m-2">
+									<i class="fa fa-floppy-o me-1"></i> Save Property
+								</button>
+								<div id="UpdatePropertyMessageDisplay" class="m-2"></div>
+							</form>
 						</div>
 
 		        	</div><!-- row -->

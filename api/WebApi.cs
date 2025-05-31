@@ -25,6 +25,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Mvc;     // for IActionResult
 using Newtonsoft.Json.Linq;
 
+using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Net.Http.Headers;
+
 using GrhaWeb.Function.Model;
 
 namespace GrhaWeb.Function
@@ -46,7 +49,7 @@ namespace GrhaWeb.Function
             authCheck = new AuthorizationCheck(log);
             userAdminRole = "hoadbadmin";   // add to config ???
             util = new CommonUtil(log);
-            hoaDbCommon = new HoaDbCommon(log,config);
+            hoaDbCommon = new HoaDbCommon(log, config);
         }
 
         [Function("GetPropertyList")]
@@ -98,7 +101,7 @@ namespace GrhaWeb.Function
                 log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
-            
+
             return new OkObjectResult(hoaPropertyList);
         }
 
@@ -159,7 +162,7 @@ namespace GrhaWeb.Function
                 */
 
                 hoaRec = await hoaDbCommon.GetHoaRec(parcelId);
-                
+
 
             }
             catch (Exception ex)
@@ -167,12 +170,74 @@ namespace GrhaWeb.Function
                 log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
-            
+
             return new OkObjectResult(hoaRec);
         }
 
 
-    } // public static class WebApi
+        [Function("UpdateProperty")]
+        public async Task<IActionResult> UpdateProperty(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            string returnMessage = "";
+            try
+            {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+                //log.LogInformation($">>> User is authorized - userName: {userName}");
 
+                // Get content from the Request BODY
+                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
+                var reader = new MultipartReader(boundary, req.Body);
+                var section = await reader.ReadNextSectionAsync();
+
+                var formFields = new Dictionary<string, string>();
+                var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                while (section != null)
+                {
+                    var contentDisposition = section.GetContentDispositionHeader();
+                    if (contentDisposition != null)
+                    {
+                        if (contentDisposition.IsFileDisposition())
+                        {
+                            using var memoryStream = new MemoryStream();
+                            await section.Body.CopyToAsync(memoryStream);
+                            files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
+                        }
+                        else if (contentDisposition.IsFormDisposition())
+                        {
+                            using var streamReader = new StreamReader(section.Body);
+                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                        }
+                    }
+
+                    section = await reader.ReadNextSectionAsync();
+                }
+
+                /*
+                foreach (var field in formFields)
+                {
+                    log.LogWarning($"Field {field.Key}: {field.Value}");
+                }
+                */
+                await hoaDbCommon.UpdatePropertyDB(userName,formFields);
+
+                returnMessage = "Property was updated";
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult("Error in update of Property - check log");
+            }
+            
+            return new OkObjectResult(returnMessage);
+        }
+
+
+    } // public static class WebApi
 }
 

@@ -1,5 +1,5 @@
 /*==============================================================================
- * (C) Copyright 2015,2016,2017,2018,2024 John J Kauflin, All rights reserved. 
+ * (C) Copyright 2015,2016,2017,2025 John J Kauflin, All rights reserved. 
  *----------------------------------------------------------------------------
  * DESCRIPTION:  JS code to support the web app Detail display functions
  *----------------------------------------------------------------------------
@@ -82,74 +82,58 @@ var propertyOwnersTbody = document.getElementById("PropertyOwnersTbody")
 var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody")
 
 
-//var duesPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("DuesPageNavLink"))
-//var duesLinkTile = document.getElementById("DuesLinkTile");
-/*
-document.body.addEventListener("click", function (event) {
-    if (event.target && event.target.classList.contains("DuesStatement")) {
-        getDuesStatement(event.target);
-    }
-})
-*/
-
-
-/*
-lastChangedBy
-: 
-"president"
-lastChangedTs
-: 
-"2016-08-19T21:41:50"
-*/
-
-/*
-var $editValidationError = $(".editValidationError");
-
-var $EditPage = $("#EditPage");
-var $EditTable = $("#EditTable");
-var $EditTableBody = $EditTable.find("tbody");
-var $EditPageHeader = $("#EditPageHeader");
-var $EditPageButton = $("#EditPageButton");
-
-var $EditPage2Col = $("#EditPage2Col");
-var $EditTable2Col = $("#EditTable2Col");
-var $EditTable2ColBody = $EditTable2Col.find("tbody");
-var $EditTable2Col2 = $("#EditTable2Col2");
-var $EditTable2Col2Body = $EditTable2Col2.find("tbody");
-var $EditPage2ColHeader = $("#EditPage2ColHeader");
-var $EditPage2ColButton = $("#EditPage2ColButton");
-
-//var $DuesStatementButton = $document.find("#DuesStatementButton");
-//var $DownloadDuesStatement = $document.find("#DownloadDuesStatement");
-var $DuesStatementPage = $document.find("#DuesStatementPage");
-var $DuesStatementPropertyTable = $("#DuesStatementPropertyTable tbody");
-var $DuesStatementAssessmentsTable = $("#DuesStatementAssessmentsTable tbody");
-*/
-
-/*
-$document.on("click", "#PropertyListDisplay tr td a", getHoaRec);
-$document.on("click", ".DetailDisplay", getHoaRec);
-
-$moduleDiv.on("click", "#PropertyDetail tr td a", _editProperty);
-$EditPage.on("click", "#SavePropertyEdit", _savePropertyEdit);
-$moduleDiv.on("click", "#PropertyOwners tr td a", _editOwner);
-$EditPage2Col.on("click", "#SaveOwnerEdit", _saveOwnerEdit);
-$moduleDiv.on("click", "#NewOwnerButton", _newOwner);
-$moduleDiv.on("click", "#PropertyAssessments tr td a", _editAssessment);
-$EditPage2Col.on("click", "#SaveAssessmentEdit", _saveAssessmentEdit);
-$document.on("click", ".SalesNewOwnerProcess", _salesNewOwnerProcess);
-
-$document.on("click", "#DuesStatementButton", createDuesStatement);
-$document.on("click", "#DownloadDuesStatement", downloadDuesStatement);
-*/
-
-
 //=================================================================================================================
 // Bind events
 
 DuesStatementButton.addEventListener("click", function () {
     getDuesStatement(this.dataset.parcelId)
 })
+
+
+document.querySelectorAll('.form-control').forEach(input => {
+    input.addEventListener('input', () => {
+        if (input.checkValidity()) {
+          input.classList.add('is-valid')
+          input.classList.remove('is-invalid')
+        } else {
+          input.classList.add('is-invalid')
+          input.classList.remove('is-valid')
+        }
+    })
+})
+
+
+var UpdatePropertyMessageDisplay = document.getElementById("UpdatePropertyMessageDisplay")
+var UpdatePropertyForm = document.getElementById("UpdatePropertyForm")
+UpdatePropertyForm.addEventListener('submit', (event) => {
+    let formValid = UpdatePropertyForm.checkValidity()
+    event.preventDefault()
+    event.stopPropagation()
+    UpdatePropertyMessageDisplay.textContent = ""
+    if (!formValid) {
+        UpdatePropertyMessageDisplay.textContent = "Form inputs are NOT valid"
+    } else {
+        updateProperty()
+    }
+    UpdatePropertyForm.classList.add('was-validated')
+})
+
+// Handle the file upload backend server call
+async function updateProperty() {
+    UpdatePropertyMessageDisplay.textContent = "Updating Property..."
+    try {
+        const response = await fetch("/api/UpdateProperty", {
+            method: "POST",
+            body: new FormData(UpdatePropertyForm)
+        })
+        await checkFetchResponse(response)
+        // Success
+        UpdatePropertyMessageDisplay.textContent = await response.text();
+    } catch (err) {
+        console.error(err)
+        UpdatePropertyMessageDisplay.textContent = `Error in Fetch: ${err.message}`
+    }
+}
 
 
 // Respond to any clicks in the document and check for specific classes to respond to
@@ -167,7 +151,8 @@ document.body.addEventListener('click', function (event) {
 
 async function getHoaRec(parcelId) {
     // Clear out the property detail display fields
-    Parcel_ID.textContent = ""
+    //Parcel_ID.textContent = ""
+    Parcel_ID.value = ""
     LotNo.textContent = ""
     Property_Street_No.textContent = ""
     Property_Street_Name.textContent = ""
@@ -216,7 +201,8 @@ function displayDetail(hoaRec) {
     let td = ''
     let tbody = ''
 
-    Parcel_ID.textContent = hoaRec.property.parcel_ID
+    //Parcel_ID.textContent = hoaRec.property.parcel_ID
+    Parcel_ID.value = hoaRec.property.parcel_ID
     LotNo.textContent = hoaRec.property.lotNo
     Property_Street_No.textContent = hoaRec.property.property_Street_No
     Property_Street_Name.textContent = hoaRec.property.property_Street_Name

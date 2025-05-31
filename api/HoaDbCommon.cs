@@ -14,6 +14,7 @@ Modification History
 2025-05-08 JJK  Added function to convert images and upload to 
 2025-05-14 JJK  Added calc of DuesDue in the assessments record
 2025-05=16 JJK  Working on DuesStatement (and PDF)
+2025-05-31 JJK  Added AddPatchField and functions to update hoadb property
 ================================================================================*/
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,7 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 using GrhaWeb.Function.Model;
+using Microsoft.Extensions.WebEncoders.Testing;
 
 namespace GrhaWeb.Function
 {
@@ -48,7 +50,8 @@ namespace GrhaWeb.Function
         }
 
         // Common internal function to lookup configuration values
-        private async Task<string> getConfigVal(Container container, string configName) {
+        private async Task<string> getConfigVal(Container container, string configName)
+        {
             string configVal = "";
             string sql = $"SELECT * FROM c WHERE c.ConfigName = '{configName}' ";
             var feed = container.GetItemQueryIterator<hoa_config>(sql);
@@ -68,12 +71,12 @@ namespace GrhaWeb.Function
             // Construct the query from the parameters
             searchStr = searchStr.Trim().ToUpper();
             string sql = $"SELECT * FROM c WHERE "
-                        +$"CONTAINS(UPPER(c.Parcel_ID),'{searchStr}') "
-                        +$"OR CONTAINS(UPPER(c.LotNo),'{searchStr}') "
-                        +$"OR CONTAINS(UPPER(c.Parcel_Location),'{searchStr}') "
-                        +$"OR CONTAINS(UPPER(CONCAT(c.Owner_Name1,' ',c.Owner_Name2,' ',c.Mailing_Name)),'{searchStr}') "
-                        +$"ORDER BY c.id";
-    
+                        + $"CONTAINS(UPPER(c.Parcel_ID),'{searchStr}') "
+                        + $"OR CONTAINS(UPPER(c.LotNo),'{searchStr}') "
+                        + $"OR CONTAINS(UPPER(c.Parcel_Location),'{searchStr}') "
+                        + $"OR CONTAINS(UPPER(CONCAT(c.Owner_Name1,' ',c.Owner_Name2,' ',c.Mailing_Name)),'{searchStr}') "
+                        + $"ORDER BY c.id";
+
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
             //------------------------------------------------------------------------------------------------------------------
@@ -81,29 +84,29 @@ namespace GrhaWeb.Function
             List<HoaProperty> hoaPropertyList = new List<HoaProperty>();
             HoaProperty hoaProperty = new HoaProperty();
 
-                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
-                Database db = cosmosClient.GetDatabase(databaseId);
-                Container container = db.GetContainer(containerId);
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
 
-                var feed = container.GetItemQueryIterator<hoa_properties>(sql);
-                int cnt = 0;
-                while (feed.HasMoreResults)
+            var feed = container.GetItemQueryIterator<hoa_properties>(sql);
+            int cnt = 0;
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
                 {
-                    var response = await feed.ReadNextAsync();
-                    foreach (var item in response)
-                    {
-                        cnt++;
-                        hoaProperty = new HoaProperty();
-                        hoaProperty.parcelId = item.Parcel_ID;
-                        hoaProperty.lotNo = item.LotNo;
-                        hoaProperty.subDivParcel = item.SubDivParcel;
-                        hoaProperty.parcelLocation = item.Parcel_Location;
-                        hoaProperty.ownerName = item.Owner_Name1 + " " + item.Owner_Name2;
-                        hoaProperty.ownerPhone = item.Owner_Phone;
-                        hoaPropertyList.Add(hoaProperty);
-                    }
+                    cnt++;
+                    hoaProperty = new HoaProperty();
+                    hoaProperty.parcelId = item.Parcel_ID;
+                    hoaProperty.lotNo = item.LotNo;
+                    hoaProperty.subDivParcel = item.SubDivParcel;
+                    hoaProperty.parcelLocation = item.Parcel_Location;
+                    hoaProperty.ownerName = item.Owner_Name1 + " " + item.Owner_Name2;
+                    hoaProperty.ownerPhone = item.Owner_Phone;
+                    hoaPropertyList.Add(hoaProperty);
                 }
-            
+            }
+
             return hoaPropertyList;
         }
 
@@ -119,36 +122,39 @@ namespace GrhaWeb.Function
 
             HoaProperty2 hoaProperty2 = new HoaProperty2();
 
-                //var mySetting = _configuration["MY_ENV_VARIABLE"];
-                CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
-                Database db = cosmosClient.GetDatabase(databaseId);
-                Container container = db.GetContainer(containerId);
+            //var mySetting = _configuration["MY_ENV_VARIABLE"];
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
 
-                // Get the existing document from Cosmos DB
-                string sql = $"";
-                if (searchAddress.Equals("")) {
-                    sql = $"SELECT * FROM c ORDER BY c.id";
-                } else {
-                    sql = $"SELECT * FROM c WHERE CONTAINS(UPPER(c.Parcel_Location),'{searchAddress.Trim().ToUpper()}') ORDER BY c.id";
-                }
+            // Get the existing document from Cosmos DB
+            string sql = $"";
+            if (searchAddress.Equals(""))
+            {
+                sql = $"SELECT * FROM c ORDER BY c.id";
+            }
+            else
+            {
+                sql = $"SELECT * FROM c WHERE CONTAINS(UPPER(c.Parcel_Location),'{searchAddress.Trim().ToUpper()}') ORDER BY c.id";
+            }
 
-                var feed = container.GetItemQueryIterator<hoa_properties2>(sql);
-                int cnt = 0;
-                while (feed.HasMoreResults)
+            var feed = container.GetItemQueryIterator<hoa_properties2>(sql);
+            int cnt = 0;
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
                 {
-                    var response = await feed.ReadNextAsync();
-                    foreach (var item in response)
-                    {
-                        cnt++;
-                        //log.LogInformation($"{cnt}  Name: {mediaPeople.PeopleName}");
-                        hoaProperty2= new HoaProperty2();
-                        hoaProperty2.parcelId = item.Parcel_ID;
-                        hoaProperty2.lotNo = item.LotNo;
-                        hoaProperty2.subDivParcel = item.SubDivParcel;
-                        hoaProperty2.parcelLocation = item.Parcel_Location;
-                        hoaProperty2List.Add(hoaProperty2);
-                    }
+                    cnt++;
+                    //log.LogInformation($"{cnt}  Name: {mediaPeople.PeopleName}");
+                    hoaProperty2 = new HoaProperty2();
+                    hoaProperty2.parcelId = item.Parcel_ID;
+                    hoaProperty2.lotNo = item.LotNo;
+                    hoaProperty2.subDivParcel = item.SubDivParcel;
+                    hoaProperty2.parcelLocation = item.Parcel_Location;
+                    hoaProperty2List.Add(hoaProperty2);
                 }
+            }
 
             return hoaProperty2List;
         }
@@ -164,12 +170,12 @@ namespace GrhaWeb.Function
             //------------------------------------------------------------------------------------------------------------------
             string containerId = "hoa_properties";
             string sql = $"";
-            
+
             HoaRec hoaRec = new HoaRec();
             hoaRec.totalDue = 0.00m;
             hoaRec.paymentInstructions = "";
             hoaRec.paymentFee = 0.00m;
-	        hoaRec.duesEmailAddr = "";
+            hoaRec.duesEmailAddr = "";
 
             hoaRec.ownersList = new List<hoa_owners>();
             hoaRec.assessmentsList = new List<hoa_assessments>();
@@ -191,191 +197,191 @@ namespace GrhaWeb.Function
                 "SELECT * FROM c WHERE c.id = @parcelId ")
                     .WithParameter("@parcelId", parcelId);
 
-                var feed = container.GetItemQueryIterator<hoa_properties>(queryDefinition);
-                int cnt = 0;
-                while (feed.HasMoreResults)
+            var feed = container.GetItemQueryIterator<hoa_properties>(queryDefinition);
+            int cnt = 0;
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
                 {
-                    var response = await feed.ReadNextAsync();
-                    foreach (var item in response)
-                    {
-                        cnt++;
-                        hoaRec.property = item;
-                    }
+                    cnt++;
+                    hoaRec.property = item;
                 }
+            }
 
-                //----------------------------------- Owners ----------------------------------------------------------
-                containerId = "hoa_owners";
-                Container ownersContainer = db.GetContainer(containerId);
-                if (!ownerId.Equals(""))
+            //----------------------------------- Owners ----------------------------------------------------------
+            containerId = "hoa_owners";
+            Container ownersContainer = db.GetContainer(containerId);
+            if (!ownerId.Equals(""))
+            {
+                sql = $"SELECT * FROM c WHERE c.id = '{ownerId}' AND c.Parcel_ID = '{parcelId}' ";
+            }
+            else
+            {
+                sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' ORDER BY c.OwnerID DESC ";
+            }
+            var ownersFeed = ownersContainer.GetItemQueryIterator<hoa_owners>(sql);
+            cnt = 0;
+            while (ownersFeed.HasMoreResults)
+            {
+                var response = await ownersFeed.ReadNextAsync();
+                foreach (var item in response)
                 {
-                    sql = $"SELECT * FROM c WHERE c.id = '{ownerId}' AND c.Parcel_ID = '{parcelId}' ";
-                }
-                else
-                {
-                    sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' ORDER BY c.OwnerID DESC ";
-                }
-                var ownersFeed = ownersContainer.GetItemQueryIterator<hoa_owners>(sql);
-                cnt = 0;
-                while (ownersFeed.HasMoreResults)
-                {
-                    var response = await ownersFeed.ReadNextAsync();
-                    foreach (var item in response)
-                    {
-                        cnt++;
-                        hoaRec.ownersList.Add(item);
+                    cnt++;
+                    hoaRec.ownersList.Add(item);
 
-                        if (item.CurrentOwner == 1)
+                    if (item.CurrentOwner == 1)
+                    {
+                        // Current Owner fields are already part of the properties record (including property.OwnerID)
+                        hoaRec.duesEmailAddr = item.EmailAddr;
+                        if (!string.IsNullOrWhiteSpace(item.EmailAddr))
                         {
-                            // Current Owner fields are already part of the properties record (including property.OwnerID)
-                            hoaRec.duesEmailAddr = item.EmailAddr;
-                            if (!string.IsNullOrWhiteSpace(item.EmailAddr))
-                            {
-                                hoaRec.emailAddrList.Add(item.EmailAddr);
-                            }
-                            if (!string.IsNullOrWhiteSpace(item.EmailAddr2))
-                            {
-                                hoaRec.emailAddrList.Add(item.EmailAddr2);
-                            }
+                            hoaRec.emailAddrList.Add(item.EmailAddr);
                         }
-                    }
-                }
-
-                //----------------------------------- Emails ----------------------------------------------------------
-                containerId = "hoa_payments";
-                Container paymentsContainer = db.GetContainer(containerId);
-                //--------------------------------------------------------------------------------------------------
-                // Override email address to use if we get the last email used to make an electronic payment
-                // 10/15/2022 JJK Modified to only look for payments within the last year (because of renter issue)
-                //--------------------------------------------------------------------------------------------------
-                sql = $"SELECT * FROM c WHERE c.OwnerID = {hoaRec.property!.OwnerID} AND c.Parcel_ID = '{parcelId}' AND c.payment_date > DateTimeAdd('yy', -1, GetCurrentDateTime()) ";
-                var paymentsFeed = paymentsContainer.GetItemQueryIterator<hoa_payments>(sql);
-                cnt = 0;
-                while (paymentsFeed.HasMoreResults)
-                {
-                    var response = await paymentsFeed.ReadNextAsync();
-                    foreach (var item in response)
-                    {
-                        cnt++;
-                        if (!string.IsNullOrWhiteSpace(item.payer_email))
+                        if (!string.IsNullOrWhiteSpace(item.EmailAddr2))
                         {
-                            // If there is an email from the last electronic payment, for the current Owner,
-                            // add it to the email list (if not already in the array)
-                            string compareStr = item.payer_email.ToLower();
-                            if (Array.IndexOf(hoaRec.emailAddrList.ToArray(), compareStr) < 0)
-                            {
-                                hoaRec.emailAddrList.Add(compareStr);
-                            }
+                            hoaRec.emailAddrList.Add(item.EmailAddr2);
                         }
                     }
                 }
+            }
 
-                //----------------------------------- Assessments -----------------------------------------------------
-                containerId = "hoa_assessments";
-                Container assessmentsContainer = db.GetContainer(containerId);
-                if (fy.Equals("") || fy.Equals("LATEST"))
+            //----------------------------------- Emails ----------------------------------------------------------
+            containerId = "hoa_payments";
+            Container paymentsContainer = db.GetContainer(containerId);
+            //--------------------------------------------------------------------------------------------------
+            // Override email address to use if we get the last email used to make an electronic payment
+            // 10/15/2022 JJK Modified to only look for payments within the last year (because of renter issue)
+            //--------------------------------------------------------------------------------------------------
+            sql = $"SELECT * FROM c WHERE c.OwnerID = {hoaRec.property!.OwnerID} AND c.Parcel_ID = '{parcelId}' AND c.payment_date > DateTimeAdd('yy', -1, GetCurrentDateTime()) ";
+            var paymentsFeed = paymentsContainer.GetItemQueryIterator<hoa_payments>(sql);
+            cnt = 0;
+            while (paymentsFeed.HasMoreResults)
+            {
+                var response = await paymentsFeed.ReadNextAsync();
+                foreach (var item in response)
                 {
-                    sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' ORDER BY c.FY DESC ";
-                }
-                else
-                {
-                    sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' AND c.FY = {fy} ORDER BY c.FY DESC ";
-                }
-                var assessmentsFeed = assessmentsContainer.GetItemQueryIterator<hoa_assessments>(sql);
-                cnt = 0;
-                DateTime currDate = DateTime.Now;
-                DateTime dateTime;
-                DateTime dateDue;
-                while (assessmentsFeed.HasMoreResults)
-                {
-                    var response = await assessmentsFeed.ReadNextAsync();
-                    foreach (var item in response)
+                    cnt++;
+                    if (!string.IsNullOrWhiteSpace(item.payer_email))
                     {
-                        cnt++;
-                        if (fy.Equals("LATEST") && cnt > 1)
+                        // If there is an email from the last electronic payment, for the current Owner,
+                        // add it to the email list (if not already in the array)
+                        string compareStr = item.payer_email.ToLower();
+                        if (Array.IndexOf(hoaRec.emailAddrList.ToArray(), compareStr) < 0)
                         {
-                            continue;
+                            hoaRec.emailAddrList.Add(compareStr);
                         }
-
-                        if (item.DateDue is null)
-                        {
-                            dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
-                        }
-                        else
-                        {
-                            dateDue = DateTime.Parse(item.DateDue);
-                        }
-                        item.DateDue = dateDue.ToString("yyyy-MM-dd");
-                        // If you don't need the DateTime object, you can do it in 1 line
-                        //item.DateDue = DateTime.Parse(item.DateDue).ToString("yyyy-MM-dd");
-
-                        if (item.Paid == 1)
-                        {
-                            if (string.IsNullOrWhiteSpace(item.DatePaid))
-                            {
-                                item.DatePaid = item.DateDue;
-                            }
-                            dateTime = DateTime.Parse(item.DatePaid);
-                            item.DatePaid = dateTime.ToString("yyyy-MM-dd");
-                        }
-
-                        item.DuesDue = false;
-                        if (item.Paid != 1 && item.NonCollectible != 1)
-                        {
-                            // check dates (if NOT PAID)
-                            if (currDate > dateDue)
-                            {
-                                item.DuesDue = true;
-                            }
-                        }
-
-                        hoaRec.assessmentsList.Add(item);
-
-                    } // Assessments loop
-                }
-
-                // Pass the assessments to the common function to calculate Total Dues
-                bool onlyCurrYearDue;
-                decimal totalDueOut;
-                hoaRec.totalDuesCalcList = util.CalcTotalDues(hoaRec.assessmentsList, out onlyCurrYearDue, out totalDueOut);
-                hoaRec.totalDue = totalDueOut;
-
-                //---------------------------------------------------------------------------------------------------
-                // Construct the online payment button and instructions according to what is owed
-                //---------------------------------------------------------------------------------------------------
-                // Only display payment button if something is owed
-                // For now, only set payment button if just the current year dues are owed (no other years or open liens)
-                if (hoaRec.totalDue > 0.0m)
-                {
-                    hoaRec.paymentInstructions = await getConfigVal(configContainer, "OfflinePaymentInstructions");
-                    hoaRec.paymentFee = decimal.Parse(await getConfigVal(configContainer, "paymentFee"));
-                    if (onlyCurrYearDue)
-                    {
-                        hoaRec.paymentInstructions = await getConfigVal(configContainer, "OnlinePaymentInstructions");
                     }
                 }
+            }
 
-                //----------------------------------- Sales -----------------------------------------------------------
-                containerId = "hoa_sales";
-                Container salesContainer = db.GetContainer(containerId);
-                if (saleDate.Equals(""))
+            //----------------------------------- Assessments -----------------------------------------------------
+            containerId = "hoa_assessments";
+            Container assessmentsContainer = db.GetContainer(containerId);
+            if (fy.Equals("") || fy.Equals("LATEST"))
+            {
+                sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' ORDER BY c.FY DESC ";
+            }
+            else
+            {
+                sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' AND c.FY = {fy} ORDER BY c.FY DESC ";
+            }
+            var assessmentsFeed = assessmentsContainer.GetItemQueryIterator<hoa_assessments>(sql);
+            cnt = 0;
+            DateTime currDate = DateTime.Now;
+            DateTime dateTime;
+            DateTime dateDue;
+            while (assessmentsFeed.HasMoreResults)
+            {
+                var response = await assessmentsFeed.ReadNextAsync();
+                foreach (var item in response)
                 {
-                    sql = $"SELECT * FROM c WHERE c.id = '{parcelId}' ORDER BY c.CreateTimestamp DESC ";
-                }
-                else
-                {
-                    sql = $"SELECT * FROM c WHERE c.id = '{parcelId}' AND c.SALEDT = {saleDate} ";
-                }
-                var salesFeed = salesContainer.GetItemQueryIterator<hoa_sales>(sql);
-                cnt = 0;
-                while (salesFeed.HasMoreResults)
-                {
-                    var response = await salesFeed.ReadNextAsync();
-                    foreach (var item in response)
+                    cnt++;
+                    if (fy.Equals("LATEST") && cnt > 1)
                     {
-                        cnt++;
-                        hoaRec.salesList.Add(item);
-                    } // Sales loop
+                        continue;
+                    }
+
+                    if (item.DateDue is null)
+                    {
+                        dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
+                    }
+                    else
+                    {
+                        dateDue = DateTime.Parse(item.DateDue);
+                    }
+                    item.DateDue = dateDue.ToString("yyyy-MM-dd");
+                    // If you don't need the DateTime object, you can do it in 1 line
+                    //item.DateDue = DateTime.Parse(item.DateDue).ToString("yyyy-MM-dd");
+
+                    if (item.Paid == 1)
+                    {
+                        if (string.IsNullOrWhiteSpace(item.DatePaid))
+                        {
+                            item.DatePaid = item.DateDue;
+                        }
+                        dateTime = DateTime.Parse(item.DatePaid);
+                        item.DatePaid = dateTime.ToString("yyyy-MM-dd");
+                    }
+
+                    item.DuesDue = false;
+                    if (item.Paid != 1 && item.NonCollectible != 1)
+                    {
+                        // check dates (if NOT PAID)
+                        if (currDate > dateDue)
+                        {
+                            item.DuesDue = true;
+                        }
+                    }
+
+                    hoaRec.assessmentsList.Add(item);
+
+                } // Assessments loop
+            }
+
+            // Pass the assessments to the common function to calculate Total Dues
+            bool onlyCurrYearDue;
+            decimal totalDueOut;
+            hoaRec.totalDuesCalcList = util.CalcTotalDues(hoaRec.assessmentsList, out onlyCurrYearDue, out totalDueOut);
+            hoaRec.totalDue = totalDueOut;
+
+            //---------------------------------------------------------------------------------------------------
+            // Construct the online payment button and instructions according to what is owed
+            //---------------------------------------------------------------------------------------------------
+            // Only display payment button if something is owed
+            // For now, only set payment button if just the current year dues are owed (no other years or open liens)
+            if (hoaRec.totalDue > 0.0m)
+            {
+                hoaRec.paymentInstructions = await getConfigVal(configContainer, "OfflinePaymentInstructions");
+                hoaRec.paymentFee = decimal.Parse(await getConfigVal(configContainer, "paymentFee"));
+                if (onlyCurrYearDue)
+                {
+                    hoaRec.paymentInstructions = await getConfigVal(configContainer, "OnlinePaymentInstructions");
                 }
+            }
+
+            //----------------------------------- Sales -----------------------------------------------------------
+            containerId = "hoa_sales";
+            Container salesContainer = db.GetContainer(containerId);
+            if (saleDate.Equals(""))
+            {
+                sql = $"SELECT * FROM c WHERE c.id = '{parcelId}' ORDER BY c.CreateTimestamp DESC ";
+            }
+            else
+            {
+                sql = $"SELECT * FROM c WHERE c.id = '{parcelId}' AND c.SALEDT = {saleDate} ";
+            }
+            var salesFeed = salesContainer.GetItemQueryIterator<hoa_sales>(sql);
+            cnt = 0;
+            while (salesFeed.HasMoreResults)
+            {
+                var response = await salesFeed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    cnt++;
+                    hoaRec.salesList.Add(item);
+                } // Sales loop
+            }
 
 
             // Get fields needed for Dues Statement PDF
@@ -401,7 +407,7 @@ namespace GrhaWeb.Function
             string containerId = "hoa_properties";
             string sql;
 
-            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
             Container configContainer = db.GetContainer("hoa_config");
 
@@ -414,72 +420,79 @@ namespace GrhaWeb.Function
                 "SELECT * FROM c WHERE c.id = @parcelId ")
                     .WithParameter("@parcelId", parcelId);
 
-                var feed = container.GetItemQueryIterator<hoa_properties2>(queryDefinition);
-                int cnt = 0;
-                while (feed.HasMoreResults)
+            var feed = container.GetItemQueryIterator<hoa_properties2>(queryDefinition);
+            int cnt = 0;
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
                 {
-                    var response = await feed.ReadNextAsync();
-                    foreach (var item in response)
-                    {
-                        cnt++;
-                        hoaRec2.property = item;
-                    }
+                    cnt++;
+                    hoaRec2.property = item;
                 }
+            }
 
-                //----------------------------------- Assessments -----------------------------------------------------
-                containerId = "hoa_assessments";
-                Container assessmentsContainer = db.GetContainer(containerId);
-                sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' ORDER BY c.FY DESC ";
-                var assessmentsFeed = assessmentsContainer.GetItemQueryIterator<hoa_assessments>(sql);
-                cnt = 0;
-                DateTime dateTime;
-                DateTime dateDue;
-                while (assessmentsFeed.HasMoreResults)
+            //----------------------------------- Assessments -----------------------------------------------------
+            containerId = "hoa_assessments";
+            Container assessmentsContainer = db.GetContainer(containerId);
+            sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' ORDER BY c.FY DESC ";
+            var assessmentsFeed = assessmentsContainer.GetItemQueryIterator<hoa_assessments>(sql);
+            cnt = 0;
+            DateTime dateTime;
+            DateTime dateDue;
+            while (assessmentsFeed.HasMoreResults)
+            {
+                var response = await assessmentsFeed.ReadNextAsync();
+                foreach (var item in response)
                 {
-                    var response = await assessmentsFeed.ReadNextAsync();
-                    foreach (var item in response)
+                    cnt++;
+                    if (item.DateDue is null)
                     {
-                        cnt++;
-                        if (item.DateDue is null) {
-                            dateDue = DateTime.Parse((item.FY-1).ToString()+"-10-01");
-                        } else {
-                            dateDue = DateTime.Parse(item.DateDue);
-                        }
-                        item.DateDue = dateDue.ToString("yyyy-MM-dd");
-                        // If you don't need the DateTime object, you can do it in 1 line
-                        //item.DateDue = DateTime.Parse(item.DateDue).ToString("yyyy-MM-dd");
-
-                        if (item.Paid == 1) {
-                            if (string.IsNullOrWhiteSpace(item.DatePaid)) {
-                                item.DatePaid = item.DateDue;
-                            }
-                            dateTime = DateTime.Parse(item.DatePaid);
-                            item.DatePaid = dateTime.ToString("yyyy-MM-dd");
-                        }
-
-                        hoaRec2.assessmentsList.Add(item);
-
-                    } // Assessments loop
-                }
-
-                // Pass the assessments to the common function to calculate Total Dues
-                bool onlyCurrYearDue;
-                decimal totalDueOut;
-                hoaRec2.totalDuesCalcList = util.CalcTotalDues(hoaRec2.assessmentsList, out onlyCurrYearDue, out totalDueOut);
-                hoaRec2.totalDue = totalDueOut;
-
-                //---------------------------------------------------------------------------------------------------
-                // Construct the online payment button and instructions according to what is owed
-                //---------------------------------------------------------------------------------------------------
-                // Only display payment button if something is owed
-                // For now, only set payment button if just the current year dues are owed (no other years or open liens)
-                if (hoaRec2.totalDue > 0.0m) {
-                    hoaRec2.paymentInstructions = await getConfigVal(configContainer, "OfflinePaymentInstructions");
-                    hoaRec2.paymentFee = decimal.Parse(await getConfigVal(configContainer, "paymentFee"));
-                    if (onlyCurrYearDue) {
-                        hoaRec2.paymentInstructions = await getConfigVal(configContainer, "OnlinePaymentInstructions");
+                        dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
                     }
+                    else
+                    {
+                        dateDue = DateTime.Parse(item.DateDue);
+                    }
+                    item.DateDue = dateDue.ToString("yyyy-MM-dd");
+                    // If you don't need the DateTime object, you can do it in 1 line
+                    //item.DateDue = DateTime.Parse(item.DateDue).ToString("yyyy-MM-dd");
+
+                    if (item.Paid == 1)
+                    {
+                        if (string.IsNullOrWhiteSpace(item.DatePaid))
+                        {
+                            item.DatePaid = item.DateDue;
+                        }
+                        dateTime = DateTime.Parse(item.DatePaid);
+                        item.DatePaid = dateTime.ToString("yyyy-MM-dd");
+                    }
+
+                    hoaRec2.assessmentsList.Add(item);
+
+                } // Assessments loop
+            }
+
+            // Pass the assessments to the common function to calculate Total Dues
+            bool onlyCurrYearDue;
+            decimal totalDueOut;
+            hoaRec2.totalDuesCalcList = util.CalcTotalDues(hoaRec2.assessmentsList, out onlyCurrYearDue, out totalDueOut);
+            hoaRec2.totalDue = totalDueOut;
+
+            //---------------------------------------------------------------------------------------------------
+            // Construct the online payment button and instructions according to what is owed
+            //---------------------------------------------------------------------------------------------------
+            // Only display payment button if something is owed
+            // For now, only set payment button if just the current year dues are owed (no other years or open liens)
+            if (hoaRec2.totalDue > 0.0m)
+            {
+                hoaRec2.paymentInstructions = await getConfigVal(configContainer, "OfflinePaymentInstructions");
+                hoaRec2.paymentFee = decimal.Parse(await getConfigVal(configContainer, "paymentFee"));
+                if (onlyCurrYearDue)
+                {
+                    hoaRec2.paymentInstructions = await getConfigVal(configContainer, "OnlinePaymentInstructions");
                 }
+            }
 
             return hoaRec2;
         }
@@ -492,7 +505,7 @@ namespace GrhaWeb.Function
             //------------------------------------------------------------------------------------------------------------------
             string databaseId = "hoadb";
             string containerId = "BoardOfTrustees";
-            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
 
@@ -510,16 +523,16 @@ namespace GrhaWeb.Function
             //------------------------------------------------------------------------------------------------------------------
             string databaseId = "hoadb";
             string containerId = "BoardOfTrustees";
-            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
 
-            await container.ReplaceItemAsync(trustee,trustee.id,new PartitionKey(trustee.TrusteeId));
+            await container.ReplaceItemAsync(trustee, trustee.id, new PartitionKey(trustee.TrusteeId));
 
         } // public async Task UpdTrustee(Trustee trustee)
 
 
-        private async Task UploadFileToStorageAsync(string containerName, string fileName, byte[] fileData, bool storageOverwrite=true, bool fileIsImage=false, int desiredImgSize=0)
+        private async Task UploadFileToStorageAsync(string containerName, string fileName, byte[] fileData, bool storageOverwrite = true, bool fileIsImage = false, int desiredImgSize = 0)
         {
             var blobContainerClient = new BlobContainerClient(apiStorageConnStr, containerName);
             // Create a client with the URI and the name
@@ -534,7 +547,8 @@ namespace GrhaWeb.Function
             string contentType = "application/pdf";
             MemoryStream memoryStream = new MemoryStream();
 
-            if (fileIsImage) {
+            if (fileIsImage)
+            {
                 // Create an image from the file data
                 using var image = SixLabors.ImageSharp.Image.Load<Rgba32>(fileData);
                 if (image is null)
@@ -588,7 +602,9 @@ namespace GrhaWeb.Function
                 image.Mutate(x => x.Resize(width, height));
                 image.Save(memoryStream, image.Metadata.DecodedImageFormat);
 
-            } else {
+            }
+            else
+            {
                 memoryStream = new MemoryStream(fileData);
             }
 
@@ -600,26 +616,29 @@ namespace GrhaWeb.Function
 
             blobClient.Upload(memoryStream, storageOverwrite);
             await blobClient.SetHttpHeadersAsync(blobHttpHeaders);
-            
+
             return;
         } // private async Task UploadFileToStorageAsync
 
 
-        public async Task UploadFileToDatabase(int mediaTypeId, string fileName, DateTime mediaDateTime, byte[] fileData, string category="", string title="", string description="")
+        public async Task UploadFileToDatabase(int mediaTypeId, string fileName, DateTime mediaDateTime, byte[] fileData, string category = "", string title = "", string description = "")
         {
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
             //------------------------------------------------------------------------------------------------------------------
             string databaseId = "hoadb";
             string containerId = "MediaInfoDoc";
-            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr); 
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
 
-            if (mediaTypeId == 1) {
+            if (mediaTypeId == 1)
+            {
                 await UploadFileToStorageAsync("photos", fileName, fileData, true, true, 2000);
                 await UploadFileToStorageAsync("thumbs", fileName, fileData, true, true, 110);
-            } else if (mediaTypeId == 4) {
+            }
+            else if (mediaTypeId == 4)
+            {
                 await UploadFileToStorageAsync("docs", fileName, fileData, true);
             }
 
@@ -640,7 +659,7 @@ namespace GrhaWeb.Function
                 ToBeProcessed = false,
                 SearchStr = fileName.ToLower()
             };
-        
+
             // Check if there is an existing doc entry in Cosmos DB (by media type and Name)
             var queryDefinition = new QueryDefinition(
                 "SELECT * FROM c WHERE c.MediaTypeId = @mediaTypeId AND c.Name = @fileName")
@@ -658,9 +677,114 @@ namespace GrhaWeb.Function
             }
 
             // Insert a new doc, or update an existing one
-            await container.UpsertItemAsync(mediaInfo,new PartitionKey(mediaInfo.MediaTypeId));
+            await container.UpsertItemAsync(mediaInfo, new PartitionKey(mediaInfo.MediaTypeId));
 
         } // UploadFileToDatabase
+
+
+        public void AddPatchFieldText(List<PatchOperation> patchOperations, Dictionary<string, string> formFields, string fieldName, string operationType = "Replace")
+        {
+            if (patchOperations == null || formFields == null || string.IsNullOrWhiteSpace(fieldName))
+                return; // Prevent potential null reference errors
+
+            if (operationType.Equals("Replace", StringComparison.OrdinalIgnoreCase) && formFields.ContainsKey(fieldName))
+            {
+                string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                patchOperations.Add(PatchOperation.Replace("/" + fieldName, value));
+            }
+            else if (operationType.Equals("Add", StringComparison.OrdinalIgnoreCase) && formFields.ContainsKey(fieldName))
+            {
+                string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                patchOperations.Add(PatchOperation.Add("/" + fieldName, value));
+            }
+            else if (operationType.Equals("Remove", StringComparison.OrdinalIgnoreCase))
+            {
+                patchOperations.Add(PatchOperation.Remove("/" + fieldName));
+            }
+        }
+
+        public void AddPatchFieldBool(List<PatchOperation> patchOperations, Dictionary<string, string> formFields, string fieldName, string operationType = "Replace")
+        {
+            if (patchOperations == null || formFields == null || string.IsNullOrWhiteSpace(fieldName))
+                return; // Prevent potential null reference errors
+
+            if (operationType.Equals("Replace", StringComparison.OrdinalIgnoreCase))
+            {
+                int value = 0;
+                if (formFields.ContainsKey(fieldName))
+                {
+                    string checkedValue = formFields[fieldName]?.Trim() ?? string.Empty;
+                    if (checkedValue.Equals("on"))
+                    {
+                        value = 1;
+                    }
+                }
+                patchOperations.Add(PatchOperation.Replace("/" + fieldName, value));
+            }
+            else if (operationType.Equals("Add", StringComparison.OrdinalIgnoreCase))
+            {
+                int value = 0;
+                if (formFields.ContainsKey(fieldName))
+                {
+                    string checkedValue = formFields[fieldName]?.Trim() ?? string.Empty;
+                    if (checkedValue.Equals("on"))
+                    {
+                        value = 1;
+                    }
+                }
+                patchOperations.Add(PatchOperation.Add("/" + fieldName, value));
+            }
+            else if (operationType.Equals("Remove", StringComparison.OrdinalIgnoreCase))
+            {
+                patchOperations.Add(PatchOperation.Remove("/" + fieldName));
+            }
+        }
+
+        public async Task UpdatePropertyDB(string userName, Dictionary<string, string> formFields)
+        {
+            DateTime currDateTime = DateTime.Now;
+            string LastChangedTs = currDateTime.ToString("o");
+
+            //------------------------------------------------------------------------------------------------------------------
+            // Query the NoSQL container to get values
+            //------------------------------------------------------------------------------------------------------------------
+            string databaseId = "hoadb";
+            string containerId = "hoa_properties";
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
+
+            //foreach (var field in formFields)
+            //{
+            //    log.LogWarning($">>> in DB, Field {field.Key}: {field.Value}");
+            //}
+            string parcelId = formFields["Parcel_ID"].Trim();
+
+            // Initialize a list of PatchOperation
+            List<PatchOperation> patchOperations = new List<PatchOperation>
+            {
+                PatchOperation.Replace("/LastChangedBy", userName),
+                PatchOperation.Replace("/LastChangedTs", LastChangedTs)
+            };
+
+            AddPatchFieldBool(patchOperations, formFields, "Rental");
+            AddPatchFieldBool(patchOperations, formFields, "Managed");
+            AddPatchFieldBool(patchOperations, formFields, "Foreclosure");
+            AddPatchFieldBool(patchOperations, formFields, "Bankruptcy");
+            AddPatchFieldBool(patchOperations, formFields, "UseEmail");
+
+            AddPatchFieldText(patchOperations, formFields, "Comments");
+
+            // Convert the list to an array
+            PatchOperation[] patchArray = patchOperations.ToArray();
+
+            ItemResponse<dynamic> response = await container.PatchItemAsync<dynamic>(
+                parcelId,
+                new PartitionKey(parcelId),
+                patchArray
+            );
+
+        }
 
 
     } // public class HoaDbCommon
