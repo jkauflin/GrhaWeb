@@ -321,15 +321,14 @@
             </div>
 
             <div class="modal-body">
-        		<div class="row">			
-					<div class="col-sm-4 col-md-4"><!-- Col 1 -->
-						Col 1
-
-
-						<div class="form-floating m-1">
-                            <input id="targetTemperature" type="number" class="form-control shadow-none" disabled>
-                            <label for="targetTemperature">Target Temp</label>
-                        </div>
+				<form id="UpdateOwnerForm" class="needs-validation" novalidate>
+					<div class="row">			
+						<div class="col-md-4"><!-- Col 1 -->
+							Col 1
+							<div class="form-floating m-1">
+								<input id="targetTemperature" type="number" class="form-control shadow-none" disabled>
+								<label for="targetTemperature">Target Temp</label>
+							</div>
 
 								<div class="mb-2">
 									<label for="Name" class="form-label">Name</label>
@@ -352,10 +351,14 @@
 									</div>
 								</div>
 
+							<button type="submit" class="btn btn-success m-2">
+								<i class="fa fa-floppy-o me-1"></i> Save Owner
+							</button>
+							<div id="UpdateOwnerMessageDisplay" class="m-2"></div>
+						</div>
 
-					</div>
-					<div class="col-sm-4 col-md-4"><!-- Col 2 -->
-						Col 2
+						<div class="col-md-4"><!-- Col 2 -->
+							Col 2
 
 								<div class="mb-2">
 									<label for="Position" class="form-label">Position</label>
@@ -382,9 +385,10 @@
 									</div>
 								</div>
 
-					</div>
-					<div class="col-sm-4 col-md-4"><!-- Col 3 -->
-						Col 3
+						</div>
+
+						<div class="col-md-4"><!-- Col 3 -->
+							Col 3
 
 															<div class="mb-2">
 										<label   for="Description" class="form-label">Description</label>
@@ -397,41 +401,13 @@
 										</div>
 									</div>
 					
-									<!--
-									<button id="BoardUpdateButton" type="button" class="btn btn-primary m-2">Update</button>
-									-->
-									<button type="submit" class="btn btn-primary">Update</button>
-									<div id="BoardMessageDisplay" class="m-2"></div>
 
+						</div>
 					</div>
-				</div>
 
+				</form>
 
 				<!--
-					<div class="col-sm-4 col-md-4">
-					<div class="col-sm-4 col-md-4">
-
-							<form id="UpdateOwnerForm" class="needs-validation" novalidate>
-								<table class="table table-sm table-borderless">
-									<tbody>
-										<tr class="small"><th>Parcel Id:</th><td><input id="Parcel_ID" name="Parcel_ID" type="text" readonly></td></tr>
-										<tr class="small"><th>Lot No:</th><td id="LotNo"></td></tr>
-										<tr class="small"><th class="d-none d-md-table-cell">Street No: </th><td id="Property_Street_No" class="d-none d-md-table-cell"></td></tr>
-										<tr  class="small"><th>Use Email: </th><td>
-											<input id="UseEmail" name="UseEmail" class="form-check-input shadow-none" type="checkbox">
-										</td></tr>
-										<tr  class="small"><th>Comments: </th><td>
-											<textarea id="Comments" name="Comments" class="form-control shadow-none" rows="2"></textarea>
-										</td></tr>
-									</tbody>
-								</table>
-
-								<button type="submit" class="btn btn-success m-2">
-									<i class="fa fa-floppy-o me-1"></i> Save Property
-								</button>
-								<div id="UpdatePropertyMessageDisplay" class="m-2"></div>
-							</form>
-
 							        if (createNew) {
             tr += '<tr><th>Owner Id:</th><td>CREATE NEW OWNER</td></tr>';
         } else {

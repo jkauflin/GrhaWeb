@@ -192,11 +192,9 @@ namespace GrhaWeb.Function
             containerId = "hoa_properties";
             Container container = db.GetContainer(containerId);
             //sql = $"SELECT * FROM c WHERE c.id = '{parcelId}' ";
-
             var queryDefinition = new QueryDefinition(
                 "SELECT * FROM c WHERE c.id = @parcelId ")
                     .WithParameter("@parcelId", parcelId);
-
             var feed = container.GetItemQueryIterator<hoa_properties>(queryDefinition);
             int cnt = 0;
             while (feed.HasMoreResults)
@@ -212,15 +210,21 @@ namespace GrhaWeb.Function
             //----------------------------------- Owners ----------------------------------------------------------
             containerId = "hoa_owners";
             Container ownersContainer = db.GetContainer(containerId);
+
             if (!ownerId.Equals(""))
             {
-                sql = $"SELECT * FROM c WHERE c.id = '{ownerId}' AND c.Parcel_ID = '{parcelId}' ";
+                queryDefinition = new QueryDefinition(
+                    "SELECT * FROM c WHERE c.id = @ownerId AND c.Parcel_ID = @parcelId ")
+                    .WithParameter("@ownerId", ownerId)
+                    .WithParameter("@parcelId", parcelId);
             }
             else
             {
-                sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{parcelId}' ORDER BY c.OwnerID DESC ";
+                queryDefinition = new QueryDefinition(
+                    "SELECT * FROM c WHERE c.Parcel_ID = @parcelId ORDER BY c.OwnerID DESC ")
+                    .WithParameter("@parcelId", parcelId);
             }
-            var ownersFeed = ownersContainer.GetItemQueryIterator<hoa_owners>(sql);
+            var ownersFeed = ownersContainer.GetItemQueryIterator<hoa_owners>(queryDefinition);
             cnt = 0;
             while (ownersFeed.HasMoreResults)
             {
@@ -233,6 +237,7 @@ namespace GrhaWeb.Function
                     if (item.CurrentOwner == 1)
                     {
                         // Current Owner fields are already part of the properties record (including property.OwnerID)
+
                         hoaRec.duesEmailAddr = item.EmailAddr;
                         if (!string.IsNullOrWhiteSpace(item.EmailAddr))
                         {

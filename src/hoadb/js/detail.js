@@ -123,16 +123,18 @@ document.querySelectorAll('.form-control').forEach(input => {
 
 
 async function udpateOwner(parcelId,ownerId) {
-    // check gethoarec to see if you can specify the owner id
-    // yes just need to get it into the API function
-    //         public async Task<HoaRec> GetHoaRec(string parcelId, string ownerId = "", string fy = "", string saleDate = "")
+    let paramData = {
+        parcelId: parcelId,
+        ownerId: ownerId
+        //fy: fy,
+        //saleDate: saleDate
+    }
     showLoadingSpinner(messageDisplay)
     try {
         const response = await fetch("/api/GetHoaRec", {
             method: "POST",
-            headers: { "Content-Type": "text/plain" },
-            body: parcelId
-            // >>>>>>>>>>>>>>> get ownerId into the param list
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paramData)
         })
         await checkFetchResponse(response)
         // Success
@@ -148,8 +150,14 @@ async function udpateOwner(parcelId,ownerId) {
 
 function formatUpdateOwner(hoaRec) {
     let ownerRec = hoaRec.ownersList[0];
-}
 
+    //Parcel_ID.value = hoaRec.property.parcel_ID
+    //LotNo.textContent = hoaRec.property.lotNo
+    //Property_Street_No.textContent = hoaRec.property.property_Street_No
+
+    
+
+}
 
 
 
@@ -209,15 +217,23 @@ async function getHoaRec(parcelId) {
     empty(propertyOwnersTbody)
     empty(propertyAssessmentsTbody)
 
+    let paramData = {
+        parcelId: parcelId
+        //ownerId: ownerId
+        //fy: fy,
+        //saleDate: saleDate
+    }
+
     showLoadingSpinner(messageDisplay)
     detailPageTab.show()
 
     try {
         const response = await fetch("/api/GetHoaRec", {
             method: "POST",
-            //headers: { "Content-Type": "application/json" },
-            headers: { "Content-Type": "text/plain" },
-            body: parcelId
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paramData)
+            //headers: { "Content-Type": "text/plain" },
+            //body: parcelId
         })
         await checkFetchResponse(response)
         // Success

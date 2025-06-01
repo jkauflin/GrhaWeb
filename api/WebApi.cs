@@ -127,14 +127,6 @@ namespace GrhaWeb.Function
                 //log.LogInformation(">>> User is authorized ");
 
                 // Get the content string from the HTTP request body
-                string parcelId = await new StreamReader(req.Body).ReadToEndAsync();
-                if (parcelId.Equals(""))
-                {
-                    return new BadRequestObjectResult("GetHoaRec failed because parcelId was blank");
-                }
-
-                /*
-                // Get the content string from the HTTP request body
                 string content = await new StreamReader(req.Body).ReadToEndAsync();
                 // Deserialize the JSON string into a generic JSON object
                 JObject jObject = JObject.Parse(content);
@@ -146,8 +138,17 @@ namespace GrhaWeb.Function
                 string saleDate = "";
 
                 JToken? jToken;
-                if (jObject.TryGetValue("parcelId", out jToken)) {
+                if (jObject.TryGetValue("parcelId", out jToken))
+                {
                     parcelId = jToken.ToString();
+                    if (parcelId.Equals(""))
+                    {
+                        return new BadRequestObjectResult("GetHoaRec failed because parcelId was blank");
+                    }
+                }
+                else
+                {
+                    return new BadRequestObjectResult("GetHoaRec failed because parcelId was NOT FOUND");
                 }
                 if (jObject.TryGetValue("ownerId", out jToken)) {
                     ownerId = jToken.ToString();
@@ -158,12 +159,8 @@ namespace GrhaWeb.Function
                 if (jObject.TryGetValue("saleDate", out jToken)) {
                     saleDate = jToken.ToString();
                 }
+
                 hoaRec = await hoaDbCommon.GetHoaRec(parcelId,ownerId,fy,saleDate);
-                */
-
-                hoaRec = await hoaDbCommon.GetHoaRec(parcelId);
-
-
             }
             catch (Exception ex)
             {
@@ -174,6 +171,15 @@ namespace GrhaWeb.Function
             return new OkObjectResult(hoaRec);
         }
 
+        /*
+        using Newtonsoft.Json.Linq;
+
+        string json = "{\"Name\":\"John\",\"Age\":30}";
+
+        JObject obj = JObject.Parse(json);
+
+        Console.WriteLine($"Name: {obj["Name"]}, Age: {obj["Age"]}"); // Use index-based access
+        */
 
         [Function("UpdateProperty")]
         public async Task<IActionResult> UpdateProperty(
