@@ -325,31 +325,112 @@
 					<div class="row">			
 						<div class="col-md-4"><!-- Col 1 -->
 							Col 1
+							<div class="mb-2">
+								<label for="updOwnerID" class="form-label">Owner Id</label>
+								<input  id="updOwnerID" name="updOwnerID" type="text" class="form-control" readonly />
+							</div>
+							<div id="updParcelLocation" class="mb-2">
+								Parcel Location
+							</div>
+							<div class="mb-2">
+								<label for="updCurrentOwner" class="form-label">Current Owner</label>
+								<input id="updCurrentOwner" name="updCurrentOwner" class="form-check-input shadow-none" type="checkbox" readonly>
+							</div>
+							<div class="mb-2">
+								<label for="updOwner_Name1" class="form-label">Owner Name1</label>
+								<input  id="updOwner_Name1" type="text" class="form-control" maxlength="50" required />
+								<div class="valid-feedback">
+									Valid
+								</div>
+								<div class="invalid-feedback">
+									Owner Name1 is required
+								</div>
+							</div>
+							<div class="mb-2">
+								<label for="updOwner_Name2" class="form-label">Owner Name2</label>
+								<input  id="updOwner_Name2" type="text" class="form-control" maxlength="50" />
+								<div class="valid-feedback">
+									Valid
+								</div>
+								<div class="invalid-feedback">
+									Owner Name2
+								</div>
+							</div>
+		                    <div class="form-floating">
+                            	<input type="date" class="form-control shadow-none" id="updDatePurchased">
+                            	<label for="updDatePurchased">Date Purchased</label>
+                        	</div>
+							<div class="mb-2">
+								<label for="updMailing_Name" class="form-label">Mailing Name</label>
+								<input  id="updMailing_Name" type="text" class="form-control" maxlength="50" />
+								<div class="valid-feedback">
+									Valid
+								</div>
+								<div class="invalid-feedback">
+									Mailing Name
+								</div>
+							</div>
+							<div class="mb-2">
+								<label for="updAlternateMailing" class="form-label">Alternate Mailing</label>
+								<input id="updAlternateMailing" name="updAlternateMailing" class="form-check-input shadow-none" type="checkbox">
+							</div>
+							<div class="mb-2">
+								<label for="updAlt_Address_Line1" class="form-label">Address Line1</label>
+								<input  id="updAlt_Address_Line1" type="text" class="form-control" maxlength="50" />
+								<div class="valid-feedback">
+									Valid
+								</div>
+								<div class="invalid-feedback">
+									Address Line1
+								</div>
+							</div>
+							<div class="mb-2">
+								<label for="updAlt_Address_Line2" class="form-label">Address Line2</label>
+								<input  id="updAlt_Address_Line2" type="text" class="form-control" maxlength="50" />
+								<div class="valid-feedback">
+									Valid
+								</div>
+								<div class="invalid-feedback">
+									Address Line2
+								</div>
+							</div>
+							<div class="mb-2">
+								<label for="updAlt_City" class="form-label">Address City</label>
+								<input  id="updAlt_City" type="text" class="form-control" maxlength="40" />
+								<div class="valid-feedback">
+									Valid
+								</div>
+								<div class="invalid-feedback">
+									Address City
+								</div>
+							</div>
+							<div class="mb-2">
+								<label for="updAlt_State" class="form-label">Address State</label>
+								<input  id="updAlt_State" type="text" class="form-control" maxlength="20" />
+								<div class="valid-feedback">
+									Valid
+								</div>
+								<div class="invalid-feedback">
+									Address State
+								</div>
+							</div>
+							<div class="mb-2">
+								<label for="updAlt_Zip" class="form-label">Address Zip</label>
+								<input  id="updAlt_Zip" type="text" class="form-control" maxlength="20" />
+								<div class="valid-feedback">
+									Valid
+								</div>
+								<div class="invalid-feedback">
+									Address Zip
+								</div>
+							</div>
+
+							<!--
 							<div class="form-floating m-1">
 								<input id="targetTemperature" type="number" class="form-control shadow-none" disabled>
 								<label for="targetTemperature">Target Temp</label>
 							</div>
-
-								<div class="mb-2">
-									<label for="Name" class="form-label">Name</label>
-									<input  id="Name" type="text" class="form-control" maxlength="60" required />
-									<div class="valid-feedback">
-										Valid
-									</div>
-									<div class="invalid-feedback">
-										Name is required
-									</div>
-								</div>
-								<div class="mb-2">
-									<label for="EmailAddress" class="form-label">Public Email address</label>
-									<input  id="EmailAddress" type="email" class="form-control" />
-									<div class="valid-feedback">
-										Valid
-									</div>
-									<div class="invalid-feedback">
-										Please provide a valid email address
-									</div>
-								</div>
+							-->
 
 							<button type="submit" class="btn btn-success m-2">
 								<i class="fa fa-floppy-o me-1"></i> Save Owner
@@ -419,6 +500,11 @@
         tr += '<tr><th>Owner Name1:</th><td>' + util.setInputText("ownerName1", rec.Owner_Name1, "50") + '</td></tr>';
         tr += '<tr><th>Owner Name2:</th><td>' + util.setInputText("ownerName2", rec.Owner_Name2, "50") + '</td></tr>';
         tr += '<tr><th>Date Purchased:</th><td>' + util.setInputDate("datePurchased", rec.DatePurchased, "10") + '</td></tr>';
+		                        <div class="form-floating">
+                            <input type="date" class="form-control shadow-none" id="MetricsStartDate">
+                            <label for="MetricsStartDate">Metrics Start Date</label>
+                        </div>
+
         tr += '<tr><th>Mailing Name:</th><td>' + util.setInputText("mailingName", rec.Mailing_Name, "50") + '</td></tr>';
         tr += '<tr><th>Alternate Mailing: </th><td>' + util.setCheckboxEdit('alternateMailingCheckbox', rec.AlternateMailing) + '</td></tr>';
         tr += '<tr><th>Address Line1:</th><td>' + util.setInputText("addrLine1", rec.Alt_Address_Line1, "50") + '</td></tr>';
@@ -426,6 +512,7 @@
         tr += '<tr><th>City:</th><td>' + util.setInputText("altCity", rec.Alt_City, "40") + '</td></tr>';
         tr += '<tr><th>State:</th><td>' + util.setInputText("altState", rec.Alt_State, "20") + '</td></tr>';
         tr += '<tr><th>Zip:</th><td>' + util.setInputText("altZip", rec.Alt_Zip, "20") + '</td></tr>';
+
         tr += '<tr><th>Owner Phone:</th><td>' + util.setInputText("ownerPhone", rec.Owner_Phone, "30") + '</td></tr>';
         tr += '<tr><th>Email Addr: </th><td>' + util.setInputText("emailAddr", rec.EmailAddr, "90") + '</td></tr>';
         tr += '<tr><th>Email Addr2: </th><td>' + util.setInputText("emailAddr2", rec.EmailAddr2, "90") + '</td></tr>';
