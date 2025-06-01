@@ -41,6 +41,7 @@
  * 2025-05-14 JJK   Added checkFetchResponse for Fetch
  * 2025-05-16 JJK   Working on DuesStatement functions (and PDF)
  * 2025-05-20 JJK   Got rid of PDF and did a Print of the modal contents
+ * 2025-06-01 JJK   Adding Property and Owner updates
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
@@ -76,20 +77,38 @@ var Foreclosure = document.getElementById("Foreclosure")
 var Bankruptcy = document.getElementById("Bankruptcy")
 var UseEmail = document.getElementById("UseEmail")
 var Comments = document.getElementById("Comments")
-var PropertyUpdateButton = document.getElementById("PropertyUpdateButton")
 
 var propertyOwnersTbody = document.getElementById("PropertyOwnersTbody")
 var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody")
 
+var duesStatementModal = document.getElementById('duesStatementModal')
+var OwnerUpdateModal = document.getElementById('OwnerUpdateModal')
 
 //=================================================================================================================
 // Bind events
+
+// Respond to any clicks in the document and check for specific classes to respond to
+// (Do it dynamically because elements with classes will be added to the DOM dynamically)
+document.body.addEventListener('click', function (event) {
+    //console.log("event.target.classList = "+event.target.classList)
+    // Check for specific classes
+    if (event.target && event.target.classList.contains("DetailDisplay")) {
+        event.preventDefault();
+        getHoaRec(event.target.dataset.parcelId)
+    } else if (event.target && event.target.classList.contains("OwnerUpdate")) {
+        event.preventDefault();
+        //console.log(">>> event.target.dataset.parcelId = "+event.target.dataset.parcelId)
+        //console.log(">>> event.target.dataset.ownerId = "+event.target.dataset.ownerId)
+        udpateOwner(event.target.dataset.parcelId, event.target.dataset.ownerId)
+    }
+})
 
 DuesStatementButton.addEventListener("click", function () {
     getDuesStatement(this.dataset.parcelId)
 })
 
 
+// Add form validation classes to the input fields
 document.querySelectorAll('.form-control').forEach(input => {
     input.addEventListener('input', () => {
         if (input.checkValidity()) {
@@ -101,6 +120,38 @@ document.querySelectorAll('.form-control').forEach(input => {
         }
     })
 })
+
+
+async function udpateOwner(parcelId,ownerId) {
+    // check gethoarec to see if you can specify the owner id
+    // yes just need to get it into the API function
+    //         public async Task<HoaRec> GetHoaRec(string parcelId, string ownerId = "", string fy = "", string saleDate = "")
+    showLoadingSpinner(messageDisplay)
+    try {
+        const response = await fetch("/api/GetHoaRec", {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: parcelId
+            // >>>>>>>>>>>>>>> get ownerId into the param list
+        })
+        await checkFetchResponse(response)
+        // Success
+        let hoaRec = await response.json();
+        messageDisplay.textContent = ""
+        formatUpdateOwner(hoaRec);
+        new bootstrap.Modal(OwnerUpdateModal).show();
+    } catch (err) {
+        console.error(err)
+        messageDisplay.textContent = `Error in Fetch: ${err.message}`
+    }
+}
+
+function formatUpdateOwner(hoaRec) {
+    let ownerRec = hoaRec.ownersList[0];
+}
+
+
+
 
 
 var UpdatePropertyMessageDisplay = document.getElementById("UpdatePropertyMessageDisplay")
@@ -135,19 +186,6 @@ async function updateProperty() {
     }
 }
 
-
-// Respond to any clicks in the document and check for specific classes to respond to
-// (Do it dynamically because elements with classes will be added to the DOM dynamically)
-
-//thumbnailContainer.addEventListener("click", function (event) {
-document.body.addEventListener('click', function (event) {
-    //console.log("event.target.classList = "+event.target.classList)
-    // Check for specific classes
-    if (event.target && event.target.classList.contains("DetailDisplay")) {
-        event.preventDefault();
-        getHoaRec(event.target.dataset.parcelId)
-    }
-})
 
 async function getHoaRec(parcelId) {
     // Clear out the property detail display fields
@@ -247,8 +285,8 @@ function displayDetail(hoaRec) {
 
         let a = document.createElement("a")
         a.href = ""
-        //a.classList.add('class', "DetailDisplay")
-        a.dataset.parcelId = ownerRec.parcelId
+        a.classList.add("OwnerUpdate")
+        a.dataset.parcelId = ownerRec.parcel_ID
         a.dataset.ownerId = ownerRec.ownerID
         a.textContent = ownerRec.owner_Name1 + ' ' + ownerRec.owner_Name2
         td = document.createElement("td"); 
@@ -368,50 +406,6 @@ function displayDetail(hoaRec) {
     function _render() {
     */
 
-        /*
-    tr = document.createElement('tr')
-    tr.classList.add('small')
-    
-    th = document.createElement("th")
-    th.textContent = "Parcel Id:"
-    tr.appendChild(th)
-    td = document.createElement("td")
-    td.textContent = hoaRec.property.parcel_ID
-    tr.appendChild(td)
-    tbody.appendChild(tr)
-
-    tr = document.createElement('tr')
-    //tr.classList.add('small')
-    th = document.createElement("th")
-    th.textContent = "Lot No:"
-    tr.appendChild(th)
-    td = document.createElement("td")
-    td.textContent = hoaRec.property.lotNo
-    tr.appendChild(td)
-    tbody.appendChild(tr)
-
-    tr = document.createElement('tr')
-    //tr.classList.add('small')
-    th = document.createElement("th")
-    th.textContent = "Location:"
-    tr.appendChild(th)
-    td = document.createElement("td")
-    td.textContent = hoaRec.property.parcel_Location
-    tr.appendChild(td)
-    tbody.appendChild(tr)
-
-    tr = document.createElement('tr')
-    //tr.classList.add('small')
-    th = document.createElement("th")
-    th.classList.add('d-none','d-md-table-cell')
-    th.textContent = "Street No:"
-    tr.appendChild(th)
-    td = document.createElement("td")
-    td.classList.add('d-none','d-md-table-cell')
-    td.textContent = hoaRec.property.property_Street_No
-    tr.appendChild(td)
-    tbody.appendChild(tr)
-        */
 
     /*
     th = document.createElement("th"); th.textContent = "Parcel Location"; tr.appendChild(th)
@@ -419,29 +413,6 @@ function displayDetail(hoaRec) {
     tbody.appendChild(tr)
     */
 
-    /*
-    tr += '<tr><th>Parcel Id:</th> <td>' + hoaRec.Parcel_ID + '</td> </tr>';
-    tr += '<tr><th>Lot No:</th><td>' + hoaRec.LotNo + '</td></tr>';
-    tr += '<tr><th>Location: </th><td>' + hoaRec.Parcel_Location + '</td></tr>';
-    tr += '<tr><th class="d-none d-md-table-cell">Street No: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_Street_No + '</td></tr>';
-    tr += '<tr><th class="d-none d-md-table-cell">Street Name: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_Street_Name + '</td></tr>';
-    tr += '<tr><th class="d-none d-md-table-cell">City: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_City + '</td></tr>';
-    tr += '<tr><th class="d-none d-md-table-cell">State: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_State + '</td></tr>';
-    tr += '<tr><th class="d-none d-md-table-cell">Zip Code: </th><td class="d-none d-md-table-cell">' + hoaRec.Property_Zip + '</td></tr>';
-    tr += '<tr><th>Total Due: </th><td>$' + util.formatMoney(hoaRec.TotalDue) + '</td></tr>';
-
-    //tr += '<tr><th class="d-none d-md-table-cell">Member: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Member) + '</td></tr>';
-    //tr += '<tr><th>Vacant: </th><td>' + util.setCheckbox(hoaRec.Vacant) + '</td></tr>';
-    tr += '<tr><th class="d-none d-md-table-cell">Rental: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Rental) + '</td></tr>';
-    tr += '<tr><th class="d-none d-md-table-cell">Managed: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Managed) + '</td></tr>';
-    tr += '<tr><th class="d-none d-md-table-cell">Foreclosure: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Foreclosure) + '</td></tr>';
-    tr += '<tr><th class="d-none d-md-table-cell">Bankruptcy: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Bankruptcy) + '</td></tr>';
-    tr += '<tr><th class="d-none d-md-table-cell">ToBe Released: </th><td class="d-none d-md-table-cell">' + util.setCheckbox(hoaRec.Liens_2B_Released) + '</td></tr>';
-    tr += '<tr><th>Use Email: </th><td>' + util.setCheckbox(hoaRec.UseEmail) + '</td></tr>';
-    tr += '<tr><th>Comments: </th><td>' + hoaRec.Comments + '</td></tr>';
-
-    $propDetail.html(tr);
-    */
 }
 
 
@@ -458,7 +429,7 @@ async function getDuesStatement(parcelId) {
         let hoaRec = await response.json();
         messageDisplay.textContent = ""
         formatDuesStatementResults(hoaRec);
-        new bootstrap.Modal(document.getElementById('duesStatementModal')).show();
+        new bootstrap.Modal(duesStatementModal).show();
     } catch (err) {
         console.error(err)
         messageDisplay.textContent = `Error in Fetch: ${err.message}`

@@ -104,14 +104,8 @@
     					<div class="col-xs-7 col-sm-7">
 	                		<h5 class="mt-2">Property Detail</h5>
 							<form id="UpdatePropertyForm" class="needs-validation" novalidate>
-
-								
-
 								<table class="table table-sm table-borderless">
 									<tbody>
-										<!--
-										<tr class="small"><th>Parcel Id:</th><td id="Parcel_ID" name="Parcel_ID"></td></tr>
-										-->
 										<tr class="small"><th>Parcel Id:</th><td><input id="Parcel_ID" name="Parcel_ID" type="text" readonly></td></tr>
 										<tr class="small"><th>Lot No:</th><td id="LotNo"></td></tr>
 										<tr class="small"><th class="d-none d-md-table-cell">Street No: </th><td id="Property_Street_No" class="d-none d-md-table-cell"></td></tr>
@@ -316,23 +310,173 @@
 </div>
 
 
-<div id="EditOwnerModal" class="modal fade" role="dialog" tabindex="-1">
+<div id="OwnerUpdateModal" class="modal fade" role="dialog" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title">
-                    <img class="m-2" src="https://grhawebstorage.blob.core.windows.net/images/logo-photo.jpg"> Edit Owner
+                    <img class="m-2" src="https://grhawebstorage.blob.core.windows.net/images/logo-photo.jpg"> Update Owner
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
+        		<div class="row">			
+					<div class="col-sm-4 col-md-4"><!-- Col 1 -->
+						Col 1
 
-                    <table class="table table-striped table-sm">
-                        <tbody>
-                        </tbody>
-                    </table>
+
+						<div class="form-floating m-1">
+                            <input id="targetTemperature" type="number" class="form-control shadow-none" disabled>
+                            <label for="targetTemperature">Target Temp</label>
+                        </div>
+
+								<div class="mb-2">
+									<label for="Name" class="form-label">Name</label>
+									<input  id="Name" type="text" class="form-control" maxlength="60" required />
+									<div class="valid-feedback">
+										Valid
+									</div>
+									<div class="invalid-feedback">
+										Name is required
+									</div>
+								</div>
+								<div class="mb-2">
+									<label for="EmailAddress" class="form-label">Public Email address</label>
+									<input  id="EmailAddress" type="email" class="form-control" />
+									<div class="valid-feedback">
+										Valid
+									</div>
+									<div class="invalid-feedback">
+										Please provide a valid email address
+									</div>
+								</div>
+
+
+					</div>
+					<div class="col-sm-4 col-md-4"><!-- Col 2 -->
+						Col 2
+
+								<div class="mb-2">
+									<label for="Position" class="form-label">Position</label>
+									<input  id="Position" type="text" class="form-control" maxlength="40" required />
+									<div class="valid-feedback">
+										Valid
+									</div>
+									<div class="invalid-feedback">
+										Position is required
+									</div>
+								</div>
+								<div class="mb-2">
+									<label for="PhoneNumber" class="form-label">Phone Number</label>
+									<!--
+									pattern="[A-Za-z0-9]+"  (letters and numbers only)
+									^\d{10}$
+									-->
+									<input  id="PhoneNumber" type="text" class="form-control" pattern="\d{3}-\d{3}-\d{4}" />
+									<div class="valid-feedback">
+										Valid
+									</div>
+									<div class="invalid-feedback">
+										Please enter a valid 10-digit phone number in 999-999-9999 format
+									</div>
+								</div>
+
+					</div>
+					<div class="col-sm-4 col-md-4"><!-- Col 3 -->
+						Col 3
+
+															<div class="mb-2">
+										<label   for="Description" class="form-label">Description</label>
+										<textarea id="Description" type="text" class="form-control" style="height: 118px"></textarea>
+										<div class="valid-feedback">
+											Valid
+										</div>
+										<div class="invalid-feedback">
+											Please enter a Description
+										</div>
+									</div>
 					
+									<!--
+									<button id="BoardUpdateButton" type="button" class="btn btn-primary m-2">Update</button>
+									-->
+									<button type="submit" class="btn btn-primary">Update</button>
+									<div id="BoardMessageDisplay" class="m-2"></div>
+
+					</div>
+				</div>
+
+
+				<!--
+					<div class="col-sm-4 col-md-4">
+					<div class="col-sm-4 col-md-4">
+
+							<form id="UpdateOwnerForm" class="needs-validation" novalidate>
+								<table class="table table-sm table-borderless">
+									<tbody>
+										<tr class="small"><th>Parcel Id:</th><td><input id="Parcel_ID" name="Parcel_ID" type="text" readonly></td></tr>
+										<tr class="small"><th>Lot No:</th><td id="LotNo"></td></tr>
+										<tr class="small"><th class="d-none d-md-table-cell">Street No: </th><td id="Property_Street_No" class="d-none d-md-table-cell"></td></tr>
+										<tr  class="small"><th>Use Email: </th><td>
+											<input id="UseEmail" name="UseEmail" class="form-check-input shadow-none" type="checkbox">
+										</td></tr>
+										<tr  class="small"><th>Comments: </th><td>
+											<textarea id="Comments" name="Comments" class="form-control shadow-none" rows="2"></textarea>
+										</td></tr>
+									</tbody>
+								</table>
+
+								<button type="submit" class="btn btn-success m-2">
+									<i class="fa fa-floppy-o me-1"></i> Save Property
+								</button>
+								<div id="UpdatePropertyMessageDisplay" class="m-2"></div>
+							</form>
+
+							        if (createNew) {
+            tr += '<tr><th>Owner Id:</th><td>CREATE NEW OWNER</td></tr>';
+        } else {
+            tr += '<tr><th>Owner Id:</th><td>' + rec.OwnerID + '</td></tr>';
+        }
+        tr += '<tr><th>Location:</th><td>' + editHoaRec.Parcel_Location + '</td></tr>';
+
+        tr += '<tr><th>Current Owner: </th><td>' + util.setCheckbox(rec.CurrentOwner) + '</td></tr>';
+        tr += '<tr><th>Owner Name1:</th><td>' + util.setInputText("ownerName1", rec.Owner_Name1, "50") + '</td></tr>';
+        tr += '<tr><th>Owner Name2:</th><td>' + util.setInputText("ownerName2", rec.Owner_Name2, "50") + '</td></tr>';
+        tr += '<tr><th>Date Purchased:</th><td>' + util.setInputDate("datePurchased", rec.DatePurchased, "10") + '</td></tr>';
+        tr += '<tr><th>Mailing Name:</th><td>' + util.setInputText("mailingName", rec.Mailing_Name, "50") + '</td></tr>';
+        tr += '<tr><th>Alternate Mailing: </th><td>' + util.setCheckboxEdit('alternateMailingCheckbox', rec.AlternateMailing) + '</td></tr>';
+        tr += '<tr><th>Address Line1:</th><td>' + util.setInputText("addrLine1", rec.Alt_Address_Line1, "50") + '</td></tr>';
+        tr += '<tr><th>Address Line2:</th><td>' + util.setInputText("addrLine2", rec.Alt_Address_Line2, "50") + '</td></tr>';
+        tr += '<tr><th>City:</th><td>' + util.setInputText("altCity", rec.Alt_City, "40") + '</td></tr>';
+        tr += '<tr><th>State:</th><td>' + util.setInputText("altState", rec.Alt_State, "20") + '</td></tr>';
+        tr += '<tr><th>Zip:</th><td>' + util.setInputText("altZip", rec.Alt_Zip, "20") + '</td></tr>';
+        tr += '<tr><th>Owner Phone:</th><td>' + util.setInputText("ownerPhone", rec.Owner_Phone, "30") + '</td></tr>';
+        tr += '<tr><th>Email Addr: </th><td>' + util.setInputText("emailAddr", rec.EmailAddr, "90") + '</td></tr>';
+        tr += '<tr><th>Email Addr2: </th><td>' + util.setInputText("emailAddr2", rec.EmailAddr2, "90") + '</td></tr>';
+        tr += '<tr><th>Comments: </th><td>' + util.setInputText("ownerComments", rec.Comments, "90") + '</td></tr>';
+        tr += '<tr><th>Last Changed:</th><td>' + rec.LastChangedTs + '</td></tr>';
+        tr += '<tr><th>Changed by:</th><td>' + rec.LastChangedBy + '</td></tr>';
+        tr += '</div>';
+
+        $EditTable2ColBody.html(tr);
+
+        if (salesRec != null) {
+            tr2 = '<div class="form-group">';
+            tr2 += '<tr><td><h3>Sales Information</h3></td></tr>';
+            tr2 += '<tr><th>Sales Owner Name: </th><td>' + salesRec.OWNERNAME1 + '</td></tr>';
+            tr2 += '<tr><th>Sale Date: </th><td>' + salesRec.SALEDT + '</td></tr>';
+            tr2 += '<tr><th>Sales Mailing Name1: </th><td>' + salesRec.MAILINGNAME1 + '</td></tr>';
+            tr2 += '<tr><th>Sales Mailing Name2: </th><td>' + salesRec.MAILINGNAME2 + '</td></tr>';
+            tr2 += '<tr><th>Sales Address1: </th><td>' + salesRec.PADDR1 + '</td></tr>';
+            tr2 += '<tr><th>Sales Address2: </th><td>' + salesRec.PADDR2 + '</td></tr>';
+            tr2 += '<tr><th>Sales Address3: </th><td>' + salesRec.PADDR3 + '</td></tr>';
+            tr2 += '</div>';
+        }
+
+        $EditTable2Col2Body.html(tr2);
+
+				-->
+
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-bs-dismiss="modal">Close</button>
