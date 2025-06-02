@@ -325,55 +325,55 @@
 					<div class="row">			
 						<div class="col-md-4"><!-- Col 1 -->
 							Col 1
+							<!--
 							<div class="mb-2">
 								<label for="updOwnerID" class="form-label">Owner Id</label>
 								<input  id="updOwnerID" name="updOwnerID" type="text" class="form-control" readonly />
 							</div>
+							-->
+		                    <div class="form-floating">
+								<input  id="updOwnerID" name="updOwnerID" type="text" class="form-control shadow-none" readonly />
+								<label for="updOwnerID">Owner Id</label>
+                        	</div>
+
 							<div id="updParcelLocation" class="mb-2">
 								Parcel Location
 							</div>
 							<div class="mb-2">
 								<label for="updCurrentOwner" class="form-label">Current Owner</label>
-								<input id="updCurrentOwner" name="updCurrentOwner" class="form-check-input shadow-none" type="checkbox" readonly>
+								<input id="updCurrentOwner" name="updCurrentOwner" class="form-check-input shadow-none" type="checkbox" readonly />
 							</div>
-							<div class="mb-2">
-								<label for="updOwner_Name1" class="form-label">Owner Name1</label>
-								<input  id="updOwner_Name1" type="text" class="form-control" maxlength="50" required />
+
+							<div class="mb-2 form-floating">
+								<input  id="updOwner_Name1" type="text" class="form-control  shadow-none" maxlength="50" required />
+								<label for="updOwner_Name1">Owner Name1</label>
+								<!--
 								<div class="valid-feedback">
 									Valid
 								</div>
+								-->
 								<div class="invalid-feedback">
 									Owner Name1 is required
 								</div>
 							</div>
-							<div class="mb-2">
-								<label for="updOwner_Name2" class="form-label">Owner Name2</label>
-								<input  id="updOwner_Name2" type="text" class="form-control" maxlength="50" />
-								<div class="valid-feedback">
-									Valid
-								</div>
-								<div class="invalid-feedback">
-									Owner Name2
-								</div>
+							<div class="mb-2 form-floating">
+								<input  id="updOwner_Name2" name="updOwner_Name2" type="text" class="form-control shadow-none" maxlength="50" />
+								<label for="updOwner_Name2">Owner Name1</label>
 							</div>
-		                    <div class="form-floating">
+		                    <div class="mb-2 form-floating">
                             	<input type="date" class="form-control shadow-none" id="updDatePurchased">
                             	<label for="updDatePurchased">Date Purchased</label>
                         	</div>
-							<div class="mb-2">
-								<label for="updMailing_Name" class="form-label">Mailing Name</label>
-								<input  id="updMailing_Name" type="text" class="form-control" maxlength="50" />
-								<div class="valid-feedback">
-									Valid
-								</div>
-								<div class="invalid-feedback">
-									Mailing Name
-								</div>
+							<div class="mb-2 form-floating">
+								<input  id="updMailing_Name" type="text" class="form-control shadow-none" maxlength="50" />
+								<label for="updMailing_Name">Mailing Name</label>
 							</div>
+
 							<div class="mb-2">
 								<label for="updAlternateMailing" class="form-label">Alternate Mailing</label>
-								<input id="updAlternateMailing" name="updAlternateMailing" class="form-check-input shadow-none" type="checkbox">
+								<input id="updAlternateMailing" name="updAlternateMailing" class="form-check-input shadow-none" type="checkbox" />
 							</div>
+
 							<div class="mb-2">
 								<label for="updAlt_Address_Line1" class="form-label">Address Line1</label>
 								<input  id="updAlt_Address_Line1" type="text" class="form-control" maxlength="50" />
