@@ -324,34 +324,20 @@
 				<form id="UpdateOwnerForm" class="needs-validation" novalidate>
 					<div class="row">			
 						<div class="col-md-4"><!-- Col 1 -->
-							Col 1
-							<!--
-							<div class="mb-2">
-								<label for="updOwnerID" class="form-label">Owner Id</label>
-								<input  id="updOwnerID" name="updOwnerID" type="text" class="form-control" readonly />
+							<div id="updParcelLocation" class="mb-2">
+								Parcel Location
 							</div>
-							-->
 		                    <div class="form-floating">
 								<input  id="updOwnerID" name="updOwnerID" type="text" class="form-control shadow-none" readonly />
 								<label for="updOwnerID">Owner Id</label>
                         	</div>
-
-							<div id="updParcelLocation" class="mb-2">
-								Parcel Location
-							</div>
 							<div class="mb-2">
-								<label for="updCurrentOwner" class="form-label">Current Owner</label>
 								<input id="updCurrentOwner" name="updCurrentOwner" class="form-check-input shadow-none" type="checkbox" readonly />
+								<label for="updCurrentOwner" class="form-label">Current Owner</label>
 							</div>
-
 							<div class="mb-2 form-floating">
 								<input  id="updOwner_Name1" type="text" class="form-control  shadow-none" maxlength="50" required />
 								<label for="updOwner_Name1">Owner Name1</label>
-								<!--
-								<div class="valid-feedback">
-									Valid
-								</div>
-								-->
 								<div class="invalid-feedback">
 									Owner Name1 is required
 								</div>
@@ -361,76 +347,38 @@
 								<label for="updOwner_Name2">Owner Name1</label>
 							</div>
 		                    <div class="mb-2 form-floating">
-                            	<input type="date" class="form-control shadow-none" id="updDatePurchased">
+                            	<input  id="updDatePurchased" name="updDatePurchased" type="date" class="form-control shadow-none" >
                             	<label for="updDatePurchased">Date Purchased</label>
                         	</div>
 							<div class="mb-2 form-floating">
-								<input  id="updMailing_Name" type="text" class="form-control shadow-none" maxlength="50" />
+								<input  id="updMailing_Name" name="updMailing_Name" type="text" class="form-control shadow-none" maxlength="50" />
 								<label for="updMailing_Name">Mailing Name</label>
 							</div>
 
-							<div class="mb-2">
-								<label for="updAlternateMailing" class="form-label">Alternate Mailing</label>
+							<div class="mb-2 form-floating">
 								<input id="updAlternateMailing" name="updAlternateMailing" class="form-check-input shadow-none" type="checkbox" />
+								<label for="updAlternateMailing">Alternate Mailing</label>
 							</div>
-
-							<div class="mb-2">
-								<label for="updAlt_Address_Line1" class="form-label">Address Line1</label>
-								<input  id="updAlt_Address_Line1" type="text" class="form-control" maxlength="50" />
-								<div class="valid-feedback">
-									Valid
-								</div>
-								<div class="invalid-feedback">
-									Address Line1
-								</div>
+							<div class="mb-2 form-floating">
+								<input  id="updAlt_Address_Line1" type="text" class="form-control shadow-none" maxlength="50" />
+								<label for="updAlt_Address_Line1">Address Line1</label>
 							</div>
-							<div class="mb-2">
-								<label for="updAlt_Address_Line2" class="form-label">Address Line2</label>
-								<input  id="updAlt_Address_Line2" type="text" class="form-control" maxlength="50" />
-								<div class="valid-feedback">
-									Valid
-								</div>
-								<div class="invalid-feedback">
-									Address Line2
-								</div>
+							<div class="mb-2 form-floating">
+								<input  id="updAlt_Address_Line2" type="text" class="form-control shadow-none" maxlength="50" />
+								<label for="updAlt_Address_Line2">Address Line2</label>
 							</div>
-							<div class="mb-2">
-								<label for="updAlt_City" class="form-label">Address City</label>
-								<input  id="updAlt_City" type="text" class="form-control" maxlength="40" />
-								<div class="valid-feedback">
-									Valid
-								</div>
-								<div class="invalid-feedback">
-									Address City
-								</div>
+							<div class="mb-2 form-floating">
+								<input  id="updAlt_City" type="text" class="form-control shadow-none" maxlength="40" />
+								<label for="updAlt_City">Address City</label>
 							</div>
-							<div class="mb-2">
-								<label for="updAlt_State" class="form-label">Address State</label>
-								<input  id="updAlt_State" type="text" class="form-control" maxlength="20" />
-								<div class="valid-feedback">
-									Valid
-								</div>
-								<div class="invalid-feedback">
-									Address State
-								</div>
+							<div class="mb-2 form-floating">
+								<input  id="updAlt_State" type="text" class="form-control shadow-none" maxlength="20" />
+								<label for="updAlt_State">Address State</label>
 							</div>
-							<div class="mb-2">
-								<label for="updAlt_Zip" class="form-label">Address Zip</label>
-								<input  id="updAlt_Zip" type="text" class="form-control" maxlength="20" />
-								<div class="valid-feedback">
-									Valid
-								</div>
-								<div class="invalid-feedback">
-									Address Zip
-								</div>
+							<div class="mb-2 form-floating">
+								<input  id="updAlt_Zip" type="text" class="form-control shadow-none" maxlength="20" />
+								<label for="updAlt_Zip">Address Zip</label>
 							</div>
-
-							<!--
-							<div class="form-floating m-1">
-								<input id="targetTemperature" type="number" class="form-control shadow-none" disabled>
-								<label for="targetTemperature">Target Temp</label>
-							</div>
-							-->
 
 							<button type="submit" class="btn btn-success m-2">
 								<i class="fa fa-floppy-o me-1"></i> Save Owner
@@ -440,6 +388,24 @@
 
 						<div class="col-md-4"><!-- Col 2 -->
 							Col 2
+								<div class="mb-2">
+									<label for="EmailAddress" class="form-label">Public Email address</label>
+									<input  id="EmailAddress" type="email" class="form-control shadow-none" />
+									<div class="valid-feedback">
+										Valid
+									</div>
+									<div class="invalid-feedback">
+										Please provide a valid email address
+									</div>
+								</div>
+
+
+        tr += '<tr><th>Owner Phone:</th><td>' + util.setInputText("ownerPhone", rec.Owner_Phone, "30") + '</td></tr>';
+        tr += '<tr><th>Email Addr: </th><td>' + util.setInputText("emailAddr", rec.EmailAddr, "90") + '</td></tr>';
+        tr += '<tr><th>Email Addr2: </th><td>' + util.setInputText("emailAddr2", rec.EmailAddr2, "90") + '</td></tr>';
+        tr += '<tr><th>Comments: </th><td>' + util.setInputText("ownerComments", rec.Comments, "90") + '</td></tr>';
+        tr += '<tr><th>Last Changed:</th><td>' + rec.LastChangedTs + '</td></tr>';
+        tr += '<tr><th>Changed by:</th><td>' + rec.LastChangedBy + '</td></tr>';
 
 								<div class="mb-2">
 									<label for="Position" class="form-label">Position</label>
