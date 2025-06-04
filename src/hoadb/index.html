@@ -324,9 +324,11 @@
 				<form id="UpdateOwnerForm" class="needs-validation" novalidate>
 					<div class="row">			
 						<div class="col-md-4"><!-- Col 1 -->
+							<input id="updParcel_ID" name="updParcel_ID" type="text" readonly hidden>
 							<div id="updParcelLocation" class="mb-2">
 								Parcel Location
 							</div>
+
 		                    <div class="form-floating">
 								<input  id="updOwnerID" name="updOwnerID" type="text" class="form-control shadow-none" readonly />
 								<label for="updOwnerID">Owner Id</label>
@@ -355,99 +357,84 @@
 								<label for="updMailing_Name">Mailing Name</label>
 							</div>
 
-							<div class="mb-2 form-floating">
+							<div>
+								<input id="updCurrentOwner" name="updCurrentOwner" class="form-check-input shadow-none" type="checkbox" readonly />
+								<label for="updCurrentOwner" class="form-label">Current Owner</label>
+							</div>
+
+						</div>
+
+						<div class="col-md-4"><!-- Col 2 -->
+							<button type="submit" class="btn btn-success ">
+								<i class="fa fa-floppy-o me-1"></i> Save Owner
+							</button>
+							<div id="UpdateOwnerMessageDisplay" class="m-2"></div>
+
+							<div class="mb-2">
 								<input id="updAlternateMailing" name="updAlternateMailing" class="form-check-input shadow-none" type="checkbox" />
 								<label for="updAlternateMailing">Alternate Mailing</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updAlt_Address_Line1" type="text" class="form-control shadow-none" maxlength="50" />
+								<input  id="updAlt_Address_Line1" name="updAlt_Address_Line1" type="text" class="form-control shadow-none" />
 								<label for="updAlt_Address_Line1">Address Line1</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updAlt_Address_Line2" type="text" class="form-control shadow-none" maxlength="50" />
+								<input  id="updAlt_Address_Line2" name="updAlt_Address_Line2" type="text" class="form-control shadow-none" maxlength="50" />
 								<label for="updAlt_Address_Line2">Address Line2</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updAlt_City" type="text" class="form-control shadow-none" maxlength="40" />
+								<input  id="updAlt_City" name="updAlt_City" type="text" class="form-control shadow-none" maxlength="40" />
 								<label for="updAlt_City">Address City</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updAlt_State" type="text" class="form-control shadow-none" maxlength="20" />
+								<input  id="updAlt_State" name="updAlt_State" type="text" class="form-control shadow-none" maxlength="20" />
 								<label for="updAlt_State">Address State</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updAlt_Zip" type="text" class="form-control shadow-none" maxlength="20" />
+								<input  id="updAlt_Zip" name="updAlt_Zip" type="text" class="form-control shadow-none" maxlength="20" />
 								<label for="updAlt_Zip">Address Zip</label>
 							</div>
-
-							<button type="submit" class="btn btn-success m-2">
-								<i class="fa fa-floppy-o me-1"></i> Save Owner
-							</button>
-							<div id="UpdateOwnerMessageDisplay" class="m-2"></div>
-						</div>
-
-						<div class="col-md-4"><!-- Col 2 -->
-							Col 2
-								<div class="mb-2">
-									<label for="EmailAddress" class="form-label">Public Email address</label>
-									<input  id="EmailAddress" type="email" class="form-control shadow-none" />
-									<div class="valid-feedback">
-										Valid
-									</div>
-									<div class="invalid-feedback">
-										Please provide a valid email address
-									</div>
-								</div>
-
-
-        tr += '<tr><th>Owner Phone:</th><td>' + util.setInputText("ownerPhone", rec.Owner_Phone, "30") + '</td></tr>';
-        tr += '<tr><th>Email Addr: </th><td>' + util.setInputText("emailAddr", rec.EmailAddr, "90") + '</td></tr>';
-        tr += '<tr><th>Email Addr2: </th><td>' + util.setInputText("emailAddr2", rec.EmailAddr2, "90") + '</td></tr>';
-        tr += '<tr><th>Comments: </th><td>' + util.setInputText("ownerComments", rec.Comments, "90") + '</td></tr>';
-        tr += '<tr><th>Last Changed:</th><td>' + rec.LastChangedTs + '</td></tr>';
-        tr += '<tr><th>Changed by:</th><td>' + rec.LastChangedBy + '</td></tr>';
-
-								<div class="mb-2">
-									<label for="Position" class="form-label">Position</label>
-									<input  id="Position" type="text" class="form-control" maxlength="40" required />
-									<div class="valid-feedback">
-										Valid
-									</div>
-									<div class="invalid-feedback">
-										Position is required
-									</div>
-								</div>
-								<div class="mb-2">
-									<label for="PhoneNumber" class="form-label">Phone Number</label>
-									<!--
-									pattern="[A-Za-z0-9]+"  (letters and numbers only)
-									^\d{10}$
-									-->
-									<input  id="PhoneNumber" type="text" class="form-control" pattern="\d{3}-\d{3}-\d{4}" />
-									<div class="valid-feedback">
-										Valid
-									</div>
-									<div class="invalid-feedback">
-										Please enter a valid 10-digit phone number in 999-999-9999 format
-									</div>
-								</div>
 
 						</div>
 
 						<div class="col-md-4"><!-- Col 3 -->
-							Col 3
-
-															<div class="mb-2">
-										<label   for="Description" class="form-label">Description</label>
-										<textarea id="Description" type="text" class="form-control" style="height: 118px"></textarea>
-										<div class="valid-feedback">
-											Valid
-										</div>
-										<div class="invalid-feedback">
-											Please enter a Description
-										</div>
-									</div>
-					
+							<div class="mb-2 form-floating">
+								<input  id="updOwner_Phone" name="updOwner_Phone" type="text" class="form-control shadow-none" pattern="\d{3}-\d{3}-\d{4}" />
+								<label for="updOwner_Phone">Owner Phone</label>
+								<!--
+								pattern="[A-Za-z0-9]+"  (letters and numbers only)
+								^\d{10}$
+								-->
+								<div class="invalid-feedback">
+									Please enter a valid 10-digit phone number in 999-999-9999 format
+								</div>
+							</div>
+							<div class="mb-2 form-floating">
+								<input  id="updEmailAddr" name="updEmailAddr" type="email" class="form-control shadow-none" />
+								<label for="updEmailAddr" class="form-label">Email address</label>
+								<div class="invalid-feedback">0
+									Please provide a valid email address
+								</div>
+							</div>
+							<div class="mb-2 form-floating">
+								<input  id="updEmailAddr2" name="updEmailAddr2" type="email" class="form-control shadow-none" />
+								<label for="updEmailAddr2" class="form-label">Email address2</label>
+								<div class="invalid-feedback">
+									Please provide a valid email address
+								</div>
+							</div>
+							<div class="mb-2 form-floating">
+								<textarea id="updComments" name="updComments" type="text" class="form-control" style="height: 100px"></textarea>
+								<label   for="updComments" class="form-label">Comments</label>
+							</div>
+							<div class="mb-2 form-floating">
+								<input  id="updLastChangedTs" name="updLastChangedTs" type="text" class="form-control shadow-none" readonly />
+								<label for="updLastChangedTs" class="form-label">Last Changed</label>
+							</div>
+							<div class="mb-2 form-floating">
+								<input  id="updLastChangedBy" name="updLastChangedBy" type="text" class="form-control shadow-none" readonly />
+								<label for="updLastChangedBy" class="form-label">Changed By</label>
+							</div>
 
 						</div>
 					</div>

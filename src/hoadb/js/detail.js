@@ -84,6 +84,29 @@ var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody
 var duesStatementModal = document.getElementById('duesStatementModal')
 var OwnerUpdateModal = document.getElementById('OwnerUpdateModal')
 
+
+var updParcel_ID = document.getElementById("updParcel_ID")
+var updParcelLocation = document.getElementById("updParcelLocation")
+var updOwnerID = document.getElementById("updOwnerID")
+var updCurrentOwner = document.getElementById("updCurrentOwner")
+var updOwner_Name1 = document.getElementById("updOwner_Name1")
+var updOwner_Name2 = document.getElementById("updOwner_Name2")
+var updDatePurchased = document.getElementById("updDatePurchased")
+var updMailing_Name = document.getElementById("updMailing_Name")
+var updCurrentOwner = document.getElementById("updCurrentOwner")
+var updAlternateMailing = document.getElementById("updAlternateMailing")
+var updAlt_Address_Line1 = document.getElementById("updAlt_Address_Line1")
+var updAlt_Address_Line2 = document.getElementById("updAlt_Address_Line2")
+var updAlt_City = document.getElementById("updAlt_City")
+var updAlt_State = document.getElementById("updAlt_State")
+var updAlt_Zip = document.getElementById("updAlt_Zip")
+var updOwner_Phone = document.getElementById("updOwner_Phone")
+var updEmailAddr = document.getElementById("updEmailAddr")
+var updEmailAddr2 = document.getElementById("updEmailAddr2")
+var updComments = document.getElementById("updComments")
+var updLastChangedTs = document.getElementById("updLastChangedTs")
+var updLastChangedBy = document.getElementById("updLastChangedBy")
+
 //=================================================================================================================
 // Bind events
 
@@ -154,8 +177,52 @@ function formatUpdateOwner(hoaRec) {
     //Parcel_ID.value = hoaRec.property.parcel_ID
     //LotNo.textContent = hoaRec.property.lotNo
     //Property_Street_No.textContent = hoaRec.property.property_Street_No
+updParcel_ID.value = hoaRec.property.parcel_ID
+updParcelLocation.textContent = hoaRec.property.parcel_Location
+updOwnerID.value = ownerRec.id
+updCurrentOwner.checked = ownerRec.currentOwner
+//td.innerHTML = setCheckbox(rec.paid);
 
-    
+updOwner_Name1.value = ownerRec.owner_Name1
+updOwner_Name2.value = ownerRec.owner_Name2
+updDatePurchased.value = ownerRec.datePurchased
+updMailing_Name.value = ownerRec.updMailing_Name
+updAlternateMailing.checked = ownerRec.alternateMailing
+updAlt_Address_Line1.value = ownerRec.alt_Address_Line1
+updAlt_Address_Line2.value = ownerRec.alt_Address_Line2
+updAlt_City.value = ownerRec.alt_City
+updAlt_State.value = ownerRec.alt_State
+updAlt_Zip.value = ownerRec.alt_Zip
+updOwner_Phone.value = ownerRec.owner_Phone
+updEmailAddr.value = ownerRec.emailAddr
+updEmailAddr2.value = ownerRec.emailAddr2
+updComments.value = ownerRec.comments
+updLastChangedTs.value = ownerRec.lastChangedTs
+updLastChangedBy.value = ownerRec.lastChangedBy
+
+/*
+updParcel_ID
+updParcelLocation
+updOwnerID
+updCurrentOwner
+updOwner_Name1
+updOwner_Name2
+updDatePurchased
+updMailing_Name
+updAlternateMailing
+updAlt_Address_Line1
+updAlt_Address_Line2
+updAlt_City
+updAlt_State
+updAlt_Zip
+updOwner_Phone
+updEmailAddr
+updEmailAddr2
+updComments
+updLastChangedTs
+updLastChangedBy
+*/
+
 
 }
 
@@ -194,6 +261,7 @@ async function updateProperty() {
     }
 }
 
+//UpdateOwnerMessageDisplay
 
 async function getHoaRec(parcelId) {
     // Clear out the property detail display fields
@@ -595,3 +663,25 @@ function printModal() {
     // Trigger print
     window.print();
 }
+
+/*
+updParcelLocation
+updOwnerID
+updCurrentOwner
+updOwner_Name1
+updOwner_Name2
+updDatePurchased
+updMailing_Name
+updAlternateMailing
+updAlt_Address_Line1
+updAlt_Address_Line2
+updAlt_City
+updAlt_State
+updAlt_Zip
+updOwner_Phone
+updEmailAddr
+updEmailAddr2
+updComments
+updLastChangedTs
+updLastChangedBy
+*/
