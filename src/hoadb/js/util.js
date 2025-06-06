@@ -123,11 +123,12 @@ export function setCheckbox(checkVal) {
     return '<input type="checkbox" ' + tempStr + ' disabled="disabled">';
 }
 
-function standardizeDate(dateStr) {
+export function standardizeDate(dateStr) {
     let outDateStr = dateStr
     const containsSlash = dateStr.includes("/")
     if (containsSlash) {
-        const [month, day, year] = slashDate.split("/")
+        //const [month, day, year] = slashDate.split("/")
+        const [month, day, year] = dateStr.split("/")
         outDateStr = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
     }
     return outDateStr

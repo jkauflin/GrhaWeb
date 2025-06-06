@@ -792,5 +792,51 @@ namespace GrhaWeb.Function
         }
 
 
+        public async Task UpdateOwnerDB(string userName, Dictionary<string, string> formFields)
+        {
+            DateTime currDateTime = DateTime.Now;
+            string LastChangedTs = currDateTime.ToString("o");
+
+            //------------------------------------------------------------------------------------------------------------------
+            // Query the NoSQL container to get values
+            //------------------------------------------------------------------------------------------------------------------
+            string databaseId = "hoadb";
+            string containerId = "hoa_properties";
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
+
+            //foreach (var field in formFields)
+            //{
+            //    log.LogWarning($">>> in DB, Field {field.Key}: {field.Value}");
+            //}
+            string parcelId = formFields["Parcel_ID"].Trim();
+
+            // Initialize a list of PatchOperation
+            List<PatchOperation> patchOperations = new List<PatchOperation>
+            {
+                PatchOperation.Replace("/LastChangedBy", userName),
+                PatchOperation.Replace("/LastChangedTs", LastChangedTs)
+            };
+
+            AddPatchFieldBool(patchOperations, formFields, "Rental");
+            AddPatchFieldBool(patchOperations, formFields, "Managed");
+            AddPatchFieldBool(patchOperations, formFields, "Foreclosure");
+            AddPatchFieldBool(patchOperations, formFields, "Bankruptcy");
+            AddPatchFieldBool(patchOperations, formFields, "UseEmail");
+
+            AddPatchFieldText(patchOperations, formFields, "Comments");
+
+            // Convert the list to an array
+            PatchOperation[] patchArray = patchOperations.ToArray();
+
+            ItemResponse<dynamic> response = await container.PatchItemAsync<dynamic>(
+                parcelId,
+                new PartitionKey(parcelId),
+                patchArray
+            );
+
+        }
+
     } // public class HoaDbCommon
 } // namespace GrhaWeb.Function

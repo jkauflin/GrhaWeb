@@ -44,7 +44,7 @@
  * 2025-06-01 JJK   Adding Property and Owner updates
  *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -84,7 +84,6 @@ var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody
 var duesStatementModal = document.getElementById('duesStatementModal')
 var OwnerUpdateModal = document.getElementById('OwnerUpdateModal')
 
-
 var updParcel_ID = document.getElementById("updParcel_ID")
 var updParcelLocation = document.getElementById("updParcelLocation")
 var updOwnerID = document.getElementById("updOwnerID")
@@ -122,7 +121,7 @@ document.body.addEventListener('click', function (event) {
         event.preventDefault();
         //console.log(">>> event.target.dataset.parcelId = "+event.target.dataset.parcelId)
         //console.log(">>> event.target.dataset.ownerId = "+event.target.dataset.ownerId)
-        udpateOwner(event.target.dataset.parcelId, event.target.dataset.ownerId)
+        udpateOwnerQuery(event.target.dataset.parcelId, event.target.dataset.ownerId)
     }
 })
 
@@ -145,7 +144,7 @@ document.querySelectorAll('.form-control').forEach(input => {
 })
 
 
-async function udpateOwner(parcelId,ownerId) {
+async function udpateOwnerQuery(parcelId,ownerId) {
     let paramData = {
         parcelId: parcelId,
         ownerId: ownerId
@@ -177,60 +176,94 @@ function formatUpdateOwner(hoaRec) {
     //Parcel_ID.value = hoaRec.property.parcel_ID
     //LotNo.textContent = hoaRec.property.lotNo
     //Property_Street_No.textContent = hoaRec.property.property_Street_No
-updParcel_ID.value = hoaRec.property.parcel_ID
-updParcelLocation.textContent = hoaRec.property.parcel_Location
-updOwnerID.value = ownerRec.id
-updCurrentOwner.checked = ownerRec.currentOwner
-//td.innerHTML = setCheckbox(rec.paid);
+    updParcel_ID.value = hoaRec.property.parcel_ID
+    updParcelLocation.textContent = hoaRec.property.parcel_Location
+    updOwnerID.value = ownerRec.id
+    updCurrentOwner.checked = ownerRec.currentOwner
+    //td.innerHTML = setCheckbox(rec.paid);
 
-updOwner_Name1.value = ownerRec.owner_Name1
-updOwner_Name2.value = ownerRec.owner_Name2
-updDatePurchased.value = ownerRec.datePurchased
-updMailing_Name.value = ownerRec.updMailing_Name
-updAlternateMailing.checked = ownerRec.alternateMailing
-updAlt_Address_Line1.value = ownerRec.alt_Address_Line1
-updAlt_Address_Line2.value = ownerRec.alt_Address_Line2
-updAlt_City.value = ownerRec.alt_City
-updAlt_State.value = ownerRec.alt_State
-updAlt_Zip.value = ownerRec.alt_Zip
-updOwner_Phone.value = ownerRec.owner_Phone
-updEmailAddr.value = ownerRec.emailAddr
-updEmailAddr2.value = ownerRec.emailAddr2
-updComments.value = ownerRec.comments
-updLastChangedTs.value = ownerRec.lastChangedTs
-updLastChangedBy.value = ownerRec.lastChangedBy
+    updOwner_Name1.value = ownerRec.owner_Name1
+    updOwner_Name2.value = ownerRec.owner_Name2
+    updDatePurchased.value = standardizeDate(ownerRec.datePurchased)
+    updMailing_Name.value = ownerRec.mailing_Name
+    updAlternateMailing.checked = ownerRec.alternateMailing
+    updAlt_Address_Line1.value = ownerRec.alt_Address_Line1
+    updAlt_Address_Line2.value = ownerRec.alt_Address_Line2
+    updAlt_City.value = ownerRec.alt_City
+    updAlt_State.value = ownerRec.alt_State
+    updAlt_Zip.value = ownerRec.alt_Zip
+    updOwner_Phone.value = ownerRec.owner_Phone
+    updEmailAddr.value = ownerRec.emailAddr
+    updEmailAddr2.value = ownerRec.emailAddr2
+    updComments.value = ownerRec.comments
+    updLastChangedTs.value = ownerRec.lastChangedTs
+    updLastChangedBy.value = ownerRec.lastChangedBy
 
-/*
-updParcel_ID
-updParcelLocation
-updOwnerID
-updCurrentOwner
-updOwner_Name1
-updOwner_Name2
-updDatePurchased
-updMailing_Name
-updAlternateMailing
-updAlt_Address_Line1
-updAlt_Address_Line2
-updAlt_City
-updAlt_State
-updAlt_Zip
-updOwner_Phone
-updEmailAddr
-updEmailAddr2
-updComments
-updLastChangedTs
-updLastChangedBy
-*/
+    /*
+    updParcel_ID
+    updParcelLocation
+    updOwnerID
+    updCurrentOwner
+    updOwner_Name1
+    updOwner_Name2
+    updDatePurchased
+    updMailing_Name
+    updAlternateMailing
+    updAlt_Address_Line1
+    updAlt_Address_Line2
+    updAlt_City
+    updAlt_State
+    updAlt_Zip
+    updOwner_Phone
+    updEmailAddr
+    updEmailAddr2
+    updComments
+    updLastChangedTs
+    updLastChangedBy
+    */
 
 
 }
 
+//UpdateOwnerMessageDisplay
+var UpdateOwnerMessageDisplay = document.getElementById("UpdateOwnerMessageDisplay")
+var UpdateOwnerForm = document.getElementById("UpdateOwnerForm")
+
+UpdateOwnerForm.addEventListener('submit', (event) => {
+    let formValid = UpdateOwnerForm.checkValidity()
+    event.preventDefault()
+    event.stopPropagation()
+    UpdateOwnerMessageDisplay.textContent = ""
+    if (!formValid) {
+        UpdateOwnerMessageDisplay.textContent = "Form inputs are NOT valid"
+    } else {
+        updateOwner()
+    }
+    UpdateOwnerForm.classList.add('was-validated')
+})
+
+// Handle the file upload backend server call
+async function updateOwner() {
+    UpdateOwnerMessageDisplay.textContent = "Updating Owner..."
+    try {
+        const response = await fetch("/api/UpdateOwner", {
+            method: "POST",
+            body: new FormData(UpdateOwnerForm)
+        })
+        await checkFetchResponse(response)
+        // Success
+        UpdateOwnerMessageDisplay.textContent = await response.text();
+    } catch (err) {
+        console.error(err)
+        UpdateOwnerMessageDisplay.textContent = `Error in Fetch: ${err.message}`
+    }
+}
 
 
 
 var UpdatePropertyMessageDisplay = document.getElementById("UpdatePropertyMessageDisplay")
 var UpdatePropertyForm = document.getElementById("UpdatePropertyForm")
+
 UpdatePropertyForm.addEventListener('submit', (event) => {
     let formValid = UpdatePropertyForm.checkValidity()
     event.preventDefault()
@@ -261,7 +294,6 @@ async function updateProperty() {
     }
 }
 
-//UpdateOwnerMessageDisplay
 
 async function getHoaRec(parcelId) {
     // Clear out the property detail display fields
@@ -378,7 +410,7 @@ function displayDetail(hoaRec) {
         tr.appendChild(td)
 
         td = document.createElement("td"); td.textContent = ownerRec.owner_Phone; tr.appendChild(td)
-        td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = ownerRec.datePurchased; tr.appendChild(td)
+        td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = standardizeDate(ownerRec.datePurchased); tr.appendChild(td)
         td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = ownerRec.alt_Address_Line1; tr.appendChild(td)
         td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = ownerRec.comments; tr.appendChild(td)
 
@@ -437,7 +469,7 @@ function displayDetail(hoaRec) {
             } else if (assessmentRec.disposition == 'Paid') {
                 buttonColor = 'btn-success';
             } else {
-                buttonColor = 'btn-sm btn-info';
+                buttonColor = 'btn-info';
             }
             lienButton = document.createElement("button")
             lienButton.setAttribute('type',"button")
@@ -499,14 +531,20 @@ function displayDetail(hoaRec) {
 
 }
 
-
 async function getDuesStatement(parcelId) {
+    let paramData = {
+        parcelId: parcelId
+        //ownerId: ownerId
+        //fy: fy,
+        //saleDate: saleDate
+    }
+
     showLoadingSpinner(messageDisplay)
     try {
         const response = await fetch("/api/GetHoaRec", {
             method: "POST",
-            headers: { "Content-Type": "text/plain" },
-            body: parcelId
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paramData)
         })
         await checkFetchResponse(response)
         // Success

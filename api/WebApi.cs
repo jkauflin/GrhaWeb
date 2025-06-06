@@ -244,6 +244,62 @@ namespace GrhaWeb.Function
         }
 
 
+        [Function("UpdateOwner")]
+        public async Task<IActionResult> UpdateOwner(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            string returnMessage = "";
+            try
+            {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+                //log.LogInformation($">>> User is authorized - userName: {userName}");
+
+                // Get content from the Request BODY
+                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
+                var reader = new MultipartReader(boundary, req.Body);
+                var section = await reader.ReadNextSectionAsync();
+
+                var formFields = new Dictionary<string, string>();
+                var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                while (section != null)
+                {
+                    var contentDisposition = section.GetContentDispositionHeader();
+                    if (contentDisposition != null)
+                    {
+                        if (contentDisposition.IsFileDisposition())
+                        {
+                            using var memoryStream = new MemoryStream();
+                            await section.Body.CopyToAsync(memoryStream);
+                            files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
+                        }
+                        else if (contentDisposition.IsFormDisposition())
+                        {
+                            using var streamReader = new StreamReader(section.Body);
+                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                        }
+                    }
+
+                    section = await reader.ReadNextSectionAsync();
+                }
+
+                await hoaDbCommon.UpdateOwnerDB(userName,formFields);
+
+                returnMessage = "Property was updated";
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult("Error in update of Property - check log");
+            }
+            
+            return new OkObjectResult(returnMessage);
+        }
+
     } // public static class WebApi
 }
 
