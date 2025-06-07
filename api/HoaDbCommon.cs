@@ -772,10 +772,12 @@ namespace GrhaWeb.Function
                 PatchOperation.Replace("/LastChangedTs", LastChangedTs)
             };
 
+            /*
             AddPatchFieldBool(patchOperations, formFields, "Rental");
             AddPatchFieldBool(patchOperations, formFields, "Managed");
             AddPatchFieldBool(patchOperations, formFields, "Foreclosure");
             AddPatchFieldBool(patchOperations, formFields, "Bankruptcy");
+            */
             AddPatchFieldBool(patchOperations, formFields, "UseEmail");
 
             AddPatchFieldText(patchOperations, formFields, "Comments");

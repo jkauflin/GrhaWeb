@@ -71,10 +71,12 @@ var Property_City = document.getElementById("Property_City")
 var Property_State = document.getElementById("Property_State")
 var Property_Zip = document.getElementById("Property_Zip")
 var TotalDue = document.getElementById("TotalDue")
+/*
 var Rental = document.getElementById("Rental")
 var Managed = document.getElementById("Managed")
 var Foreclosure = document.getElementById("Foreclosure")
 var Bankruptcy = document.getElementById("Bankruptcy")
+*/
 var UseEmail = document.getElementById("UseEmail")
 var Comments = document.getElementById("Comments")
 
@@ -306,10 +308,12 @@ async function getHoaRec(parcelId) {
     Property_State.textContent = ""
     Property_Zip.textContent = ""
     TotalDue.textContent = ""
+    /*
     Rental.checked = false
     Managed.checked = false
     Foreclosure.checked = false
     Bankruptcy.checked = false
+    */
     UseEmail.checked = false
     Comments.textContent = ""
 
@@ -364,10 +368,12 @@ function displayDetail(hoaRec) {
     Property_State.textContent = hoaRec.property.property_State
     Property_Zip.textContent = hoaRec.property.property_Zip
     TotalDue.textContent = "$"+hoaRec.totalDue
+    /*
     Rental.checked = (hoaRec.property.rental == 1) ? Rental.checked = true : false
     Managed.checked = (hoaRec.property.managed == 1) ? Managed.checked = true : false
     Foreclosure.checked = (hoaRec.property.foreclosure == 1) ? Foreclosure.checked = true : false
     Bankruptcy.checked = (hoaRec.property.bankruptcy == 1) ? Bankruptcy.checked = true : false
+    */
     UseEmail.checked = (hoaRec.property.useEmail == 1) ? UseEmail.checked = true : false
     Comments.textContent = hoaRec.property.comments
 
