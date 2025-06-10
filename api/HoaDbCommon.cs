@@ -812,7 +812,8 @@ namespace GrhaWeb.Function
             //{
             //    log.LogWarning($">>> in DB, Field {field.Key}: {field.Value}");
             //}
-            string parcelId = formFields["Parcel_ID"].Trim();
+            string parcelId = formFields["updParcel_ID"].Trim();
+            string ownerId = formFields["updOwnerID"].Trim();
 
             // Initialize a list of PatchOperation
             List<PatchOperation> patchOperations = new List<PatchOperation>
@@ -821,13 +822,51 @@ namespace GrhaWeb.Function
                 PatchOperation.Replace("/LastChangedTs", LastChangedTs)
             };
 
-            AddPatchFieldBool(patchOperations, formFields, "Rental");
-            AddPatchFieldBool(patchOperations, formFields, "Managed");
-            AddPatchFieldBool(patchOperations, formFields, "Foreclosure");
-            AddPatchFieldBool(patchOperations, formFields, "Bankruptcy");
-            AddPatchFieldBool(patchOperations, formFields, "UseEmail");
+            AddPatchFieldBool(patchOperations, formFields, "updCurrentOwner");
+            AddPatchFieldBool(patchOperations, formFields, "updAlternateMailing");
 
-            AddPatchFieldText(patchOperations, formFields, "Comments");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+            AddPatchFieldText(patchOperations, formFields, "");
+    /*
+    updParcel_ID
+    updParcelLocation
+    updOwnerID
+    updCurrentOwner
+    updOwner_Name1
+    updOwner_Name2
+    updDatePurchased
+    updMailing_Name
+    updAlternateMailing
+    updAlt_Address_Line1
+    updAlt_Address_Line2
+    updAlt_City
+    updAlt_State
+    updAlt_Zip
+    updOwner_Phone
+    updEmailAddr
+    updEmailAddr2
+    updComments
+    updLastChangedTs
+    updLastChangedBy
+    */
 
             // Convert the list to an array
             PatchOperation[] patchArray = patchOperations.ToArray();
