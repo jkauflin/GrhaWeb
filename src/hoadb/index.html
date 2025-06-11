@@ -326,36 +326,36 @@
 				<form id="UpdateOwnerForm" class="needs-validation" novalidate>
 					<div class="row">			
 						<div class="col-md-4"><!-- Col 1 -->
-							<input id="updParcel_ID" name="updParcel_ID" type="text" readonly hidden>
+							<input id="updParcel_ID" name="Parcel_ID" type="text" readonly hidden>
 							<div id="updParcelLocation" class="mb-2">
 								Parcel Location
 							</div>
 
 		                    <div class="form-floating">
-								<input  id="updOwnerID" name="updOwnerID" type="text" class="form-control shadow-none" readonly />
+								<input  id="updOwnerID" name="OwnerID" type="text" class="form-control shadow-none" readonly />
 								<label for="updOwnerID">Owner Id</label>
                         	</div>
 							<div class="mb-2">
-								<input id="updCurrentOwner" name="updCurrentOwner" class="form-check-input shadow-none" type="checkbox" readonly />
+								<input id="updCurrentOwner" name="CurrentOwner" class="form-check-input shadow-none" type="checkbox" readonly />
 								<label for="updCurrentOwner" class="form-label">Current Owner</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updOwner_Name1" type="text" class="form-control  shadow-none" maxlength="50" required />
+								<input  id="updOwner_Name1" name="Owner_Name1" type="text" class="form-control  shadow-none" maxlength="50" required />
 								<label for="updOwner_Name1">Owner Name1</label>
 								<div class="invalid-feedback">
 									Owner Name1 is required
 								</div>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updOwner_Name2" name="updOwner_Name2" type="text" class="form-control shadow-none" maxlength="50" />
+								<input  id="updOwner_Name2" name="Owner_Name2" type="text" class="form-control shadow-none" maxlength="50" />
 								<label for="updOwner_Name2">Owner Name1</label>
 							</div>
 		                    <div class="mb-2 form-floating">
-                            	<input  id="updDatePurchased" name="updDatePurchased" type="date" class="form-control shadow-none" >
+                            	<input  id="updDatePurchased" name="DatePurchased" type="date" class="form-control shadow-none" >
                             	<label for="updDatePurchased">Date Purchased</label>
                         	</div>
 							<div class="mb-2 form-floating">
-								<input  id="updMailing_Name" name="updMailing_Name" type="text" class="form-control shadow-none" maxlength="50" />
+								<input  id="updMailing_Name" name="Mailing_Name" type="text" class="form-control shadow-none" maxlength="50" />
 								<label for="updMailing_Name">Mailing Name</label>
 							</div>
 
@@ -368,27 +368,27 @@
 							<div id="UpdateOwnerMessageDisplay" class="m-2"></div>
 
 							<div class="mb-2">
-								<input id="updAlternateMailing" name="updAlternateMailing" class="form-check-input shadow-none" type="checkbox" />
+								<input id="updAlternateMailing" name="AlternateMailing" class="form-check-input shadow-none" type="checkbox" />
 								<label for="updAlternateMailing">Alternate Mailing</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updAlt_Address_Line1" name="updAlt_Address_Line1" type="text" class="form-control shadow-none" />
+								<input  id="updAlt_Address_Line1" name="Alt_Address_Line1" type="text" class="form-control shadow-none" />
 								<label for="updAlt_Address_Line1">Address Line1</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updAlt_Address_Line2" name="updAlt_Address_Line2" type="text" class="form-control shadow-none" maxlength="50" />
+								<input  id="updAlt_Address_Line2" name="Alt_Address_Line2" type="text" class="form-control shadow-none" maxlength="50" />
 								<label for="updAlt_Address_Line2">Address Line2</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updAlt_City" name="updAlt_City" type="text" class="form-control shadow-none" maxlength="40" />
+								<input  id="updAlt_City" name="Alt_City" type="text" class="form-control shadow-none" maxlength="40" />
 								<label for="updAlt_City">Address City</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updAlt_State" name="updAlt_State" type="text" class="form-control shadow-none" maxlength="20" />
+								<input  id="updAlt_State" name="Alt_State" type="text" class="form-control shadow-none" maxlength="20" />
 								<label for="updAlt_State">Address State</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updAlt_Zip" name="updAlt_Zip" type="text" class="form-control shadow-none" maxlength="20" />
+								<input  id="updAlt_Zip" name="Alt_Zip" type="text" class="form-control shadow-none" maxlength="20" />
 								<label for="updAlt_Zip">Address Zip</label>
 							</div>
 
@@ -396,7 +396,7 @@
 
 						<div class="col-md-4"><!-- Col 3 -->
 							<div class="mb-2 form-floating">
-								<input  id="updOwner_Phone" name="updOwner_Phone" type="text" class="form-control shadow-none" pattern="\d{3}-\d{3}-\d{4}" />
+								<input  id="updOwner_Phone" name="Owner_Phone" type="text" class="form-control shadow-none" pattern="\d{3}-\d{3}-\d{4}" />
 								<label for="updOwner_Phone">Owner Phone</label>
 								<!--
 								pattern="[A-Za-z0-9]+"  (letters and numbers only)
@@ -407,29 +407,29 @@
 								</div>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updEmailAddr" name="updEmailAddr" type="email" class="form-control shadow-none" />
+								<input  id="updEmailAddr" name="EmailAddr" type="email" class="form-control shadow-none" />
 								<label for="updEmailAddr" class="form-label">Email address</label>
 								<div class="invalid-feedback">0
 									Please provide a valid email address
 								</div>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updEmailAddr2" name="updEmailAddr2" type="email" class="form-control shadow-none" />
+								<input  id="updEmailAddr2" name="EmailAddr2" type="email" class="form-control shadow-none" />
 								<label for="updEmailAddr2" class="form-label">Email address2</label>
 								<div class="invalid-feedback">
 									Please provide a valid email address
 								</div>
 							</div>
 							<div class="mb-2 form-floating">
-								<textarea id="updComments" name="updComments" type="text" class="form-control  shadow-none" style="height: 100px"></textarea>
+								<textarea id="updComments" name="Comments" type="text" class="form-control  shadow-none" style="height: 100px"></textarea>
 								<label   for="updComments" class="form-label">Comments</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updLastChangedTs" name="updLastChangedTs" type="text" class="form-control shadow-none" readonly />
+								<input  id="updLastChangedTs" type="text" class="form-control shadow-none" readonly />
 								<label for="updLastChangedTs" class="form-label">Last Changed</label>
 							</div>
 							<div class="mb-2 form-floating">
-								<input  id="updLastChangedBy" name="updLastChangedBy" type="text" class="form-control shadow-none" readonly />
+								<input  id="updLastChangedBy" type="text" class="form-control shadow-none" readonly />
 								<label for="updLastChangedBy" class="form-label">Changed By</label>
 							</div>
 

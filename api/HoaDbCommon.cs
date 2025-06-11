@@ -687,20 +687,65 @@ namespace GrhaWeb.Function
         } // UploadFileToDatabase
 
 
-        public void AddPatchFieldText(List<PatchOperation> patchOperations, Dictionary<string, string> formFields, string fieldName, string operationType = "Replace")
+        public void AddPatchField(List<PatchOperation> patchOperations, Dictionary<string, string> formFields, string fieldName, string fieldType="Text", string operationType = "Replace")
         {
             if (patchOperations == null || formFields == null || string.IsNullOrWhiteSpace(fieldName))
                 return; // Prevent potential null reference errors
 
             if (operationType.Equals("Replace", StringComparison.OrdinalIgnoreCase) && formFields.ContainsKey(fieldName))
             {
-                string value = formFields[fieldName]?.Trim() ?? string.Empty;
-                patchOperations.Add(PatchOperation.Replace("/" + fieldName, value));
+                if (fieldType.Equals("Text"))
+                {
+                    string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                    patchOperations.Add(PatchOperation.Replace("/" + fieldName, value));
+                }
+                else if (fieldType.Equals("Int"))
+                {
+                    string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                    patchOperations.Add(PatchOperation.Replace("/" + fieldName, int.Parse(value)));
+                }
+                else if (fieldType.Equals("Bool"))
+                {
+                    int value = 0;
+                    if (formFields.ContainsKey(fieldName))
+                    {
+                        string checkedValue = formFields[fieldName]?.Trim() ?? string.Empty;
+                        if (checkedValue.Equals("on"))
+                        {
+                            value = 1;
+                        }
+                    }
+                    patchOperations.Add(PatchOperation.Replace("/" + fieldName, value));
+                }
             }
             else if (operationType.Equals("Add", StringComparison.OrdinalIgnoreCase) && formFields.ContainsKey(fieldName))
             {
-                string value = formFields[fieldName]?.Trim() ?? string.Empty;
-                patchOperations.Add(PatchOperation.Add("/" + fieldName, value));
+                //string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                //patchOperations.Add(PatchOperation.Add("/" + fieldName, value));
+
+                if (fieldType.Equals("Text"))
+                {
+                    string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                    patchOperations.Add(PatchOperation.Add("/" + fieldName, value));
+                }
+                else if (fieldType.Equals("Int"))
+                {
+                    string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                    patchOperations.Add(PatchOperation.Add("/" + fieldName, int.Parse(value)));
+                }
+                else if (fieldType.Equals("Bool"))
+                {
+                    int value = 0;
+                    if (formFields.ContainsKey(fieldName))
+                    {
+                        string checkedValue = formFields[fieldName]?.Trim() ?? string.Empty;
+                        if (checkedValue.Equals("on"))
+                        {
+                            value = 1;
+                        }
+                    }
+                    patchOperations.Add(PatchOperation.Add("/" + fieldName, value));
+                }
             }
             else if (operationType.Equals("Remove", StringComparison.OrdinalIgnoreCase))
             {
@@ -708,6 +753,7 @@ namespace GrhaWeb.Function
             }
         }
 
+        /*
         public void AddPatchFieldBool(List<PatchOperation> patchOperations, Dictionary<string, string> formFields, string fieldName, string operationType = "Replace")
         {
             if (patchOperations == null || formFields == null || string.IsNullOrWhiteSpace(fieldName))
@@ -744,6 +790,7 @@ namespace GrhaWeb.Function
                 patchOperations.Add(PatchOperation.Remove("/" + fieldName));
             }
         }
+        */
 
         public async Task UpdatePropertyDB(string userName, Dictionary<string, string> formFields)
         {
@@ -765,7 +812,7 @@ namespace GrhaWeb.Function
             //}
             string parcelId = formFields["Parcel_ID"].Trim();
 
-            // Initialize a list of PatchOperation
+            // Initialize a list of PatchOperation (and default to setting the mandatory LastChanged fields)
             List<PatchOperation> patchOperations = new List<PatchOperation>
             {
                 PatchOperation.Replace("/LastChangedBy", userName),
@@ -778,9 +825,8 @@ namespace GrhaWeb.Function
             AddPatchFieldBool(patchOperations, formFields, "Foreclosure");
             AddPatchFieldBool(patchOperations, formFields, "Bankruptcy");
             */
-            AddPatchFieldBool(patchOperations, formFields, "UseEmail");
-
-            AddPatchFieldText(patchOperations, formFields, "Comments");
+            AddPatchField(patchOperations, formFields, "UseEmail", "Bool");
+            AddPatchField(patchOperations, formFields, "Comments");
 
             // Convert the list to an array
             PatchOperation[] patchArray = patchOperations.ToArray();
@@ -790,7 +836,6 @@ namespace GrhaWeb.Function
                 new PartitionKey(parcelId),
                 patchArray
             );
-
         }
 
 
@@ -812,9 +857,9 @@ namespace GrhaWeb.Function
             //{
             //    log.LogWarning($">>> in DB, Field {field.Key}: {field.Value}");
             //}
-            string parcelId = formFields["updParcel_ID"].Trim();
-            string ownerId = formFields["updOwnerID"].Trim();
-
+            string parcelId = formFields["Parcel_ID"].Trim();
+            string ownerId = formFields["OwnerID"].Trim();
+            
             // Initialize a list of PatchOperation
             List<PatchOperation> patchOperations = new List<PatchOperation>
             {
@@ -822,61 +867,73 @@ namespace GrhaWeb.Function
                 PatchOperation.Replace("/LastChangedTs", LastChangedTs)
             };
 
-            AddPatchFieldBool(patchOperations, formFields, "updCurrentOwner");
-            AddPatchFieldBool(patchOperations, formFields, "updAlternateMailing");
-
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-            AddPatchFieldText(patchOperations, formFields, "");
-    /*
-    updParcel_ID
-    updParcelLocation
-    updOwnerID
-    updCurrentOwner
-    updOwner_Name1
-    updOwner_Name2
-    updDatePurchased
-    updMailing_Name
-    updAlternateMailing
-    updAlt_Address_Line1
-    updAlt_Address_Line2
-    updAlt_City
-    updAlt_State
-    updAlt_Zip
-    updOwner_Phone
-    updEmailAddr
-    updEmailAddr2
-    updComments
-    updLastChangedTs
-    updLastChangedBy
-    */
-
+            AddPatchField(patchOperations, formFields, "CurrentOwner", "Bool");
+            AddPatchField(patchOperations, formFields, "Owner_Name1");
+            AddPatchField(patchOperations, formFields, "Owner_Name2");
+            AddPatchField(patchOperations, formFields, "DatePurchased");
+            AddPatchField(patchOperations, formFields, "Mailing_Name");
+            AddPatchField(patchOperations, formFields, "Owner_Phone");
+            AddPatchField(patchOperations, formFields, "EmailAddr");
+            AddPatchField(patchOperations, formFields, "EmailAddr2");
+            AddPatchField(patchOperations, formFields, "Comments");
+            
             // Convert the list to an array
             PatchOperation[] patchArray = patchOperations.ToArray();
 
             ItemResponse<dynamic> response = await container.PatchItemAsync<dynamic>(
-                parcelId,
+                ownerId,
                 new PartitionKey(parcelId),
                 patchArray
             );
 
+            //-----------------------------------------------------------------------------------            
+            // 2nd set of updates
+            patchOperations = new List<PatchOperation>
+            {
+                PatchOperation.Replace("/LastChangedBy", userName),
+                PatchOperation.Replace("/LastChangedTs", LastChangedTs)
+            };
+
+            AddPatchField(patchOperations, formFields, "AlternateMailing", "Bool");
+            AddPatchField(patchOperations, formFields, "Alt_Address_Line1");
+            AddPatchField(patchOperations, formFields, "Alt_Address_Line2");
+            AddPatchField(patchOperations, formFields, "Alt_City");
+            AddPatchField(patchOperations, formFields, "Alt_State");
+            AddPatchField(patchOperations, formFields, "Alt_Zip");
+
+            patchArray = patchOperations.ToArray();
+
+            response = await container.PatchItemAsync<dynamic>(
+                ownerId,
+                new PartitionKey(parcelId),
+                patchArray
+            );
+
+
+    /*
+                            "id": "1",
+                            "OwnerID": 1,
+                            "Parcel_ID": "R72617307 0001",
+                            "CurrentOwner": 1,
+                            "Owner_Name1": "Williams Robin L",
+                            "Owner_Name2": "",
+                            "DatePurchased": "7/1/2005",
+                            "Mailing_Name": "Robin L Williams",
+                            "AlternateMailing": 0,
+                            "Alt_Address_Line1": "",
+                            "Alt_Address_Line2": "",
+                            "Alt_City": "",
+                            "Alt_State": "",
+                            "Alt_Zip": "",
+                            "Owner_Phone": "(937) 236-2699",
+                            "EmailAddr": "rwilliams1692@att.net",
+                            "EmailAddr2": "",
+                            "Comments": "no personal checks accepted - bank rejected 4222 from 10/21/2020",
+                            "EntryTimestamp": "6/9/2007 12:21:21",
+                            "UpdateTimestamp": "6/9/2007 12:21:21",
+                            "LastChangedBy": "treasurer",
+                            "LastChangedTs": "2020-10-21T14:13:51",
+                            */
         }
 
     } // public class HoaDbCommon
