@@ -692,17 +692,23 @@ namespace GrhaWeb.Function
             if (patchOperations == null || formFields == null || string.IsNullOrWhiteSpace(fieldName))
                 return; // Prevent potential null reference errors
 
-            if (operationType.Equals("Replace", StringComparison.OrdinalIgnoreCase) && formFields.ContainsKey(fieldName))
+            if (operationType.Equals("Replace", StringComparison.OrdinalIgnoreCase))
             {
                 if (fieldType.Equals("Text"))
                 {
-                    string value = formFields[fieldName]?.Trim() ?? string.Empty;
-                    patchOperations.Add(PatchOperation.Replace("/" + fieldName, value));
+                    if (formFields.ContainsKey(fieldName))
+                    {
+                        string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                        patchOperations.Add(PatchOperation.Replace("/" + fieldName, value));
+                    }
                 }
                 else if (fieldType.Equals("Int"))
                 {
-                    string value = formFields[fieldName]?.Trim() ?? string.Empty;
-                    patchOperations.Add(PatchOperation.Replace("/" + fieldName, int.Parse(value)));
+                    if (formFields.ContainsKey(fieldName))
+                    {
+                        string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                        patchOperations.Add(PatchOperation.Replace("/" + fieldName, int.Parse(value)));
+                    }
                 }
                 else if (fieldType.Equals("Bool"))
                 {
@@ -718,20 +724,26 @@ namespace GrhaWeb.Function
                     patchOperations.Add(PatchOperation.Replace("/" + fieldName, value));
                 }
             }
-            else if (operationType.Equals("Add", StringComparison.OrdinalIgnoreCase) && formFields.ContainsKey(fieldName))
+            else if (operationType.Equals("Add", StringComparison.OrdinalIgnoreCase))
             {
                 //string value = formFields[fieldName]?.Trim() ?? string.Empty;
                 //patchOperations.Add(PatchOperation.Add("/" + fieldName, value));
 
                 if (fieldType.Equals("Text"))
                 {
-                    string value = formFields[fieldName]?.Trim() ?? string.Empty;
-                    patchOperations.Add(PatchOperation.Add("/" + fieldName, value));
+                    if (formFields.ContainsKey(fieldName))
+                    {
+                        string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                        patchOperations.Add(PatchOperation.Add("/" + fieldName, value));
+                    }
                 }
                 else if (fieldType.Equals("Int"))
                 {
-                    string value = formFields[fieldName]?.Trim() ?? string.Empty;
-                    patchOperations.Add(PatchOperation.Add("/" + fieldName, int.Parse(value)));
+                    if (formFields.ContainsKey(fieldName))
+                    {
+                        string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                        patchOperations.Add(PatchOperation.Add("/" + fieldName, int.Parse(value)));
+                    }
                 }
                 else if (fieldType.Equals("Bool"))
                 {
@@ -848,7 +860,7 @@ namespace GrhaWeb.Function
             // Query the NoSQL container to get values
             //------------------------------------------------------------------------------------------------------------------
             string databaseId = "hoadb";
-            string containerId = "hoa_properties";
+            string containerId = "hoa_owners";
             CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);

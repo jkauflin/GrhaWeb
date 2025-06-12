@@ -289,7 +289,7 @@ namespace GrhaWeb.Function
 
                 await hoaDbCommon.UpdateOwnerDB(userName,formFields);
 
-                returnMessage = "Property was updated";
+                returnMessage = "Owner was updated";
             }
             catch (Exception ex)
             {
