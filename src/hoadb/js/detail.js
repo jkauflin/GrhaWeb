@@ -43,12 +43,8 @@
  * 2025-05-20 JJK   Got rid of PDF and did a Print of the modal contents
  * 2025-06-01 JJK   Adding Property and Owner updates
  * 2025-06-14 JJK   Going back to the concept of hold a current hoaRec
- * 
- * Working on new update concept - big GetHoaRec, but then
- *                  keep owner and assessments array in js to format update
- *                  without having to re-query the data record.  Then return
- *                  the array after the update, update the array and 
- *                  re-display the array in Detail display
+ *                  (and the owner and assessment updates use the current
+ *                  data for formatting, and then update with new values)
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
@@ -360,7 +356,6 @@ function displayDetail() {
     Comments.textContent = hoaRec.property.comments
 
     displayDetailOwners()
-
 
 
     tbody = propertyAssessmentsTbody
@@ -704,24 +699,3 @@ function printModal() {
     window.print();
 }
 
-/*
-updParcelLocation
-updOwnerID
-updCurrentOwner
-updOwner_Name1
-updOwner_Name2
-updDatePurchased
-updMailing_Name
-updAlternateMailing
-updAlt_Address_Line1
-updAlt_Address_Line2
-updAlt_City
-updAlt_State
-updAlt_Zip
-updOwner_Phone
-updEmailAddr
-updEmailAddr2
-updComments
-updLastChangedTs
-updLastChangedBy
-*/

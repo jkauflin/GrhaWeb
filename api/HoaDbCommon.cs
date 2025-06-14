@@ -884,49 +884,6 @@ namespace GrhaWeb.Function
                 patchArray
             );
 
-            /*
-            >>>>>> handle any updates for the Owner info for Current Owner
-            if (item.CurrentOwner == 1)
-            {
-                // Current Owner fields are already part of the properties record (including property.OwnerID)
-
-                hoaRec.duesEmailAddr = item.EmailAddr;
-                if (!string.IsNullOrWhiteSpace(item.EmailAddr))
-                {
-                    hoaRec.emailAddrList.Add(item.EmailAddr);
-                }
-                if (!string.IsNullOrWhiteSpace(item.EmailAddr2))
-                {
-                    hoaRec.emailAddrList.Add(item.EmailAddr2);
-                }
-            }
-            */
-
-            /*
-                                    "id": "1",
-                                    "OwnerID": 1,
-                                    "Parcel_ID": "R72617307 0001",
-                                    "CurrentOwner": 1,
-                                    "Owner_Name1": "Williams Robin L",
-                                    "Owner_Name2": "",
-                                    "DatePurchased": "7/1/2005",
-                                    "Mailing_Name": "Robin L Williams",
-                                    "AlternateMailing": 0,
-                                    "Alt_Address_Line1": "",
-                                    "Alt_Address_Line2": "",
-                                    "Alt_City": "",
-                                    "Alt_State": "",
-                                    "Alt_Zip": "",
-                                    "Owner_Phone": "(937) 236-2699",
-                                    "EmailAddr": "rwilliams1692@att.net",
-                                    "EmailAddr2": "",
-                                    "Comments": "no personal checks accepted - bank rejected 4222 from 10/21/2020",
-                                    "EntryTimestamp": "6/9/2007 12:21:21",
-                                    "UpdateTimestamp": "6/9/2007 12:21:21",
-                                    "LastChangedBy": "treasurer",
-                                    "LastChangedTs": "2020-10-21T14:13:51",
-                                    */
-
             containerId = "hoa_owners";
             Container ownersContainer = db.GetContainer(containerId);
             var queryDefinition = new QueryDefinition(
@@ -941,6 +898,41 @@ namespace GrhaWeb.Function
                 {
                     ownerRec = item;
                 }
+            }
+
+            // if current owner, update the OWNER fields in the hoa_properties record
+            if (ownerRec.CurrentOwner == 1)
+            {
+                containerId = "hoa_properties";
+                container = db.GetContainer(containerId);
+
+                // Initialize a list of PatchOperation (and default to setting the mandatory LastChanged fields)
+                patchOperations = new List<PatchOperation>
+                {
+                };
+
+                AddPatchField(patchOperations, formFields, "Owner_Name1");
+                AddPatchField(patchOperations, formFields, "Owner_Name2");
+                AddPatchField(patchOperations, formFields, "Mailing_Name");
+                AddPatchField(patchOperations, formFields, "Owner_Phone");
+                AddPatchField(patchOperations, formFields, "Alt_Address_Line1");
+                /*
+                item2.OwnerID = item.OwnerID;
+                item2.Owner_Name1 = item.Owner_Name1;
+                item2.Owner_Name2 = item.Owner_Name2;
+                item2.Mailing_Name = item.Mailing_Name;
+                item2.Owner_Phone = item.Owner_Phone;
+                item2.Alt_Address_Line1 = item.Alt_Address_Line1;
+                */
+
+                // Convert the list to an array
+                patchArray = patchOperations.ToArray();
+
+                response = await container.PatchItemAsync<dynamic>(
+                    parcelId,
+                    new PartitionKey(parcelId),
+                    patchArray
+                );
             }
 
             return ownerRec;
