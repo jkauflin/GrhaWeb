@@ -42,6 +42,13 @@
  * 2025-05-16 JJK   Working on DuesStatement functions (and PDF)
  * 2025-05-20 JJK   Got rid of PDF and did a Print of the modal contents
  * 2025-06-01 JJK   Adding Property and Owner updates
+ * 2025-06-14 JJK   Going back to the concept of hold a current hoaRec
+ * 
+ * Working on new update concept - big GetHoaRec, but then
+ *                  keep owner and assessments array in js to format update
+ *                  without having to re-query the data record.  Then return
+ *                  the array after the update, update the array and 
+ *                  re-display the array in Detail display
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
@@ -55,9 +62,8 @@ var detailPageTab = bootstrap.Tab.getOrCreateInstance(document.querySelector(`.n
 var messageDisplay = document.getElementById("DetailMessageDisplay")
 var isTouchDevice = 'ontouchstart' in document.documentElement
 
-// Do I still need these at this level???
-//var hoaRec    5/16/2025 - comment out and see where we really need a global at this level, and can we do something different
-//var currPdfRec
+// Current hoaRec from last query and updates
+var hoaRec
 
 var DuesStatementButton = document.getElementById("DuesStatementButton")
 var NewOwnerButton = document.getElementById("NewOwnerButton")
@@ -123,7 +129,8 @@ document.body.addEventListener('click', function (event) {
         event.preventDefault();
         //console.log(">>> event.target.dataset.parcelId = "+event.target.dataset.parcelId)
         //console.log(">>> event.target.dataset.ownerId = "+event.target.dataset.ownerId)
-        udpateOwnerQuery(event.target.dataset.parcelId, event.target.dataset.ownerId)
+        //udpateOwnerQuery(event.target.dataset.parcelId, event.target.dataset.ownerId)
+        formatUpdateOwner(event.target.dataset.parcelId, event.target.dataset.ownerId)
     }
 })
 
@@ -145,7 +152,7 @@ document.querySelectorAll('.form-control').forEach(input => {
     })
 })
 
-
+/*
 async function udpateOwnerQuery(parcelId,ownerId) {
     let paramData = {
         parcelId: parcelId,
@@ -171,18 +178,26 @@ async function udpateOwnerQuery(parcelId,ownerId) {
         messageDisplay.textContent = `Error in Fetch: ${err.message}`
     }
 }
+*/
 
-function formatUpdateOwner(hoaRec) {
-    let ownerRec = hoaRec.ownersList[0];
+function formatUpdateOwner(parcelId,ownerId) {
+    // Find the correct owner rec
+    let ownerRec = null
+    for (let index in hoaRec.ownersList) {
+        if (hoaRec.property.parcel_ID == parcelId && hoaRec.ownersList[index].ownerID == ownerId) {
+            ownerRec = hoaRec.ownersList[index]
+        }
+    }
 
-    //Parcel_ID.value = hoaRec.property.parcel_ID
-    //LotNo.textContent = hoaRec.property.lotNo
-    //Property_Street_No.textContent = hoaRec.property.property_Street_No
+    if (ownerRec == null) {
+        console.err("Owner ID not found in current hoaRec, id = "+ownerId)
+        return        
+    }
+
     updParcel_ID.value = hoaRec.property.parcel_ID
     updParcelLocation.textContent = hoaRec.property.parcel_Location
     updOwnerID.value = ownerRec.id
     updCurrentOwner.checked = ownerRec.currentOwner
-    //td.innerHTML = setCheckbox(rec.paid);
 
     updOwner_Name1.value = ownerRec.owner_Name1
     updOwner_Name2.value = ownerRec.owner_Name2
@@ -200,31 +215,8 @@ function formatUpdateOwner(hoaRec) {
     updComments.value = ownerRec.comments
     updLastChangedTs.value = ownerRec.lastChangedTs
     updLastChangedBy.value = ownerRec.lastChangedBy
-
-    /*
-    updParcel_ID
-    updParcelLocation
-    updOwnerID
-    updCurrentOwner
-    updOwner_Name1
-    updOwner_Name2
-    updDatePurchased
-    updMailing_Name
-    updAlternateMailing
-    updAlt_Address_Line1
-    updAlt_Address_Line2
-    updAlt_City
-    updAlt_State
-    updAlt_Zip
-    updOwner_Phone
-    updEmailAddr
-    updEmailAddr2
-    updComments
-    updLastChangedTs
-    updLastChangedBy
-    */
-
-
+    
+    new bootstrap.Modal(OwnerUpdateModal).show();
 }
 
 //UpdateOwnerMessageDisplay
@@ -254,7 +246,24 @@ async function updateOwner() {
         })
         await checkFetchResponse(response)
         // Success
-        UpdateOwnerMessageDisplay.textContent = await response.text();
+        let ownerRec = await response.json();
+        // Replace the record in the owners list
+        let ownerFound = false
+        for (let index in hoaRec.ownersList) {
+            if (hoaRec.property.parcel_ID == ownerRec.parcel_ID && hoaRec.ownersList[index].ownerID == ownerRec.ownerID) {
+                ownerFound = true
+                hoaRec.ownersList[index] = ownerRec
+            }
+        }
+        if (!ownerFound) {
+            console.err("Owner ID not found in current hoaRec, id = "+ownerId)
+            UpdateOwnerMessageDisplay.textContent = "Owner ID not found in current hoaRec, id = "+ownerId
+            return        
+        } else {
+            displayDetailOwners()
+            UpdateOwnerMessageDisplay.textContent = "Owner updated sucessfully"
+        }
+        
     } catch (err) {
         console.error(err)
         UpdateOwnerMessageDisplay.textContent = `Error in Fetch: ${err.message}`
@@ -341,10 +350,10 @@ async function getHoaRec(parcelId) {
         })
         await checkFetchResponse(response)
         // Success
-        //hoaRec = await response.json();
-        let hoaRec = await response.json();
+        hoaRec = await response.json();
         messageDisplay.textContent = ""
-        displayDetail(hoaRec)
+        //displayDetail(hoaRec)
+        displayDetail()
 
     } catch (err) {
         console.error(err)
@@ -352,7 +361,8 @@ async function getHoaRec(parcelId) {
     }
 }
 
-function displayDetail(hoaRec) {
+//function displayDetail(hoaRec) {
+function displayDetail() {
     // *** Remember C# object to JS JSON structure object has different camel-case rules (makes 1st character lowercase, etc.) ***
     let tr = ''
     let th = ''
@@ -377,51 +387,9 @@ function displayDetail(hoaRec) {
     UseEmail.checked = (hoaRec.property.useEmail == 1) ? UseEmail.checked = true : false
     Comments.textContent = hoaRec.property.comments
 
-    tbody = propertyOwnersTbody
-    tr = document.createElement('tr')
-    tr.classList.add('small')
-    // Append the header elements
-    th = document.createElement("th"); th.textContent = "OwnId"; tr.appendChild(th)
-    th = document.createElement("th"); th.textContent = "Owner"; tr.appendChild(th)
-    th = document.createElement("th"); th.textContent = "Phone"; tr.appendChild(th)
-    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Purchased"; tr.appendChild(th)
-    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Alt Address"; tr.appendChild(th)
-    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Comments"; tr.appendChild(th)
-    tbody.appendChild(tr)
+    displayDetailOwners()
 
-    // Append a row for every record in list
-    for (let index in hoaRec.ownersList) {
-        let ownerRec = hoaRec.ownersList[index]
 
-        /*
-        if (rec.CurrentOwner) {
-            ownName1 = rec.Owner_Name1;
-            currOwnerID = rec.OwnerID;
-        }
-        */
-
-        tr = document.createElement('tr')
-        tr.classList.add('small')
-
-        td = document.createElement("td"); td.textContent = ownerRec.ownerID; tr.appendChild(td)
-
-        let a = document.createElement("a")
-        a.href = ""
-        a.classList.add("OwnerUpdate")
-        a.dataset.parcelId = ownerRec.parcel_ID
-        a.dataset.ownerId = ownerRec.ownerID
-        a.textContent = ownerRec.owner_Name1 + ' ' + ownerRec.owner_Name2
-        td = document.createElement("td"); 
-        td.appendChild(a);
-        tr.appendChild(td)
-
-        td = document.createElement("td"); td.textContent = ownerRec.owner_Phone; tr.appendChild(td)
-        td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = standardizeDate(ownerRec.datePurchased); tr.appendChild(td)
-        td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = ownerRec.alt_Address_Line1; tr.appendChild(td)
-        td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = ownerRec.comments; tr.appendChild(td)
-
-        tbody.appendChild(tr)
-    }
 
     tbody = propertyAssessmentsTbody
     let lienButton = ''
@@ -535,6 +503,62 @@ function displayDetail(hoaRec) {
     tbody.appendChild(tr)
     */
 
+}
+
+function displayDetailOwners() {
+    // Clear out the display tables for Owner list
+    empty(propertyOwnersTbody)
+
+    let tr = ''
+    let th = ''
+    let td = ''
+    let tbody = ''
+
+    tbody = propertyOwnersTbody
+    tr = document.createElement('tr')
+    tr.classList.add('small')
+    // Append the header elements
+    th = document.createElement("th"); th.textContent = "OwnId"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Owner"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Phone"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Purchased"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Alt Address"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Comments"; tr.appendChild(th)
+    tbody.appendChild(tr)
+
+    // Append a row for every record in list
+    for (let index in hoaRec.ownersList) {
+        let ownerRec = hoaRec.ownersList[index]
+
+        /*
+        if (rec.CurrentOwner) {
+            ownName1 = rec.Owner_Name1;
+            currOwnerID = rec.OwnerID;
+        }
+        */
+
+        tr = document.createElement('tr')
+        tr.classList.add('small')
+
+        td = document.createElement("td"); td.textContent = ownerRec.ownerID; tr.appendChild(td)
+
+        let a = document.createElement("a")
+        a.href = ""
+        a.classList.add("OwnerUpdate")
+        a.dataset.parcelId = ownerRec.parcel_ID
+        a.dataset.ownerId = ownerRec.ownerID
+        a.textContent = ownerRec.owner_Name1 + ' ' + ownerRec.owner_Name2
+        td = document.createElement("td"); 
+        td.appendChild(a);
+        tr.appendChild(td)
+
+        td = document.createElement("td"); td.textContent = ownerRec.owner_Phone; tr.appendChild(td)
+        td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = standardizeDate(ownerRec.datePurchased); tr.appendChild(td)
+        td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = ownerRec.alt_Address_Line1; tr.appendChild(td)
+        td = document.createElement("td"); td.classList.add('d-none','d-md-table-cell'); td.textContent = ownerRec.comments; tr.appendChild(td)
+
+        tbody.appendChild(tr)
+    }
 }
 
 async function getDuesStatement(parcelId) {

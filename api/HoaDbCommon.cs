@@ -765,44 +765,6 @@ namespace GrhaWeb.Function
             }
         }
 
-        /*
-        public void AddPatchFieldBool(List<PatchOperation> patchOperations, Dictionary<string, string> formFields, string fieldName, string operationType = "Replace")
-        {
-            if (patchOperations == null || formFields == null || string.IsNullOrWhiteSpace(fieldName))
-                return; // Prevent potential null reference errors
-
-            if (operationType.Equals("Replace", StringComparison.OrdinalIgnoreCase))
-            {
-                int value = 0;
-                if (formFields.ContainsKey(fieldName))
-                {
-                    string checkedValue = formFields[fieldName]?.Trim() ?? string.Empty;
-                    if (checkedValue.Equals("on"))
-                    {
-                        value = 1;
-                    }
-                }
-                patchOperations.Add(PatchOperation.Replace("/" + fieldName, value));
-            }
-            else if (operationType.Equals("Add", StringComparison.OrdinalIgnoreCase))
-            {
-                int value = 0;
-                if (formFields.ContainsKey(fieldName))
-                {
-                    string checkedValue = formFields[fieldName]?.Trim() ?? string.Empty;
-                    if (checkedValue.Equals("on"))
-                    {
-                        value = 1;
-                    }
-                }
-                patchOperations.Add(PatchOperation.Add("/" + fieldName, value));
-            }
-            else if (operationType.Equals("Remove", StringComparison.OrdinalIgnoreCase))
-            {
-                patchOperations.Add(PatchOperation.Remove("/" + fieldName));
-            }
-        }
-        */
 
         public async Task UpdatePropertyDB(string userName, Dictionary<string, string> formFields)
         {
@@ -851,10 +813,11 @@ namespace GrhaWeb.Function
         }
 
 
-        public async Task UpdateOwnerDB(string userName, Dictionary<string, string> formFields)
+        public async Task<hoa_owners> UpdateOwnerDB(string userName, Dictionary<string, string> formFields)
         {
             DateTime currDateTime = DateTime.Now;
             string LastChangedTs = currDateTime.ToString("o");
+            hoa_owners ownerRec = null;
 
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
@@ -871,7 +834,7 @@ namespace GrhaWeb.Function
             //}
             string parcelId = formFields["Parcel_ID"].Trim();
             string ownerId = formFields["OwnerID"].Trim();
-            
+
             // Initialize a list of PatchOperation
             List<PatchOperation> patchOperations = new List<PatchOperation>
             {
@@ -888,7 +851,7 @@ namespace GrhaWeb.Function
             AddPatchField(patchOperations, formFields, "EmailAddr");
             AddPatchField(patchOperations, formFields, "EmailAddr2");
             AddPatchField(patchOperations, formFields, "Comments");
-            
+
             // Convert the list to an array
             PatchOperation[] patchArray = patchOperations.ToArray();
 
@@ -921,31 +884,66 @@ namespace GrhaWeb.Function
                 patchArray
             );
 
+            /*
+            >>>>>> handle any updates for the Owner info for Current Owner
+            if (item.CurrentOwner == 1)
+            {
+                // Current Owner fields are already part of the properties record (including property.OwnerID)
 
-    /*
-                            "id": "1",
-                            "OwnerID": 1,
-                            "Parcel_ID": "R72617307 0001",
-                            "CurrentOwner": 1,
-                            "Owner_Name1": "Williams Robin L",
-                            "Owner_Name2": "",
-                            "DatePurchased": "7/1/2005",
-                            "Mailing_Name": "Robin L Williams",
-                            "AlternateMailing": 0,
-                            "Alt_Address_Line1": "",
-                            "Alt_Address_Line2": "",
-                            "Alt_City": "",
-                            "Alt_State": "",
-                            "Alt_Zip": "",
-                            "Owner_Phone": "(937) 236-2699",
-                            "EmailAddr": "rwilliams1692@att.net",
-                            "EmailAddr2": "",
-                            "Comments": "no personal checks accepted - bank rejected 4222 from 10/21/2020",
-                            "EntryTimestamp": "6/9/2007 12:21:21",
-                            "UpdateTimestamp": "6/9/2007 12:21:21",
-                            "LastChangedBy": "treasurer",
-                            "LastChangedTs": "2020-10-21T14:13:51",
-                            */
+                hoaRec.duesEmailAddr = item.EmailAddr;
+                if (!string.IsNullOrWhiteSpace(item.EmailAddr))
+                {
+                    hoaRec.emailAddrList.Add(item.EmailAddr);
+                }
+                if (!string.IsNullOrWhiteSpace(item.EmailAddr2))
+                {
+                    hoaRec.emailAddrList.Add(item.EmailAddr2);
+                }
+            }
+            */
+
+            /*
+                                    "id": "1",
+                                    "OwnerID": 1,
+                                    "Parcel_ID": "R72617307 0001",
+                                    "CurrentOwner": 1,
+                                    "Owner_Name1": "Williams Robin L",
+                                    "Owner_Name2": "",
+                                    "DatePurchased": "7/1/2005",
+                                    "Mailing_Name": "Robin L Williams",
+                                    "AlternateMailing": 0,
+                                    "Alt_Address_Line1": "",
+                                    "Alt_Address_Line2": "",
+                                    "Alt_City": "",
+                                    "Alt_State": "",
+                                    "Alt_Zip": "",
+                                    "Owner_Phone": "(937) 236-2699",
+                                    "EmailAddr": "rwilliams1692@att.net",
+                                    "EmailAddr2": "",
+                                    "Comments": "no personal checks accepted - bank rejected 4222 from 10/21/2020",
+                                    "EntryTimestamp": "6/9/2007 12:21:21",
+                                    "UpdateTimestamp": "6/9/2007 12:21:21",
+                                    "LastChangedBy": "treasurer",
+                                    "LastChangedTs": "2020-10-21T14:13:51",
+                                    */
+
+            containerId = "hoa_owners";
+            Container ownersContainer = db.GetContainer(containerId);
+            var queryDefinition = new QueryDefinition(
+                "SELECT * FROM c WHERE c.id = @ownerId AND c.Parcel_ID = @parcelId ")
+                .WithParameter("@ownerId", ownerId)
+                .WithParameter("@parcelId", parcelId);
+            var ownersFeed = ownersContainer.GetItemQueryIterator<hoa_owners>(queryDefinition);
+            while (ownersFeed.HasMoreResults)
+            {
+                var ownersResponse = await ownersFeed.ReadNextAsync();
+                foreach (var item in ownersResponse)
+                {
+                    ownerRec = item;
+                }
+            }
+
+            return ownerRec;
         }
 
     } // public class HoaDbCommon

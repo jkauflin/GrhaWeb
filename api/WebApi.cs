@@ -248,7 +248,8 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> UpdateOwner(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            string returnMessage = "";
+            hoa_owners ownerRec = null;
+            //string returnMessage = "";
             try
             {
                 string userName = "";
@@ -287,9 +288,7 @@ namespace GrhaWeb.Function
                     section = await reader.ReadNextSectionAsync();
                 }
 
-                await hoaDbCommon.UpdateOwnerDB(userName,formFields);
-
-                returnMessage = "Owner was updated";
+                ownerRec = await hoaDbCommon.UpdateOwnerDB(userName,formFields);
             }
             catch (Exception ex)
             {
@@ -297,7 +296,7 @@ namespace GrhaWeb.Function
                 return new BadRequestObjectResult("Error in update of Property - check log");
             }
             
-            return new OkObjectResult(returnMessage);
+            return new OkObjectResult(ownerRec);
         }
 
     } // public static class WebApi
