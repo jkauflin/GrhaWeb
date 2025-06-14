@@ -842,7 +842,7 @@ namespace GrhaWeb.Function
                 PatchOperation.Replace("/LastChangedTs", LastChangedTs)
             };
 
-            AddPatchField(patchOperations, formFields, "CurrentOwner", "Bool");
+            //AddPatchField(patchOperations, formFields, "CurrentOwner", "Bool");
             AddPatchField(patchOperations, formFields, "Owner_Name1");
             AddPatchField(patchOperations, formFields, "Owner_Name2");
             AddPatchField(patchOperations, formFields, "DatePurchased");

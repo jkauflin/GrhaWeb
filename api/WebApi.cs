@@ -248,7 +248,7 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> UpdateOwner(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            hoa_owners ownerRec = null;
+            hoa_owners ownerRec = new hoa_owners();
             //string returnMessage = "";
             try
             {

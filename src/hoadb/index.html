@@ -336,7 +336,7 @@
 								<label for="updOwnerID">Owner Id</label>
                         	</div>
 							<div class="mb-2">
-								<input id="updCurrentOwner" name="CurrentOwner" class="form-check-input shadow-none" type="checkbox" readonly />
+								<input id="updCurrentOwner" name="CurrentOwner" class="form-check-input shadow-none" type="checkbox" disabled />
 								<label for="updCurrentOwner" class="form-label">Current Owner</label>
 							</div>
 							<div class="mb-2 form-floating">
@@ -396,14 +396,14 @@
 
 						<div class="col-md-4"><!-- Col 3 -->
 							<div class="mb-2 form-floating">
-								<input  id="updOwner_Phone" name="Owner_Phone" type="text" class="form-control shadow-none" pattern="\d{3}-\d{3}-\d{4}" />
+								<input  id="updOwner_Phone" name="Owner_Phone" type="text" class="form-control shadow-none" pattern="^(\(\d{3}\)\s?|\d{3}-?)\d{3}-?\d{4}$" />
 								<label for="updOwner_Phone">Owner Phone</label>
 								<!--
 								pattern="[A-Za-z0-9]+"  (letters and numbers only)
 								^\d{10}$
 								-->
 								<div class="invalid-feedback">
-									Please enter a valid 10-digit phone number in 999-999-9999 format
+									Please enter a valid US phone number
 								</div>
 							</div>
 							<div class="mb-2 form-floating">

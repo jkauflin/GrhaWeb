@@ -200,12 +200,12 @@
 									pattern="[A-Za-z0-9]+"  (letters and numbers only)
 									^\d{10}$
 									-->
-									<input  id="PhoneNumber" type="text" class="form-control" pattern="\d{3}-\d{3}-\d{4}" />
+									<input  id="PhoneNumber" type="text" class="form-control" pattern="^(\(\d{3}\)\s?|\d{3}-?)\d{3}-?\d{4}$" />
 									<div class="valid-feedback">
 										Valid
 									</div>
 									<div class="invalid-feedback">
-										Please enter a valid 10-digit phone number in 999-999-9999 format
+										Please enter a valid US phone number
 									</div>
 								</div>
 								<div class="mb-2">

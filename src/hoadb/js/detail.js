@@ -100,7 +100,6 @@ var updOwner_Name1 = document.getElementById("updOwner_Name1")
 var updOwner_Name2 = document.getElementById("updOwner_Name2")
 var updDatePurchased = document.getElementById("updDatePurchased")
 var updMailing_Name = document.getElementById("updMailing_Name")
-var updCurrentOwner = document.getElementById("updCurrentOwner")
 var updAlternateMailing = document.getElementById("updAlternateMailing")
 var updAlt_Address_Line1 = document.getElementById("updAlt_Address_Line1")
 var updAlt_Address_Line2 = document.getElementById("updAlt_Address_Line2")
@@ -124,12 +123,14 @@ document.body.addEventListener('click', function (event) {
     // Check for specific classes
     if (event.target && event.target.classList.contains("DetailDisplay")) {
         event.preventDefault();
+        UpdatePropertyMessageDisplay.textContent = ""
         getHoaRec(event.target.dataset.parcelId)
     } else if (event.target && event.target.classList.contains("OwnerUpdate")) {
         event.preventDefault();
         //console.log(">>> event.target.dataset.parcelId = "+event.target.dataset.parcelId)
         //console.log(">>> event.target.dataset.ownerId = "+event.target.dataset.ownerId)
         //udpateOwnerQuery(event.target.dataset.parcelId, event.target.dataset.ownerId)
+        UpdateOwnerMessageDisplay.textContent = ""
         formatUpdateOwner(event.target.dataset.parcelId, event.target.dataset.ownerId)
     }
 })
@@ -151,34 +152,6 @@ document.querySelectorAll('.form-control').forEach(input => {
         }
     })
 })
-
-/*
-async function udpateOwnerQuery(parcelId,ownerId) {
-    let paramData = {
-        parcelId: parcelId,
-        ownerId: ownerId
-        //fy: fy,
-        //saleDate: saleDate
-    }
-    showLoadingSpinner(messageDisplay)
-    try {
-        const response = await fetch("/api/GetHoaRec", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(paramData)
-        })
-        await checkFetchResponse(response)
-        // Success
-        let hoaRec = await response.json();
-        messageDisplay.textContent = ""
-        formatUpdateOwner(hoaRec);
-        new bootstrap.Modal(OwnerUpdateModal).show();
-    } catch (err) {
-        console.error(err)
-        messageDisplay.textContent = `Error in Fetch: ${err.message}`
-    }
-}
-*/
 
 function formatUpdateOwner(parcelId,ownerId) {
     // Find the correct owner rec
@@ -269,7 +242,6 @@ async function updateOwner() {
         UpdateOwnerMessageDisplay.textContent = `Error in Fetch: ${err.message}`
     }
 }
-
 
 
 var UpdatePropertyMessageDisplay = document.getElementById("UpdatePropertyMessageDisplay")
