@@ -45,6 +45,8 @@
  * 2025-06-14 JJK   Going back to the concept of hold a current hoaRec
  *                  (and the owner and assessment updates use the current
  *                  data for formatting, and then update with new values)
+ *                  >>>>> need to do NEW Owner (do when you work on Sales info)
+ * 2025-06-15 JJK   Working on Assessment update
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
@@ -87,6 +89,7 @@ var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody
 
 var duesStatementModal = document.getElementById('duesStatementModal')
 var OwnerUpdateModal = document.getElementById('OwnerUpdateModal')
+var AssessmentUpdateModal = document.getElementById('AssessmentUpdateModal')
 
 var updParcel_ID = document.getElementById("updParcel_ID")
 var updParcelLocation = document.getElementById("updParcelLocation")
@@ -109,6 +112,11 @@ var updComments = document.getElementById("updComments")
 var updLastChangedTs = document.getElementById("updLastChangedTs")
 var updLastChangedBy = document.getElementById("updLastChangedBy")
 
+var assParcel_ID = document.getElementById("assParcel_ID")
+var assParcelLocation = document.getElementById("assParcelLocation")
+var assOwnerID = document.getElementById("assOwnerID")
+
+
 //=================================================================================================================
 // Bind events
 
@@ -128,6 +136,10 @@ document.body.addEventListener('click', function (event) {
         //udpateOwnerQuery(event.target.dataset.parcelId, event.target.dataset.ownerId)
         UpdateOwnerMessageDisplay.textContent = ""
         formatUpdateOwner(event.target.dataset.parcelId, event.target.dataset.ownerId)
+    } else if (event.target && event.target.classList.contains("AssessmentUpdate")) {
+        event.preventDefault();
+        UpdateAssessmentMessageDisplay.textContent = ""
+        formatUpdateAssessment(event.target.dataset.parcelId, event.target.dataset.ownerId)
     }
 })
 
@@ -159,7 +171,7 @@ function formatUpdateOwner(parcelId,ownerId) {
     }
 
     if (ownerRec == null) {
-        console.err("Owner ID not found in current hoaRec, id = "+ownerId)
+        console.error("Owner ID not found in current hoaRec, id = "+ownerId)
         return        
     }
 
@@ -188,9 +200,53 @@ function formatUpdateOwner(parcelId,ownerId) {
     new bootstrap.Modal(OwnerUpdateModal).show();
 }
 
+function formatUpdateAssessment(parcelId,ownerId) {
+    // Find the correct owner rec
+    /*
+    let ownerRec = null
+    for (let index in hoaRec.ownersList) {
+        if (hoaRec.property.parcel_ID == parcelId && hoaRec.ownersList[index].ownerID == ownerId) {
+            ownerRec = hoaRec.ownersList[index]
+        }
+    }
+
+    if (ownerRec == null) {
+        console.error("Owner ID not found in current hoaRec, id = "+ownerId)
+        return        
+    }
+    */
+
+    assParcel_ID.value = hoaRec.property.parcel_ID
+    assParcelLocation.textContent = hoaRec.property.parcel_Location
+    //assOwnerID.value = ownerRec.id
+    
+    /*
+    updOwner_Name1.value = ownerRec.owner_Name1
+    updOwner_Name2.value = ownerRec.owner_Name2
+    updDatePurchased.value = standardizeDate(ownerRec.datePurchased)
+    updMailing_Name.value = ownerRec.mailing_Name
+    updAlternateMailing.checked = ownerRec.alternateMailing
+    updAlt_Address_Line1.value = ownerRec.alt_Address_Line1
+    updAlt_Address_Line2.value = ownerRec.alt_Address_Line2
+    updAlt_City.value = ownerRec.alt_City
+    updAlt_State.value = ownerRec.alt_State
+    updAlt_Zip.value = ownerRec.alt_Zip
+    updOwner_Phone.value = ownerRec.owner_Phone
+    updEmailAddr.value = ownerRec.emailAddr
+    updEmailAddr2.value = ownerRec.emailAddr2
+    updComments.value = ownerRec.comments
+    updLastChangedTs.value = ownerRec.lastChangedTs
+    updLastChangedBy.value = ownerRec.lastChangedBy
+    */
+    new bootstrap.Modal(AssessmentUpdateModal).show();
+}
+
 //UpdateOwnerMessageDisplay
 var UpdateOwnerMessageDisplay = document.getElementById("UpdateOwnerMessageDisplay")
 var UpdateOwnerForm = document.getElementById("UpdateOwnerForm")
+
+var UpdateAssessmentMessageDisplay = document.getElementById("UpdateAssessmentMessageDisplay")
+var UpdateAssessmentForm = document.getElementById("UpdateAssessmentForm")
 
 UpdateOwnerForm.addEventListener('submit', (event) => {
     let formValid = UpdateOwnerForm.checkValidity()
@@ -203,6 +259,19 @@ UpdateOwnerForm.addEventListener('submit', (event) => {
         updateOwner()
     }
     UpdateOwnerForm.classList.add('was-validated')
+})
+
+UpdateAssessmentForm.addEventListener('submit', (event) => {
+    let formValid = UpdateAssessmentForm.checkValidity()
+    event.preventDefault()
+    event.stopPropagation()
+    UpdateAssessmentMessageDisplay.textContent = ""
+    if (!formValid) {
+        UpdateAssessmentMessageDisplay.textContent = "Form inputs are NOT valid"
+    } else {
+        updateAssessment()
+    }
+    UpdateAssessmentForm.classList.add('was-validated')
 })
 
 // Handle the file upload backend server call
@@ -225,7 +294,7 @@ async function updateOwner() {
             }
         }
         if (!ownerFound) {
-            console.err("Owner ID not found in current hoaRec, id = "+ownerId)
+            console.error("Owner ID not found in current hoaRec, id = "+ownerId)
             UpdateOwnerMessageDisplay.textContent = "Owner ID not found in current hoaRec, id = "+ownerId
             return        
         } else {
@@ -239,6 +308,39 @@ async function updateOwner() {
     }
 }
 
+// Handle the file upload backend server call
+async function updateAssessment() {
+    UpdateAssessmentMessageDisplay.textContent = "Updating Assessment..."
+    try {
+        const response = await fetch("/api/UpdateAssessment", {
+            method: "POST",
+            body: new FormData(UpdateAssessmentForm)
+        })
+        await checkFetchResponse(response)
+        // Success
+        let ownerRec = await response.json();
+        // Replace the record in the owners list
+        let ownerFound = false
+        for (let index in hoaRec.ownersList) {
+            if (hoaRec.property.parcel_ID == ownerRec.parcel_ID && hoaRec.ownersList[index].ownerID == ownerRec.ownerID) {
+                ownerFound = true
+                hoaRec.ownersList[index] = ownerRec
+            }
+        }
+        if (!ownerFound) {
+            console.error("Owner ID not found in current hoaRec, id = "+ownerId)
+            UpdateAssessmentMessageDisplay.textContent = "Owner ID not found in current hoaRec, id = "+ownerId
+            return        
+        } else {
+            //displayDetailOwners()
+            UpdateAssessmentMessageDisplay.textContent = "Assessment updated sucessfully"
+        }
+        
+    } catch (err) {
+        console.error(err)
+        UpdateAssessmentMessageDisplay.textContent = `Error in Fetch: ${err.message}`
+    }
+}
 
 var UpdatePropertyMessageDisplay = document.getElementById("UpdatePropertyMessageDisplay")
 var UpdatePropertyForm = document.getElementById("UpdatePropertyForm")
@@ -356,7 +458,38 @@ function displayDetail() {
     Comments.textContent = hoaRec.property.comments
 
     displayDetailOwners()
+    displayDetailAssessments()
 
+    DuesStatementButton.dataset.parcelId = hoaRec.property.parcel_ID
+    NewOwnerButton.dataset.parcelId = hoaRec.property.parcel_ID
+    //NewOwnerButton.dataset.ownerId = 
+    CommunicationsButton.dataset.parcelId = hoaRec.property.parcel_ID
+    //CommunicationsButton.dataset.ownerId = 
+
+    //$AddAssessment.html('<a id="AddAssessmentButton" href="#" class="btn btn-sm btn-info" role="button">Add Assessment</a>');
+
+    /*
+        >>>>>>>>>>> is it still the best idea to:
+            1) display property details as rows in a table - *** check some of the other WEB UI displays you've done - Genv?
+            2) Edit - build a Modal with INPUT fields?
+
+    function _render() {
+    */
+
+    /*
+    th = document.createElement("th"); th.textContent = "Parcel Location"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-lg-table-cell'); th.textContent = "Owner Phone"; tr.appendChild(th)
+    tbody.appendChild(tr)
+    */
+}
+
+function displayDetailAssessments() {
+    // Clear out the display tables for Assessment lists
+    empty(propertyAssessmentsTbody)
+    let tr = ''
+    let th = ''
+    let td = ''
+    let tbody = ''
 
     tbody = propertyAssessmentsTbody
     let lienButton = ''
@@ -374,7 +507,7 @@ function displayDetail() {
     th = document.createElement("th"); th.textContent = "Paid"; tr.appendChild(th)
     th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Non-Coll"; tr.appendChild(th)
     th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Paid"; tr.appendChild(th)
-    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Due"; tr.appendChild(th)
+    //th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Due"; tr.appendChild(th)
     th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Payment"; tr.appendChild(th)
     th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Comments"; tr.appendChild(th)
     tbody.appendChild(tr)
@@ -392,6 +525,7 @@ function displayDetail() {
         td = document.createElement("td"); td.textContent = assessmentRec.ownerID; tr.appendChild(td)
 
         let a = document.createElement("a")
+        a.classList.add("AssessmentUpdate")
         a.href = ""
         a.dataset.parcelId = hoaRec.property.parcel_ID
         a.dataset.fy = assessmentRec.fy
@@ -440,36 +574,12 @@ function displayDetail() {
         tr.appendChild(setTD("checkbox",assessmentRec.paid,"d-none d-sm-table-cell"))
         tr.appendChild(setTD("checkbox",assessmentRec.nonCollectible,"d-none d-sm-table-cell"))
         tr.appendChild(setTD("date",assessmentRec.datePaid,"d-none d-sm-table-cell"))
-        tr.appendChild(setTD("date",assessmentRec.dateDue,"d-none d-sm-table-cell"))
+        //tr.appendChild(setTD("date",assessmentRec.dateDue,"d-none d-sm-table-cell"))
         tr.appendChild(setTD("text",assessmentRec.paymentMethod,"d-none d-sm-table-cell"))
         tr.appendChild(setTD("text",assessmentRec.comments+' '+assessmentRec.lienComment,"d-none d-sm-table-cell"))
 
         tbody.appendChild(tr)
     }
-
-    DuesStatementButton.dataset.parcelId = hoaRec.property.parcel_ID
-    NewOwnerButton.dataset.parcelId = hoaRec.property.parcel_ID
-    //NewOwnerButton.dataset.ownerId = 
-    CommunicationsButton.dataset.parcelId = hoaRec.property.parcel_ID
-    //CommunicationsButton.dataset.ownerId = 
-
-    //$AddAssessment.html('<a id="AddAssessmentButton" href="#" class="btn btn-sm btn-info" role="button">Add Assessment</a>');
-
-    /*
-        >>>>>>>>>>> is it still the best idea to:
-            1) display property details as rows in a table - *** check some of the other WEB UI displays you've done - Genv?
-            2) Edit - build a Modal with INPUT fields?
-
-    function _render() {
-    */
-
-
-    /*
-    th = document.createElement("th"); th.textContent = "Parcel Location"; tr.appendChild(th)
-    th = document.createElement("th"); th.classList.add('d-none','d-lg-table-cell'); th.textContent = "Owner Phone"; tr.appendChild(th)
-    tbody.appendChild(tr)
-    */
-
 }
 
 function displayDetailOwners() {
