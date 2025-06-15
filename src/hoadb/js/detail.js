@@ -112,7 +112,7 @@ var updComments = document.getElementById("updComments")
 var updLastChangedTs = document.getElementById("updLastChangedTs")
 var updLastChangedBy = document.getElementById("updLastChangedBy")
 
-var assParcel_ID = document.getElementById("assParcel_ID")
+var assId = document.getElementById("assId")
 var assParcelLocation = document.getElementById("assParcelLocation")
 var assOwnerID = document.getElementById("assOwnerID")
 
@@ -133,13 +133,12 @@ document.body.addEventListener('click', function (event) {
         event.preventDefault();
         //console.log(">>> event.target.dataset.parcelId = "+event.target.dataset.parcelId)
         //console.log(">>> event.target.dataset.ownerId = "+event.target.dataset.ownerId)
-        //udpateOwnerQuery(event.target.dataset.parcelId, event.target.dataset.ownerId)
         UpdateOwnerMessageDisplay.textContent = ""
         formatUpdateOwner(event.target.dataset.parcelId, event.target.dataset.ownerId)
     } else if (event.target && event.target.classList.contains("AssessmentUpdate")) {
         event.preventDefault();
         UpdateAssessmentMessageDisplay.textContent = ""
-        formatUpdateAssessment(event.target.dataset.parcelId, event.target.dataset.ownerId)
+        formatUpdateAssessment(event.target.dataset.parcelId, event.target.dataset.ownerId, event.target.dataset.assessmentId, event.target.dataset.fy)
     }
 })
 
@@ -200,7 +199,7 @@ function formatUpdateOwner(parcelId,ownerId) {
     new bootstrap.Modal(OwnerUpdateModal).show();
 }
 
-function formatUpdateAssessment(parcelId,ownerId) {
+function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
     // Find the correct owner rec
     /*
     let ownerRec = null
@@ -216,11 +215,43 @@ function formatUpdateAssessment(parcelId,ownerId) {
     }
     */
 
-    assParcel_ID.value = hoaRec.property.parcel_ID
+    assParcel_ID.value = parcelId
     assParcelLocation.textContent = hoaRec.property.parcel_Location
-    //assOwnerID.value = ownerRec.id
+    assOwnerID.value = ownerId
+    assId = assessmentId
+    assFY.value = fy
     
     /*
+    "id": "12007",
+    "OwnerID": 1,
+    "Parcel_ID": "R72617307 0001",
+    "FY": 2007,
+    "DuesAmt": "$89.00",
+    "DateDue": "10/1/2006 0:00:00",
+    "Paid": 1,
+    "NonCollectible": 0,
+    "DatePaid": "",
+    "PaymentMethod": "",
+    "Lien": 0,
+    "LienRefNo": "",
+    "DateFiled": "0001-01-01T00:00:00",
+    "Disposition": null,
+    "FilingFee": 0,
+    "ReleaseFee": 0,
+    "DateReleased": "0001-01-01T00:00:00",
+    "LienDatePaid": "0001-01-01T00:00:00",
+    "AmountPaid": 0,
+    "StopInterestCalc": 0,
+    "FilingFeeInterest": 0,
+    "AssessmentInterest": 0,
+    "InterestNotPaid": 0,
+    "BankFee": 0,
+    "LienComment": "",
+    "Comments": "",
+    "LastChangedBy": "import",
+    "LastChangedTs": "2016-08-14T13:43:43",
+
+
     updOwner_Name1.value = ownerRec.owner_Name1
     updOwner_Name2.value = ownerRec.owner_Name2
     updDatePurchased.value = standardizeDate(ownerRec.datePurchased)
@@ -422,7 +453,6 @@ async function getHoaRec(parcelId) {
         // Success
         hoaRec = await response.json();
         messageDisplay.textContent = ""
-        //displayDetail(hoaRec)
         displayDetail()
 
     } catch (err) {
@@ -431,7 +461,6 @@ async function getHoaRec(parcelId) {
     }
 }
 
-//function displayDetail(hoaRec) {
 function displayDetail() {
     // *** Remember C# object to JS JSON structure object has different camel-case rules (makes 1st character lowercase, etc.) ***
     let tr = ''
@@ -528,6 +557,8 @@ function displayDetailAssessments() {
         a.classList.add("AssessmentUpdate")
         a.href = ""
         a.dataset.parcelId = hoaRec.property.parcel_ID
+        a.dataset.ownerId = ownerRec.ownerID
+        a.dataset.assessmentId = assessmentRec.id
         a.dataset.fy = assessmentRec.fy
         a.textContent = assessmentRec.fy
         td = document.createElement("td"); 
