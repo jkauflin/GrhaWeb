@@ -529,19 +529,39 @@
                         	</div>
 
 							<div class="mb-2 form-floating">
-								<input  id="updOwner_Name2" name="Owner_Name2" type="text" class="form-control shadow-none" maxlength="50" />
-								<label for="updOwner_Name2">Owner Name2</label>
+								<input  id="assOwner_Name2" name="Owner_Name2" type="text" class="form-control shadow-none" maxlength="50" />
+								<label for="assOwner_Name2">Owner Name2</label>
 							</div>
 
 							<div class="mb-2 form-floating">
-								<input  id="updDuesAmt" name="DuesAmt" type="text" class="form-control shadow-none" />
-								<label for="updDuesAmt">Dues Amt</label>
+								<input  id="assDuesAmt" name="DuesAmt" type="text" class="form-control shadow-none" />
+								<label for="assDuesAmt">Dues Amt</label>
 							</div>
 
 							<div class="mb-2 form-floating">
-							    <input  id="updDateDue" name="DateDue" type="date" class="form-control shadow-none" >
-                            	<label for="updDateDue">Date Due</label>
+							    <input  id="assDateDue" name="DateDue" type="text" class="form-control shadow-none" readonly >
+                            	<label for="assDateDue">Date Due</label>
 							</div>
+
+							<div class="mb-2">
+								<input id="assPaid" name="Paid" class="form-check-input shadow-none" type="checkbox" />
+								<label for="assPaid" class="form-label">Paid</label>
+							</div>
+							<div class="mb-2">
+								<input id="assNonCollectible" name="NonCollectible" class="form-check-input shadow-none" type="checkbox" />
+								<label for="assNonCollectible" class="form-label">Non-Collectible</label>
+							</div>
+
+							<div class="mb-2 form-floating">
+							    <input  id="assDatePaid" name="DatePaid" type="date" class="form-control shadow-none" >
+                            	<label for="assDatePaid">Date Paid</label>
+							</div>
+
+							<div class="mb-2 form-floating">
+							    <input  id="assPaymentMethod" name="PaymentMethod" type="text" class="form-control shadow-none" >
+                            	<label for="assPaymentMethod"></label>
+							</div>
+
 
 							<!--
     "id": "12007",
@@ -605,6 +625,31 @@
 								<i class="fa fa-floppy-o me-1"></i> Save Assessment
 							</button>
 							<div id="UpdateAssessmentMessageDisplay" class="m-2"></div>
+
+							<div class="mb-2">
+								<input id="assLien" name="Lien" class="form-check-input shadow-none" type="checkbox" />
+								<label for="assLien" class="form-label">Lien</label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="assLienRefNo" name="LienRefNo" type="text" class="form-control shadow-none" >
+                            	<label for="assLienRefNo">Lien Ref No</label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="assDateFiled" name="DateFiled" type="date" class="form-control shadow-none" >
+                            	<label for="assDateFiled">Date Filed</label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="ass" name="" type="text" class="form-control shadow-none" >
+                            	<label for="ass"></label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="ass" name="" type="text" class="form-control shadow-none" >
+                            	<label for="ass"></label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="ass" name="" type="text" class="form-control shadow-none" >
+                            	<label for="ass"></label>
+							</div>
 
 							<!--
 							<div class="mb-2">
