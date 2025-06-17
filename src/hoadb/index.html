@@ -529,7 +529,7 @@
                         	</div>
 
 							<div class="mb-2 form-floating">
-								<input  id="assOwner_Name2" name="Owner_Name2" type="text" class="form-control shadow-none" maxlength="50" />
+								<input  id="assOwner_Name2" name="Owner_Name2" type="text" class="form-control shadow-none" readonly />
 								<label for="assOwner_Name2">Owner Name2</label>
 							</div>
 
@@ -539,7 +539,7 @@
 							</div>
 
 							<div class="mb-2 form-floating">
-							    <input  id="assDateDue" name="DateDue" type="text" class="form-control shadow-none" readonly >
+							    <input  id="assDateDue" name="DateDue" type="date" class="form-control shadow-none" readonly >
                             	<label for="assDateDue">Date Due</label>
 							</div>
 
@@ -575,6 +575,7 @@
     "NonCollectible": 0,
     "DatePaid": "",
     "PaymentMethod": "",
+
     "Lien": 0,
     "LienRefNo": "",
     "DateFiled": "0001-01-01T00:00:00",
@@ -593,30 +594,6 @@
     "Comments": "",
     "LastChangedBy": "import",
     "LastChangedTs": "2016-08-14T13:43:43",
-
-							<div class="mb-2">
-								<input id="updCurrentOwner" name="CurrentOwner" class="form-check-input shadow-none" type="checkbox" disabled />
-								<label for="updCurrentOwner" class="form-label">Current Owner</label>
-							</div>
-							<div class="mb-2 form-floating">
-								<input  id="updOwner_Name1" name="Owner_Name1" type="text" class="form-control  shadow-none" maxlength="50" required />
-								<label for="updOwner_Name1">Owner Name1</label>
-								<div class="invalid-feedback">
-									Owner Name1 is required
-								</div>
-							</div>
-							<div class="mb-2 form-floating">
-								<input  id="updOwner_Name2" name="Owner_Name2" type="text" class="form-control shadow-none" maxlength="50" />
-								<label for="updOwner_Name2">Owner Name2</label>
-							</div>
-		                    <div class="mb-2 form-floating">
-                            	<input  id="updDatePurchased" name="DatePurchased" type="date" class="form-control shadow-none" >
-                            	<label for="updDatePurchased">Date Purchased</label>
-                        	</div>
-							<div class="mb-2 form-floating">
-								<input  id="updMailing_Name" name="Mailing_Name" type="text" class="form-control shadow-none" maxlength="50" />
-								<label for="updMailing_Name">Mailing Name</label>
-							</div>
 							-->
 						</div>
 
@@ -639,48 +616,68 @@
                             	<label for="assDateFiled">Date Filed</label>
 							</div>
 							<div class="mb-2 form-floating">
-							    <input  id="ass" name="" type="text" class="form-control shadow-none" >
-                            	<label for="ass"></label>
+							    <input  id="assDisposition" name="Disposition" type="text" class="form-control shadow-none" >
+                            	<label for="assDisposition">Disposition</label>
 							</div>
 							<div class="mb-2 form-floating">
-							    <input  id="ass" name="" type="text" class="form-control shadow-none" >
-                            	<label for="ass"></label>
+							    <input  id="assDateReleased" name="DateReleased" type="date" class="form-control shadow-none" >
+                            	<label for="assDateReleased">Date Released</label>
 							</div>
 							<div class="mb-2 form-floating">
-							    <input  id="ass" name="" type="text" class="form-control shadow-none" >
-                            	<label for="ass"></label>
+							    <input  id="assLienDatePaid" name="LienDatePaid" type="date" class="form-control shadow-none" >
+                            	<label for="assLienDatePaid">Lien Date Paid</label>
 							</div>
 
-							<!--
-							<div class="mb-2">
-								<input id="updAlternateMailing" name="AlternateMailing" class="form-check-input shadow-none" type="checkbox" />
-								<label for="updAlternateMailing">Alternate Mailing</label>
-							</div>
-							<div class="mb-2 form-floating">
-								<input  id="updAlt_Address_Line1" name="Alt_Address_Line1" type="text" class="form-control shadow-none" />
-								<label for="updAlt_Address_Line1">Address Line1</label>
-							</div>
-							<div class="mb-2 form-floating">
-								<input  id="updAlt_Address_Line2" name="Alt_Address_Line2" type="text" class="form-control shadow-none" maxlength="50" />
-								<label for="updAlt_Address_Line2">Address Line2</label>
-							</div>
-							<div class="mb-2 form-floating">
-								<input  id="updAlt_City" name="Alt_City" type="text" class="form-control shadow-none" maxlength="40" />
-								<label for="updAlt_City">Address City</label>
-							</div>
-							<div class="mb-2 form-floating">
-								<input  id="updAlt_State" name="Alt_State" type="text" class="form-control shadow-none" maxlength="20" />
-								<label for="updAlt_State">Address State</label>
-							</div>
-							<div class="mb-2 form-floating">
-								<input  id="updAlt_Zip" name="Alt_Zip" type="text" class="form-control shadow-none" maxlength="20" />
-								<label for="updAlt_Zip">Address Zip</label>
-							</div>
-							-->
 						</div>
 
 						<div class="col-md-4"><!-- Col 3 -->
-							Col 3
+							<div class="mb-2 form-floating">
+							    <input  id="assAmountPaid" name="AmountPaid" type="number" class="form-control shadow-none" >
+                            	<label for="assAmountPaid">AmountPaid</label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="assStopInterestCalc" name="StopInterestCalc" type="checkbox" class="form-check-input shadow-none" >
+                            	<label for="assStopInterestCalc">Stop Interest Calc</label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="assFilingFeeInterest" name="FilingFeeInterest" type="number" class="form-control shadow-none" >
+                            	<label for="assFilingFeeInterest">Filing Fee Interest</label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="assAssessmentInterest" name="AssessmentInterest" type="number" class="form-control shadow-none" >
+                            	<label for="assAssessmentInterest"></label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="ass" name="" type="checkbox" class="form-check-input shadow-none" >
+                            	<label for="ass"></label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="ass" name="" type="checkbox" class="form-check-input shadow-none" >
+                            	<label for="ass"></label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="ass" name="" type="number" class="form-control shadow-none" >
+                            	<label for="ass"></label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="ass" name="" type="number" class="form-control shadow-none" >
+                            	<label for="ass"></label>
+							</div>
+							<div class="mb-2 form-floating">
+							    <input  id="ass" name="" type="text" class="form-control shadow-none" >
+                            	<label for="ass"></label>
+							</div>
+<!--
+    "": 0,
+    "": 0,
+    "": 0,
+    "InterestNotPaid": 0,
+    "BankFee": 0,
+    "LienComment": "",
+    "Comments": "",
+    "LastChangedBy": "import",
+    "LastChangedTs": "2016-08-14T13:43:43",
+-->
 						</div>
 					</div>
 
