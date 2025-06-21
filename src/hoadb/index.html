@@ -517,13 +517,12 @@
 							<div id="assParcelLocation" class="mb-2">
 								Parcel Location
 							</div>
-
-		                    <div class="form-floating">
+		                    <div class="mb-2 form-floating">
 								<input  id="assOwnerID" name="OwnerID" type="text" class="form-control shadow-none" readonly />
 								<label for="assOwnerID">Owner Id</label>
                         	</div>
 							<input id="assId" name="assessmentId" type="text" readonly hidden>
-		                    <div class="form-floating">
+		                    <div class="mb-2 form-floating">
 								<input  id="assFY" name="FY" type="text" class="form-control shadow-none" readonly />
 								<label for="assFY">Year</label>
                         	</div>
@@ -559,7 +558,11 @@
 
 							<div class="mb-2 form-floating">
 							    <input  id="assPaymentMethod" name="PaymentMethod" type="text" class="form-control shadow-none" >
-                            	<label for="assPaymentMethod"></label>
+                            	<label for="assPaymentMethod">Payment Method</label>
+							</div>
+							<div class="mb-2 form-floating">
+								<textarea id="assComments" name="Comments" type="text" class="form-control  shadow-none" style="height: 100px"></textarea>
+								<label   for="assComments" class="form-label">Comments</label>
 							</div>
 
 
@@ -627,7 +630,6 @@
 							    <input  id="assLienDatePaid" name="LienDatePaid" type="date" class="form-control shadow-none" >
                             	<label for="assLienDatePaid">Lien Date Paid</label>
 							</div>
-
 						</div>
 
 						<div class="col-md-4"><!-- Col 3 -->
@@ -635,7 +637,7 @@
 							    <input  id="assAmountPaid" name="AmountPaid" type="number" class="form-control shadow-none" >
                             	<label for="assAmountPaid">AmountPaid</label>
 							</div>
-							<div class="mb-2 form-floating">
+							<div class="mb-2">
 							    <input  id="assStopInterestCalc" name="StopInterestCalc" type="checkbox" class="form-check-input shadow-none" >
                             	<label for="assStopInterestCalc">Stop Interest Calc</label>
 							</div>
@@ -645,44 +647,32 @@
 							</div>
 							<div class="mb-2 form-floating">
 							    <input  id="assAssessmentInterest" name="AssessmentInterest" type="number" class="form-control shadow-none" >
-                            	<label for="assAssessmentInterest"></label>
+                            	<label for="assAssessmentInterest">Assessment Interest</label>
+							</div>
+							<div class="mb-2">
+							    <input  id="assInterestNotPaid" name="InterestNotPaid" type="checkbox" class="form-check-input shadow-none" >
+                            	<label for="assInterestNotPaid">Interest Not Paid</label>
 							</div>
 							<div class="mb-2 form-floating">
-							    <input  id="ass" name="" type="checkbox" class="form-check-input shadow-none" >
-                            	<label for="ass"></label>
+							    <input  id="assBankFee" name="BankFee" type="number" class="form-control shadow-none" >
+                            	<label for="assBankFee">Bank Fee</label>
 							</div>
 							<div class="mb-2 form-floating">
-							    <input  id="ass" name="" type="checkbox" class="form-check-input shadow-none" >
-                            	<label for="ass"></label>
+							    <input  id="assLienComment" name="LienComment" type="text" class="form-control shadow-none" >
+                            	<label for="assLienComment">Lien Comment</label>
 							</div>
 							<div class="mb-2 form-floating">
-							    <input  id="ass" name="" type="number" class="form-control shadow-none" >
-                            	<label for="ass"></label>
+								<input  id="assLastChangedTs" type="text" class="form-control shadow-none" readonly />
+								<label for="assLastChangedTs" class="form-label">Last Changed</label>
 							</div>
 							<div class="mb-2 form-floating">
-							    <input  id="ass" name="" type="number" class="form-control shadow-none" >
-                            	<label for="ass"></label>
+								<input  id="assLastChangedBy" type="text" class="form-control shadow-none" readonly />
+								<label for="assLastChangedBy" class="form-label">Changed By</label>
 							</div>
-							<div class="mb-2 form-floating">
-							    <input  id="ass" name="" type="text" class="form-control shadow-none" >
-                            	<label for="ass"></label>
-							</div>
-<!--
-    "": 0,
-    "": 0,
-    "": 0,
-    "InterestNotPaid": 0,
-    "BankFee": 0,
-    "LienComment": "",
-    "Comments": "",
-    "LastChangedBy": "import",
-    "LastChangedTs": "2016-08-14T13:43:43",
--->
+
 						</div>
 					</div>
-
 				</form>
-
 
             </div>
             <div class="modal-footer">

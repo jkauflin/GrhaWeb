@@ -113,9 +113,34 @@ var updLastChangedTs = document.getElementById("updLastChangedTs")
 var updLastChangedBy = document.getElementById("updLastChangedBy")
 
 var assId = document.getElementById("assId")
+var assParcel_ID = document.getElementById("assParcel_ID")
 var assParcelLocation = document.getElementById("assParcelLocation")
 var assOwnerID = document.getElementById("assOwnerID")
-
+var assFY = document.getElementById("assFY")
+var assDuesAmt = document.getElementById("assDuesAmt")
+var assDateDue = document.getElementById("assDateDue")
+var assPaid = document.getElementById("assPaid")
+var assNonCollectible = document.getElementById("assNonCollectible")
+var assDatePaid = document.getElementById("assDatePaid")
+var assPaymentMethod = document.getElementById("assPaymentMethod")
+var assLien = document.getElementById("assLien")
+var assLienRefNo = document.getElementById("assLienRefNo")
+var assDateFiled = document.getElementById("assDateFiled")
+var assDisposition = document.getElementById("assDisposition")
+var assFilingFee = document.getElementById("assFilingFee")
+var assReleaseFee = document.getElementById("assReleaseFee")
+var assDateReleased = document.getElementById("assDateReleased")
+var assLienDatePaid = document.getElementById("assLienDatePaid")
+var assAmountPaid = document.getElementById("assAmountPaid")
+var assStopInterestCalc = document.getElementById("assStopInterestCalc")
+var assFilingFeeInterest = document.getElementById("assFilingFeeInterest")
+var assAssessmentInterest = document.getElementById("assAssessmentInterest")
+var assInterestNotPaid = document.getElementById("assInterestNotPaid")
+var assBankFee = document.getElementById("assBankFee")
+var assLienComment = document.getElementById("assLienComment")
+var assComments = document.getElementById("assComments")
+var assLastChangedBy = document.getElementById("assLastChangedBy")
+var assLastChangedTs = document.getElementById("assLastChangedTs")
 
 //=================================================================================================================
 // Bind events
@@ -200,32 +225,60 @@ function formatUpdateOwner(parcelId,ownerId) {
 }
 
 function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
-    // Find the correct owner rec
-    /*
-    let ownerRec = null
+    // Find the correct assessment rec
+    let assessmentRec = null
     for (let index in hoaRec.ownersList) {
         if (hoaRec.property.parcel_ID == parcelId && hoaRec.ownersList[index].ownerID == ownerId) {
             ownerRec = hoaRec.ownersList[index]
         }
     }
 
-    if (ownerRec == null) {
+    if (assessmentRec == null) {
         console.error("Owner ID not found in current hoaRec, id = "+ownerId)
         return        
     }
-    */
 
+
+
+    
     assParcel_ID.value = parcelId
     assParcelLocation.textContent = hoaRec.property.parcel_Location
     assOwnerID.value = ownerId
     assId = assessmentId
     assFY.value = fy
     
+    assFY.value = 
+    assDuesAmt.value = 
+    assDateDue.value = standardizeDate(assessmentRec.dateDue)
+    assPaid.value = 
+    assNonCollectible.value = 
+    assDatePaid.value = 
+    assPaymentMethod.value = 
+    assLien.value = 
+    assLienRefNo.value = 
+    assDateFiled.value = 
+    assDisposition.value = 
+    assFilingFee.value = 
+    assReleaseFee.value = 
+    assDateReleased.value = 
+    assLienDatePaid.value = 
+    assAmountPaid.value = 
+    assStopInterestCalc.value = 
+    assFilingFeeInterest.value = 
+    assAssessmentInterest.value = 
+    assInterestNotPaid.value = 
+    assBankFee.value = 
+    assLienComment.value = 
+    assComments.value = 
+    assLastChangedBy.value = 
+    assLastChangedTs.value = 
+
     /*
     "id": "12007",
     "OwnerID": 1,
     "Parcel_ID": "R72617307 0001",
     "FY": 2007,
+
     "DuesAmt": "$89.00",
     "DateDue": "10/1/2006 0:00:00",
     "Paid": 1,
@@ -512,107 +565,6 @@ function displayDetail() {
     */
 }
 
-function displayDetailAssessments() {
-    // Clear out the display tables for Assessment lists
-    empty(propertyAssessmentsTbody)
-    let tr = ''
-    let th = ''
-    let td = ''
-    let tbody = ''
-
-    tbody = propertyAssessmentsTbody
-    let lienButton = ''
-    let buttonColor = ''
-    var ButtonType = ''
-    let checkbox = ''
-
-    tr = document.createElement('tr')
-    tr.classList.add('small')
-    // Append the header elements
-    th = document.createElement("th"); th.textContent = "OwnId"; tr.appendChild(th)
-    th = document.createElement("th"); th.textContent = "FY"; tr.appendChild(th)
-    th = document.createElement("th"); th.textContent = "Dues Amt"; tr.appendChild(th)
-    th = document.createElement("th"); th.textContent = "Lien"; tr.appendChild(th)
-    th = document.createElement("th"); th.textContent = "Paid"; tr.appendChild(th)
-    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Non-Coll"; tr.appendChild(th)
-    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Paid"; tr.appendChild(th)
-    //th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Due"; tr.appendChild(th)
-    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Payment"; tr.appendChild(th)
-    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Comments"; tr.appendChild(th)
-    tbody.appendChild(tr)
-
-    // Append a row for every record in list
-    for (let index in hoaRec.assessmentsList) {
-        let assessmentRec = hoaRec.assessmentsList[index]
-
-        lienButton = ''
-        ButtonType = ''
-
-        tr = document.createElement('tr')
-        tr.classList.add('small')
-
-        td = document.createElement("td"); td.textContent = assessmentRec.ownerID; tr.appendChild(td)
-
-        let a = document.createElement("a")
-        a.classList.add("AssessmentUpdate")
-        a.href = ""
-        a.dataset.parcelId = hoaRec.property.parcel_ID
-        a.dataset.ownerId = ownerRec.ownerID
-        a.dataset.assessmentId = assessmentRec.id
-        a.dataset.fy = assessmentRec.fy
-        a.textContent = assessmentRec.fy
-        td = document.createElement("td"); 
-        td.appendChild(a);
-        tr.appendChild(td)
-
-        //td = document.createElement("td"); td.textContent = formatMoney(assessmentRec.duesAmt); tr.appendChild(td)
-        tr.appendChild(setTD("money",assessmentRec.duesAmt))
-
-        td = document.createElement("td")
-        if (assessmentRec.lien) {
-            if (assessmentRec.disposition == 'Open') {
-                buttonColor = 'btn-danger';
-            } else if (assessmentRec.disposition == 'Paid') {
-                buttonColor = 'btn-success';
-            } else {
-                buttonColor = 'btn-info';
-            }
-            lienButton = document.createElement("button")
-            lienButton.setAttribute('type',"button")
-            lienButton.setAttribute('role',"button")
-            lienButton.dataset.parcelId = hoaRec.property.parcel_ID
-            lienButton.dataset.fy = assessmentRec.fy
-            //lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
-            lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none')
-            lienButton.textContent = "Lien"
-            td.appendChild(lienButton)
-        } else {
-            if (assessmentRec.duesDue) {
-                buttonColor = 'btn-warning';
-                lienButton = document.createElement("button")
-                lienButton.setAttribute('type',"button")
-                lienButton.setAttribute('role',"button")
-                lienButton.dataset.parcelId = hoaRec.property.parcel_ID
-                lienButton.dataset.fy = assessmentRec.fy
-                //lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
-                lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none')
-                lienButton.textContent = "Create Lien"
-                td.appendChild(lienButton)
-            }
-        }
-        tr.appendChild(td)
-
-        tr.appendChild(setTD("checkbox",assessmentRec.paid,"d-none d-sm-table-cell"))
-        tr.appendChild(setTD("checkbox",assessmentRec.nonCollectible,"d-none d-sm-table-cell"))
-        tr.appendChild(setTD("date",assessmentRec.datePaid,"d-none d-sm-table-cell"))
-        //tr.appendChild(setTD("date",assessmentRec.dateDue,"d-none d-sm-table-cell"))
-        tr.appendChild(setTD("text",assessmentRec.paymentMethod,"d-none d-sm-table-cell"))
-        tr.appendChild(setTD("text",assessmentRec.comments+' '+assessmentRec.lienComment,"d-none d-sm-table-cell"))
-
-        tbody.appendChild(tr)
-    }
-}
-
 function displayDetailOwners() {
     // Clear out the display tables for Owner list
     empty(propertyOwnersTbody)
@@ -668,6 +620,112 @@ function displayDetailOwners() {
         tbody.appendChild(tr)
     }
 }
+
+function displayDetailAssessments() {
+    // Clear out the display tables for Assessment lists
+    empty(propertyAssessmentsTbody)
+    let tr = ''
+    let th = ''
+    let td = ''
+    let tbody = ''
+
+    tbody = propertyAssessmentsTbody
+    let lienButton = ''
+    let buttonColor = ''
+    var ButtonType = ''
+    let checkbox = ''
+
+    tr = document.createElement('tr')
+    tr.classList.add('small')
+    // Append the header elements
+    th = document.createElement("th"); th.textContent = "OwnId"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "FY"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Dues Amt"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Lien"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Paid"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Non-Coll"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Paid"; tr.appendChild(th)
+    //th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Date Due"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Payment"; tr.appendChild(th)
+    th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Comments"; tr.appendChild(th)
+    tbody.appendChild(tr)
+
+    // Append a row for every record in list
+    for (let index in hoaRec.assessmentsList) {
+        let assessmentRec = hoaRec.assessmentsList[index]
+
+        lienButton = ''
+        ButtonType = ''
+
+        tr = document.createElement('tr')
+        tr.classList.add('small')
+
+        td = document.createElement("td"); td.textContent = assessmentRec.ownerID; tr.appendChild(td)
+
+        let a = document.createElement("a")
+        a.classList.add("AssessmentUpdate")
+        a.href = ""
+        a.dataset.parcelId = hoaRec.property.parcel_ID
+
+        // >>>>> find a way to offer "Change Owner"
+        //a.dataset.ownerId = ownerRec.ownerID
+        a.dataset.ownerId = assessmentRec.ownerID
+
+        a.dataset.assessmentId = assessmentRec.id
+        a.dataset.fy = assessmentRec.fy
+        a.textContent = assessmentRec.fy
+        td = document.createElement("td"); 
+        td.appendChild(a);
+        tr.appendChild(td)
+
+        //td = document.createElement("td"); td.textContent = formatMoney(assessmentRec.duesAmt); tr.appendChild(td)
+        tr.appendChild(setTD("money",assessmentRec.duesAmt))
+
+        td = document.createElement("td")
+        if (assessmentRec.lien) {
+            if (assessmentRec.disposition == 'Open') {
+                buttonColor = 'btn-danger';
+            } else if (assessmentRec.disposition == 'Paid') {
+                buttonColor = 'btn-success';
+            } else {
+                buttonColor = 'btn-info';
+            }
+            lienButton = document.createElement("button")
+            lienButton.setAttribute('type',"button")
+            lienButton.setAttribute('role',"button")
+            lienButton.dataset.parcelId = hoaRec.property.parcel_ID
+            lienButton.dataset.fy = assessmentRec.fy
+            //lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
+            lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none')
+            lienButton.textContent = "Lien"
+            td.appendChild(lienButton)
+        } else {
+            if (assessmentRec.duesDue) {
+                buttonColor = 'btn-warning';
+                lienButton = document.createElement("button")
+                lienButton.setAttribute('type',"button")
+                lienButton.setAttribute('role',"button")
+                lienButton.dataset.parcelId = hoaRec.property.parcel_ID
+                lienButton.dataset.fy = assessmentRec.fy
+                //lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
+                lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none')
+                lienButton.textContent = "Create Lien"
+                td.appendChild(lienButton)
+            }
+        }
+        tr.appendChild(td)
+
+        tr.appendChild(setTD("checkbox",assessmentRec.paid,"d-none d-sm-table-cell"))
+        tr.appendChild(setTD("checkbox",assessmentRec.nonCollectible,"d-none d-sm-table-cell"))
+        tr.appendChild(setTD("date",assessmentRec.datePaid,"d-none d-sm-table-cell"))
+        //tr.appendChild(setTD("date",assessmentRec.dateDue,"d-none d-sm-table-cell"))
+        tr.appendChild(setTD("text",assessmentRec.paymentMethod,"d-none d-sm-table-cell"))
+        tr.appendChild(setTD("text",assessmentRec.comments+' '+assessmentRec.lienComment,"d-none d-sm-table-cell"))
+
+        tbody.appendChild(tr)
+    }
+}
+
 
 async function getDuesStatement(parcelId) {
     let paramData = {
