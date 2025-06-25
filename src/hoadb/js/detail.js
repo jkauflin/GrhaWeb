@@ -232,7 +232,6 @@ function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
             ownerRec = hoaRec.ownersList[index]
         }
     }
-
     if (ownerRec == null) {
         console.error("Owner ID not found in current hoaRec, id = "+ownerId)
         return        
@@ -245,12 +244,10 @@ function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
             assessmentRec = hoaRec.assessmentsList[index]
         }
     }
-
     if (assessmentRec == null) {
         console.error("Assessment ID not found in current hoaRec, id = "+assessmentId)
         return        
     }
-
     
     assParcel_ID.value = parcelId
     assParcelLocation.textContent = hoaRec.property.parcel_Location
@@ -258,31 +255,30 @@ function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
     assId = assessmentId
     assFY.value = fy
     
-    assFY.value = 
-    assDuesAmt.value = 
+    assDuesAmt.value = assessmentRec.
     assDateDue.value = standardizeDate(assessmentRec.dateDue)
-    assPaid.value = 
-    assNonCollectible.value = 
-    assDatePaid.value = 
-    assPaymentMethod.value = 
-    assLien.value = 
-    assLienRefNo.value = 
-    assDateFiled.value = 
-    assDisposition.value = 
-    assFilingFee.value = 
-    assReleaseFee.value = 
-    assDateReleased.value = 
-    assLienDatePaid.value = 
-    assAmountPaid.value = 
-    assStopInterestCalc.value = 
-    assFilingFeeInterest.value = 
-    assAssessmentInterest.value = 
-    assInterestNotPaid.value = 
-    assBankFee.value = 
-    assLienComment.value = 
-    assComments.value = 
-    assLastChangedBy.value = 
-    assLastChangedTs.value = 
+    assPaid.value = assessmentRec.
+    assNonCollectible.value = assessmentRec.
+    assDatePaid.value = assessmentRec.
+    assPaymentMethod.value = assessmentRec.
+    assLien.value = assessmentRec.
+    assLienRefNo.value = assessmentRec.
+    assDateFiled.value = assessmentRec.
+    assDisposition.value = assessmentRec.
+    assFilingFee.value = assessmentRec.
+    assReleaseFee.value = assessmentRec.
+    assDateReleased.value = assessmentRec.
+    assLienDatePaid.value = assessmentRec.
+    assAmountPaid.value = assessmentRec.
+    assStopInterestCalc.value = assessmentRec.
+    assFilingFeeInterest.value = assessmentRec.
+    assAssessmentInterest.value = assessmentRec.
+    assInterestNotPaid.value = assessmentRec.
+    assBankFee.value = assessmentRec.
+    assLienComment.value = assessmentRec.
+    assComments.value = assessmentRec.
+    assLastChangedBy.value = assessmentRec.
+    assLastChangedTs.value = assessmentRec.
 
     /*
     "id": "12007",
