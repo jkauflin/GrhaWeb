@@ -225,20 +225,31 @@ function formatUpdateOwner(parcelId,ownerId) {
 }
 
 function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
-    // Find the correct assessment rec
-    let assessmentRec = null
+    // Find the correct owner rec
+    let ownerRec = null
     for (let index in hoaRec.ownersList) {
         if (hoaRec.property.parcel_ID == parcelId && hoaRec.ownersList[index].ownerID == ownerId) {
             ownerRec = hoaRec.ownersList[index]
         }
     }
 
-    if (assessmentRec == null) {
+    if (ownerRec == null) {
         console.error("Owner ID not found in current hoaRec, id = "+ownerId)
         return        
     }
 
+    // Find the correct assessment rec
+    let assessmentRec = null
+    for (let index in hoaRec.assessmentsList) {
+        if (hoaRec.property.parcel_ID == parcelId && hoaRec.assessmentsList[index].ownerID == ownerId && hoaRec.assessmentsList[index].id == assessmentId) {
+            assessmentRec = hoaRec.assessmentsList[index]
+        }
+    }
 
+    if (assessmentRec == null) {
+        console.error("Assessment ID not found in current hoaRec, id = "+assessmentId)
+        return        
+    }
 
     
     assParcel_ID.value = parcelId
@@ -425,6 +436,7 @@ async function updateAssessment() {
         UpdateAssessmentMessageDisplay.textContent = `Error in Fetch: ${err.message}`
     }
 }
+
 
 var UpdatePropertyMessageDisplay = document.getElementById("UpdatePropertyMessageDisplay")
 var UpdatePropertyForm = document.getElementById("UpdatePropertyForm")
