@@ -687,7 +687,7 @@ namespace GrhaWeb.Function
         } // UploadFileToDatabase
 
 
-        public void AddPatchField(List<PatchOperation> patchOperations, Dictionary<string, string> formFields, string fieldName, string fieldType="Text", string operationType = "Replace")
+        public void AddPatchField(List<PatchOperation> patchOperations, Dictionary<string, string> formFields, string fieldName, string fieldType = "Text", string operationType = "Replace")
         {
             if (patchOperations == null || formFields == null || string.IsNullOrWhiteSpace(fieldName))
                 return; // Prevent potential null reference errors
@@ -710,6 +710,10 @@ namespace GrhaWeb.Function
                         patchOperations.Add(PatchOperation.Replace("/" + fieldName, int.Parse(value)));
                     }
                 }
+
+                // Decimal
+                // Money ??????????????????????????????????????????????????????????????
+
                 else if (fieldType.Equals("Bool"))
                 {
                     int value = 0;
@@ -937,6 +941,120 @@ namespace GrhaWeb.Function
 
             return ownerRec;
         }
+
+        public async Task<hoa_assessments> UpdateAssessmentDB(string userName, Dictionary<string, string> formFields)
+        {
+            DateTime currDateTime = DateTime.Now;
+            string LastChangedTs = currDateTime.ToString("o");
+            hoa_assessments assessmentRec = null;
+
+            //------------------------------------------------------------------------------------------------------------------
+            // Query the NoSQL container to get values
+            //------------------------------------------------------------------------------------------------------------------
+            string databaseId = "hoadb";
+            string containerId = "hoa_assessments";
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
+
+            //foreach (var field in formFields)
+            //{
+            //    log.LogWarning($">>> in DB, Field {field.Key}: {field.Value}");
+            //}
+            string parcelId = formFields["Parcel_ID"].Trim();
+            string ownerId = formFields["OwnerID"].Trim();
+            string assessmentId = formFields["AssessmentId"].Trim();
+
+            // Initialize a list of PatchOperation
+            List<PatchOperation> patchOperations = new List<PatchOperation>
+            {
+                PatchOperation.Replace("/LastChangedBy", userName),
+                PatchOperation.Replace("/LastChangedTs", LastChangedTs)
+            };
+
+            //AddPatchField(patchOperations, formFields, "CurrentOwner", "Bool");
+            /*
+            AddPatchField(patchOperations, formFields, "Owner_Name1");
+            AddPatchField(patchOperations, formFields, "Owner_Name2");
+            AddPatchField(patchOperations, formFields, "DatePurchased");
+            AddPatchField(patchOperations, formFields, "Mailing_Name");
+            AddPatchField(patchOperations, formFields, "Owner_Phone");
+            AddPatchField(patchOperations, formFields, "EmailAddr");
+            AddPatchField(patchOperations, formFields, "EmailAddr2");
+            AddPatchField(patchOperations, formFields, "Comments");
+            */
+
+
+    /*
+    "id": "12007",
+    "OwnerID": 1,
+    "Parcel_ID": "R72617307 0001",
+    "FY": 2007,
+
+    "DuesAmt": "$89.00",
+    "DateDue": "10/1/2006 0:00:00",
+    "Paid": 1,
+    "NonCollectible": 0,
+    "DatePaid": "",
+    "PaymentMethod": "",
+    "Lien": 0,
+    "LienRefNo": "",
+    "DateFiled": "0001-01-01T00:00:00",
+    "Disposition": null,
+    "FilingFee": 0,
+    "ReleaseFee": 0,
+    "DateReleased": "0001-01-01T00:00:00",
+    "LienDatePaid": "0001-01-01T00:00:00",
+    "AmountPaid": 0,
+    "StopInterestCalc": 0,
+    "FilingFeeInterest": 0,
+    "AssessmentInterest": 0,
+    "InterestNotPaid": 0,
+    "BankFee": 0,
+    "LienComment": "",
+    "Comments": "",
+    "LastChangedBy": "import",
+    "LastChangedTs": "2016-08-14T13:43:43",
+    */
+
+            // Convert the list to an array
+            PatchOperation[] patchArray = patchOperations.ToArray();
+
+            ItemResponse<dynamic> response = await container.PatchItemAsync<dynamic>(
+                assessmentId,
+                new PartitionKey(parcelId),
+                patchArray
+            );
+
+            //-----------------------------------------------------------------------------------            
+            // 2nd set of updates
+            patchOperations = new List<PatchOperation>
+            {
+                PatchOperation.Replace("/LastChangedBy", userName),
+                PatchOperation.Replace("/LastChangedTs", LastChangedTs)
+            };
+
+            /*
+            AddPatchField(patchOperations, formFields, "AlternateMailing", "Bool");
+            AddPatchField(patchOperations, formFields, "Alt_Address_Line1");
+            AddPatchField(patchOperations, formFields, "Alt_Address_Line2");
+            AddPatchField(patchOperations, formFields, "Alt_City");
+            AddPatchField(patchOperations, formFields, "Alt_State");
+            AddPatchField(patchOperations, formFields, "Alt_Zip");
+            */
+
+            patchArray = patchOperations.ToArray();
+
+            response = await container.PatchItemAsync<dynamic>(
+                assessmentId,
+                new PartitionKey(parcelId),
+                patchArray
+            );
+
+
+            return assessmentRec;
+        }
+
 
     } // public class HoaDbCommon
 } // namespace GrhaWeb.Function

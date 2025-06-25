@@ -203,7 +203,6 @@ function formatUpdateOwner(parcelId,ownerId) {
     updParcelLocation.textContent = hoaRec.property.parcel_Location
     updOwnerID.value = ownerRec.id
     updCurrentOwner.checked = ownerRec.currentOwner
-
     updOwner_Name1.value = ownerRec.owner_Name1
     updOwner_Name2.value = ownerRec.owner_Name2
     updDatePurchased.value = standardizeDate(ownerRec.datePurchased)
@@ -251,34 +250,34 @@ function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
     
     assParcel_ID.value = parcelId
     assParcelLocation.textContent = hoaRec.property.parcel_Location
-    assOwnerID.value = ownerId
+    assOwnerID.value = ownerId + " - " + ownerRec.owner_Name1 + " " + ownerRec.owner_Name2
     assId = assessmentId
     assFY.value = fy
     
-    assDuesAmt.value = assessmentRec.
+    assDuesAmt.value = formatMoney(assessmentRec.duesAmt)
     assDateDue.value = standardizeDate(assessmentRec.dateDue)
-    assPaid.value = assessmentRec.
-    assNonCollectible.value = assessmentRec.
-    assDatePaid.value = assessmentRec.
-    assPaymentMethod.value = assessmentRec.
-    assLien.value = assessmentRec.
-    assLienRefNo.value = assessmentRec.
-    assDateFiled.value = assessmentRec.
-    assDisposition.value = assessmentRec.
-    assFilingFee.value = assessmentRec.
-    assReleaseFee.value = assessmentRec.
-    assDateReleased.value = assessmentRec.
-    assLienDatePaid.value = assessmentRec.
-    assAmountPaid.value = assessmentRec.
-    assStopInterestCalc.value = assessmentRec.
-    assFilingFeeInterest.value = assessmentRec.
-    assAssessmentInterest.value = assessmentRec.
-    assInterestNotPaid.value = assessmentRec.
-    assBankFee.value = assessmentRec.
-    assLienComment.value = assessmentRec.
-    assComments.value = assessmentRec.
-    assLastChangedBy.value = assessmentRec.
-    assLastChangedTs.value = assessmentRec.
+    assPaid.checked = assessmentRec.paid
+    assNonCollectible.checked = assessmentRec.nonCollectible
+    assDatePaid.value = standardizeDate(assessmentRec.datePaid)
+    assPaymentMethod.value = assessmentRec.paymentMethod
+    assLien.checked = assessmentRec.lien
+    assLienRefNo.value = assessmentRec.lienRefNo
+    assDateFiled.value = standardizeDate(assessmentRec.dateFiled)
+    assDisposition.value = assessmentRec.disposition
+    assFilingFee.value = formatMoney(assessmentRec.filingFee)
+    assReleaseFee.value = formatMoney(assessmentRec.releaseFee)
+    assDateReleased.value = standardizeDate(assessmentRec.dateReleased)
+    assLienDatePaid.value = standardizeDate(assessmentRec.lienDatePaid)
+    assAmountPaid.value = formatMoney(assessmentRec.amountPaid)
+    assStopInterestCalc.checked = assessmentRec.stopInterestCalc
+    assFilingFeeInterest.value = formatMoney(assessmentRec.filingFeeInterest)
+    assAssessmentInterest.value = formatMoney(assessmentRec.assessmentInterest)
+    assInterestNotPaid.checked = assessmentRec.interestNotPaid
+    assBankFee.value = formatMoney(assessmentRec.bankFee)
+    assLienComment.value = assessmentRec.lienComment
+    assComments.value = assessmentRec.comments
+    assLastChangedBy.value = assessmentRec.lastChangedBy
+    assLastChangedTs.value = assessmentRec.lastChangedTs
 
     /*
     "id": "12007",
@@ -310,24 +309,6 @@ function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
     "Comments": "",
     "LastChangedBy": "import",
     "LastChangedTs": "2016-08-14T13:43:43",
-
-
-    updOwner_Name1.value = ownerRec.owner_Name1
-    updOwner_Name2.value = ownerRec.owner_Name2
-    updDatePurchased.value = standardizeDate(ownerRec.datePurchased)
-    updMailing_Name.value = ownerRec.mailing_Name
-    updAlternateMailing.checked = ownerRec.alternateMailing
-    updAlt_Address_Line1.value = ownerRec.alt_Address_Line1
-    updAlt_Address_Line2.value = ownerRec.alt_Address_Line2
-    updAlt_City.value = ownerRec.alt_City
-    updAlt_State.value = ownerRec.alt_State
-    updAlt_Zip.value = ownerRec.alt_Zip
-    updOwner_Phone.value = ownerRec.owner_Phone
-    updEmailAddr.value = ownerRec.emailAddr
-    updEmailAddr2.value = ownerRec.emailAddr2
-    updComments.value = ownerRec.comments
-    updLastChangedTs.value = ownerRec.lastChangedTs
-    updLastChangedBy.value = ownerRec.lastChangedBy
     */
     new bootstrap.Modal(AssessmentUpdateModal).show();
 }
@@ -385,8 +366,8 @@ async function updateOwner() {
             }
         }
         if (!ownerFound) {
-            console.error("Owner ID not found in current hoaRec, id = "+ownerId)
-            UpdateOwnerMessageDisplay.textContent = "Owner ID not found in current hoaRec, id = "+ownerId
+            console.error("Owner ID not found in current hoaRec, id = "+ownerRec.ownerId)
+            UpdateOwnerMessageDisplay.textContent = "Owner ID not found in current hoaRec, id = "+ownerRec.ownerId
             return        
         } else {
             displayDetailOwners()
@@ -409,21 +390,21 @@ async function updateAssessment() {
         })
         await checkFetchResponse(response)
         // Success
-        let ownerRec = await response.json();
+        let assessmentRec = await response.json();
         // Replace the record in the owners list
-        let ownerFound = false
-        for (let index in hoaRec.ownersList) {
-            if (hoaRec.property.parcel_ID == ownerRec.parcel_ID && hoaRec.ownersList[index].ownerID == ownerRec.ownerID) {
-                ownerFound = true
-                hoaRec.ownersList[index] = ownerRec
+        let assessmentFound = false
+        for (let index in hoaRec.assessmentsList) {
+            if (hoaRec.property.parcel_ID == parcelId && hoaRec.assessmentsList[index].id == assessmentRec.assessmentId) {
+                assessmentFound = true
+                hoaRec.assessmentsList[index] = assessmentRec
             }
         }
-        if (!ownerFound) {
-            console.error("Owner ID not found in current hoaRec, id = "+ownerId)
-            UpdateAssessmentMessageDisplay.textContent = "Owner ID not found in current hoaRec, id = "+ownerId
+        if (!assessmentFound) {
+            console.error("Assessment ID not found in current hoaRec, id = "+assessmentRec.assessmentId)
+            UpdateAssessmentMessageDisplay.textContent = "Assessment ID not found in current hoaRec, id = "+assessmentRec.assessmentId
             return        
         } else {
-            //displayDetailOwners()
+            displayDetailAssessments()
             UpdateAssessmentMessageDisplay.textContent = "Assessment updated sucessfully"
         }
         
@@ -538,13 +519,7 @@ function displayDetail() {
     Property_State.textContent = hoaRec.property.property_State
     Property_Zip.textContent = hoaRec.property.property_Zip
     TotalDue.textContent = "$"+hoaRec.totalDue
-    /*
-    Rental.checked = (hoaRec.property.rental == 1) ? Rental.checked = true : false
-    Managed.checked = (hoaRec.property.managed == 1) ? Managed.checked = true : false
-    Foreclosure.checked = (hoaRec.property.foreclosure == 1) ? Foreclosure.checked = true : false
-    Bankruptcy.checked = (hoaRec.property.bankruptcy == 1) ? Bankruptcy.checked = true : false
-    */
-    UseEmail.checked = (hoaRec.property.useEmail == 1) ? UseEmail.checked = true : false
+    UseEmail.checked = hoaRec.property.useEmail
     Comments.textContent = hoaRec.property.comments
 
     displayDetailOwners()

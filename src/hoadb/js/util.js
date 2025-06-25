@@ -86,7 +86,12 @@ var nonMoneyCharsStr = "[\x01-\x2D\x2F\x3A-\x7F]";
 //"g" global so it does more than 1 substitution
 var regexNonMoneyChars = new RegExp(nonMoneyCharsStr, "g");
 export function formatMoney(inAmount) {
-    var inAmountStr = '' + inAmount;
+    var inAmountStr = ''
+    if (inAmount == null) {
+        inAmountStr = '0.00'
+    } else {
+        inAmountStr += inAmount
+    }
     inAmountStr = inAmountStr.replace(regexNonMoneyChars, '');
     return parseFloat(inAmountStr).toFixed(2);
 }

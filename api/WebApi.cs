@@ -130,7 +130,7 @@ namespace GrhaWeb.Function
                 string content = await new StreamReader(req.Body).ReadToEndAsync();
                 // Deserialize the JSON string into a generic JSON object
                 JObject jObject = JObject.Parse(content);
-        
+
                 // Construct the query from the query parameters
                 string parcelId = "";
                 string ownerId = "";
@@ -150,17 +150,20 @@ namespace GrhaWeb.Function
                 {
                     return new BadRequestObjectResult("GetHoaRec failed because parcelId was NOT FOUND");
                 }
-                if (jObject.TryGetValue("ownerId", out jToken)) {
+                if (jObject.TryGetValue("ownerId", out jToken))
+                {
                     ownerId = jToken.ToString();
                 }
-                if (jObject.TryGetValue("fy", out jToken)) {
+                if (jObject.TryGetValue("fy", out jToken))
+                {
                     fy = jToken.ToString();
                 }
-                if (jObject.TryGetValue("saleDate", out jToken)) {
+                if (jObject.TryGetValue("saleDate", out jToken))
+                {
                     saleDate = jToken.ToString();
                 }
 
-                hoaRec = await hoaDbCommon.GetHoaRec(parcelId,ownerId,fy,saleDate);
+                hoaRec = await hoaDbCommon.GetHoaRec(parcelId, ownerId, fy, saleDate);
             }
             catch (Exception ex)
             {
@@ -230,7 +233,7 @@ namespace GrhaWeb.Function
                     log.LogWarning($"Field {field.Key}: {field.Value}");
                 }
                 */
-                await hoaDbCommon.UpdatePropertyDB(userName,formFields);
+                await hoaDbCommon.UpdatePropertyDB(userName, formFields);
 
                 returnMessage = "Property was updated";
             }
@@ -239,7 +242,7 @@ namespace GrhaWeb.Function
                 log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult("Error in update of Property - check log");
             }
-            
+
             return new OkObjectResult(returnMessage);
         }
 
@@ -288,7 +291,62 @@ namespace GrhaWeb.Function
                     section = await reader.ReadNextSectionAsync();
                 }
 
-                ownerRec = await hoaDbCommon.UpdateOwnerDB(userName,formFields);
+                ownerRec = await hoaDbCommon.UpdateOwnerDB(userName, formFields);
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult("Error in update of Property - check log");
+            }
+
+            return new OkObjectResult(ownerRec);
+        }
+
+        [Function("UpdateAssessment")]
+        public async Task<IActionResult> UpdateAssessment(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            hoa_assessments assessmentRec = new hoa_assessments();
+            //string returnMessage = "";
+            try
+            {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+                //log.LogInformation($">>> User is authorized - userName: {userName}");
+
+                // Get content from the Request BODY
+                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
+                var reader = new MultipartReader(boundary, req.Body);
+                var section = await reader.ReadNextSectionAsync();
+
+                var formFields = new Dictionary<string, string>();
+                var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                while (section != null)
+                {
+                    var contentDisposition = section.GetContentDispositionHeader();
+                    if (contentDisposition != null)
+                    {
+                        if (contentDisposition.IsFileDisposition())
+                        {
+                            using var memoryStream = new MemoryStream();
+                            await section.Body.CopyToAsync(memoryStream);
+                            files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
+                        }
+                        else if (contentDisposition.IsFormDisposition())
+                        {
+                            using var streamReader = new StreamReader(section.Body);
+                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                        }
+                    }
+
+                    section = await reader.ReadNextSectionAsync();
+                }
+
+                assessmentRec = await hoaDbCommon.UpdateAssessmentDB(userName,formFields);
             }
             catch (Exception ex)
             {
@@ -296,8 +354,9 @@ namespace GrhaWeb.Function
                 return new BadRequestObjectResult("Error in update of Property - check log");
             }
             
-            return new OkObjectResult(ownerRec);
+            return new OkObjectResult(assessmentRec);
         }
+
 
     } // public static class WebApi
 }
