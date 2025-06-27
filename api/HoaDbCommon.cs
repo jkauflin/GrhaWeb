@@ -15,7 +15,9 @@ Modification History
 2025-05-14 JJK  Added calc of DuesDue in the assessments record
 2025-05=16 JJK  Working on DuesStatement (and PDF)
 2025-05-31 JJK  Added AddPatchField and functions to update hoadb property
+2025-06-27 JJK  Added Assessment update
 ================================================================================*/
+using System.Globalization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Cosmos;
@@ -686,7 +688,6 @@ namespace GrhaWeb.Function
 
         } // UploadFileToDatabase
 
-
         public void AddPatchField(List<PatchOperation> patchOperations, Dictionary<string, string> formFields, string fieldName, string fieldType = "Text", string operationType = "Replace")
         {
             if (patchOperations == null || formFields == null || string.IsNullOrWhiteSpace(fieldName))
@@ -710,10 +711,16 @@ namespace GrhaWeb.Function
                         patchOperations.Add(PatchOperation.Replace("/" + fieldName, int.Parse(value)));
                     }
                 }
-
-                // Decimal
-                // Money ??????????????????????????????????????????????????????????????
-
+                else if (fieldType.Equals("Money"))
+                {
+                    string value = formFields[fieldName]?.Trim() ?? string.Empty;
+                    //string input = "$1,234.56";
+                    if (decimal.TryParse(value, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal moneyVal))
+                    {
+                        Console.WriteLine($"Parsed currency: {moneyVal}");
+                        patchOperations.Add(PatchOperation.Replace("/" + fieldName, moneyVal));
+                    }
+                }
                 else if (fieldType.Equals("Bool"))
                 {
                     int value = 0;
@@ -767,6 +774,71 @@ namespace GrhaWeb.Function
             {
                 patchOperations.Add(PatchOperation.Remove("/" + fieldName));
             }
+        }
+
+
+        public T GetFieldValue<T>(Dictionary<string, string> formFields, string fieldName, T defaultValue = default)
+        {
+            if (formFields == null || string.IsNullOrWhiteSpace(fieldName))
+                return defaultValue;
+
+            if (formFields.TryGetValue(fieldName, out string rawValue))
+            {
+                try
+                {
+                    if (typeof(T) == typeof(bool))
+                    {
+                        object boolValue = rawValue.Trim().Equals("on", StringComparison.OrdinalIgnoreCase);
+                        return (T)boolValue;
+                    }
+                    else
+                    {
+                        return (T)Convert.ChangeType(rawValue.Trim(), typeof(T));
+                    }
+                }
+                catch
+                {
+                    // Optionally log the error here
+                    return defaultValue;
+                }
+            }
+
+            return defaultValue;
+        }
+
+        public int GetFieldValueBool(Dictionary<string, string> formFields, string fieldName)
+        {
+            int value = 0;
+            if (formFields == null || string.IsNullOrWhiteSpace(fieldName))
+                return value; // Prevent potential null reference errors
+
+            if (formFields.ContainsKey(fieldName))
+            {
+                string checkedValue = formFields[fieldName]?.Trim() ?? string.Empty;
+                if (checkedValue.Equals("on"))
+                {
+                    value = 1;
+                }
+            }
+            return value;
+        }
+        public decimal GetFieldValueMoney(Dictionary<string, string> formFields, string fieldName)
+        {
+            decimal value = 0.00m;
+            if (formFields == null || string.IsNullOrWhiteSpace(fieldName))
+                return value; // Prevent potential null reference errors
+
+            if (formFields.ContainsKey(fieldName))
+            {
+                string rawValue = formFields[fieldName]?.Trim() ?? string.Empty;
+                //string input = "$1,234.56";
+                if (decimal.TryParse(rawValue, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal moneyVal))
+                {
+                    Console.WriteLine($"Parsed currency: {moneyVal}");
+                }
+                value = moneyVal;
+            }
+            return value;
         }
 
 
@@ -946,7 +1018,7 @@ namespace GrhaWeb.Function
         {
             DateTime currDateTime = DateTime.Now;
             string LastChangedTs = currDateTime.ToString("o");
-            hoa_assessments assessmentRec = null;
+            hoa_assessments assessmentRec = new hoa_assessments();
 
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
@@ -957,13 +1029,88 @@ namespace GrhaWeb.Function
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
 
-            //foreach (var field in formFields)
-            //{
-            //    log.LogWarning($">>> in DB, Field {field.Key}: {field.Value}");
-            //}
             string parcelId = formFields["Parcel_ID"].Trim();
-            string ownerId = formFields["OwnerID"].Trim();
             string assessmentId = formFields["AssessmentId"].Trim();
+
+            assessmentRec = await container.ReadItemAsync<hoa_assessments>(assessmentId, new PartitionKey(parcelId));
+
+            /*
+            string name = GetFieldValue<string>(formFields, "name");
+            int age = GetFieldValue<int>(formFields, "age", -1);
+            bool isSubscribed = GetFieldValue<bool>(formFields, "subscribe", false);
+            */
+
+            assessmentRec.DuesAmt = GetFieldValueMoney(formFields, "DuesAmt").ToString("");
+            assessmentRec.DateDue = GetFieldValue<string>(formFields, "DateDue");
+            assessmentRec.Paid = GetFieldValueBool(formFields, "Paid");
+
+            /*
+            int value = 0;
+                    if (formFields.ContainsKey(fieldName))
+                    {
+                        string checkedValue = formFields[fieldName]?.Trim() ?? string.Empty;
+                        if (checkedValue.Equals("on"))
+                        {
+                            value = 1;
+                        }
+                    }
+                    patchOperations.Add(PatchOperation.Replace("/" + fieldName, value));
+            */
+
+            /*
+            assessmentRec.NonCollectible =
+            assessmentRec.DatePaid = formFields[""].Trim();
+            assessmentRec.PaymentMethod = formFields[""].Trim();
+            assessmentRec.Lien =
+            assessmentRec.LienRefNo = formFields[""].Trim();
+            assessmentRec.DateFiled = formFields[""].Trim();
+            assessmentRec.Disposition = formFields[""].Trim();
+            assessmentRec.FilingFee = 
+            assessmentRec.ReleaseFee = 
+            assessmentRec.DateReleased = formFields[""].Trim();
+            assessmentRec.LienDatePaid = formFields[""].Trim();
+            assessmentRec.AmountPaid =
+            assessmentRec.StopInterestCalc = 
+            assessmentRec.FilingFeeInterest =
+            assessmentRec.AssessmentInterest =
+            assessmentRec.InterestNotPaid =
+            assessmentRec.BankFee =
+            assessmentRec.LienComment = formFields["LienComment"].Trim();
+            assessmentRec.Comments = formFields["Comments"].Trim();
+            assessmentRec.LastChangedBy = userName;
+            assessmentRec.LastChangedTs = LastChangedTs;
+            */
+
+            /*
+                                    assessmentRec.id": "7772019",
+                                    assessmentRec.OwnerID": 777,
+                                    assessmentRec.Parcel_ID": "R72617307 0002",
+                                    assessmentRec.FY": 2019,
+                                    assessmentRec.DuesAmt": "125.00",
+                                    assessmentRec.DateDue": "2018-10-01",
+                                    assessmentRec.Paid": 0,
+                                    assessmentRec.NonCollectible": 0,
+                                    assessmentRec.DatePaid": "",
+                                    assessmentRec.PaymentMethod": "",
+                                    assessmentRec.Lien": 1,
+                                    assessmentRec.LienRefNo": "2019-00051707",
+                                    assessmentRec.DateFiled": "2019-09-20T00:00:00",
+                                    assessmentRec.Disposition": "Open",
+                                    assessmentRec.FilingFee": 28,
+                                    assessmentRec.ReleaseFee": 34,
+                                    assessmentRec.DateReleased": "0001-01-01T00:00:00",
+                                    assessmentRec.LienDatePaid": "0001-01-01T00:00:00",
+                                    assessmentRec.AmountPaid": 0,
+                                    assessmentRec.StopInterestCalc": 0,
+                                    assessmentRec.FilingFeeInterest": 0,
+                                    assessmentRec.AssessmentInterest": 7.54,
+                                    assessmentRec.InterestNotPaid": 0,
+                                    assessmentRec.BankFee": 0,
+                                    assessmentRec.LienComment": "",
+                                    assessmentRec.Comments": "",
+                                    assessmentRec.LastChangedBy": "treasurer",
+                                    assessmentRec.LastChangedTs": "2019-09-23T20:21:10",
+                        */
 
             // Initialize a list of PatchOperation
             List<PatchOperation> patchOperations = new List<PatchOperation>
@@ -973,83 +1120,22 @@ namespace GrhaWeb.Function
             };
 
             //AddPatchField(patchOperations, formFields, "CurrentOwner", "Bool");
-            /*
-            AddPatchField(patchOperations, formFields, "Owner_Name1");
-            AddPatchField(patchOperations, formFields, "Owner_Name2");
-            AddPatchField(patchOperations, formFields, "DatePurchased");
-            AddPatchField(patchOperations, formFields, "Mailing_Name");
-            AddPatchField(patchOperations, formFields, "Owner_Phone");
-            AddPatchField(patchOperations, formFields, "EmailAddr");
-            AddPatchField(patchOperations, formFields, "EmailAddr2");
-            AddPatchField(patchOperations, formFields, "Comments");
-            */
-
-
-    /*
-    "id": "12007",
-    "OwnerID": 1,
-    "Parcel_ID": "R72617307 0001",
-    "FY": 2007,
-
-    "DuesAmt": "$89.00",
-    "DateDue": "10/1/2006 0:00:00",
-    "Paid": 1,
-    "NonCollectible": 0,
-    "DatePaid": "",
-    "PaymentMethod": "",
-    "Lien": 0,
-    "LienRefNo": "",
-    "DateFiled": "0001-01-01T00:00:00",
-    "Disposition": null,
-    "FilingFee": 0,
-    "ReleaseFee": 0,
-    "DateReleased": "0001-01-01T00:00:00",
-    "LienDatePaid": "0001-01-01T00:00:00",
-    "AmountPaid": 0,
-    "StopInterestCalc": 0,
-    "FilingFeeInterest": 0,
-    "AssessmentInterest": 0,
-    "InterestNotPaid": 0,
-    "BankFee": 0,
-    "LienComment": "",
-    "Comments": "",
-    "LastChangedBy": "import",
-    "LastChangedTs": "2016-08-14T13:43:43",
-    */
-
-            // Convert the list to an array
-            PatchOperation[] patchArray = patchOperations.ToArray();
-
-            ItemResponse<dynamic> response = await container.PatchItemAsync<dynamic>(
-                assessmentId,
-                new PartitionKey(parcelId),
-                patchArray
-            );
-
-            //-----------------------------------------------------------------------------------            
-            // 2nd set of updates
-            patchOperations = new List<PatchOperation>
-            {
-                PatchOperation.Replace("/LastChangedBy", userName),
-                PatchOperation.Replace("/LastChangedTs", LastChangedTs)
-            };
-
-            /*
-            AddPatchField(patchOperations, formFields, "AlternateMailing", "Bool");
-            AddPatchField(patchOperations, formFields, "Alt_Address_Line1");
-            AddPatchField(patchOperations, formFields, "Alt_Address_Line2");
-            AddPatchField(patchOperations, formFields, "Alt_City");
-            AddPatchField(patchOperations, formFields, "Alt_State");
-            AddPatchField(patchOperations, formFields, "Alt_Zip");
-            */
-
-            patchArray = patchOperations.ToArray();
-
-            response = await container.PatchItemAsync<dynamic>(
-                assessmentId,
-                new PartitionKey(parcelId),
-                patchArray
-            );
+/*
+                                    if (decimal.TryParse(value, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal moneyVal))
+                        {
+                            Console.WriteLine($"Parsed currency: {moneyVal}");
+                            patchOperations.Add(PatchOperation.Replace("/" + fieldName, moneyVal));
+                        }
+*/
+            //AddPatchField(patchOperations, formFields, "", "Money");
+            AddPatchField(patchOperations, formFields, "DuesAmt");
+            AddPatchField(patchOperations, formFields, "DateDue");
+            AddPatchField(patchOperations, formFields, "Paid", "Bool");
+            AddPatchField(patchOperations, formFields, "NonCollectible", "Bool");
+            AddPatchField(patchOperations, formFields, "DatePaid");
+            AddPatchField(patchOperations, formFields, "PaymentMethod");
+            AddPatchField(patchOperations, formFields, "Lien", "Bool");
+            AddPatchField(patchOperations, formFields, "LienRefNo");
 
 
             return assessmentRec;
