@@ -251,7 +251,7 @@ function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
     assParcel_ID.value = parcelId
     assParcelLocation.textContent = hoaRec.property.parcel_Location
     assOwnerID.value = ownerId + " - " + ownerRec.owner_Name1 + " " + ownerRec.owner_Name2
-    assId = assessmentId
+    assId.value = assessmentId
     assFY.value = fy
     
     assDuesAmt.value = formatMoney(assessmentRec.duesAmt)
@@ -649,11 +649,9 @@ function displayDetailAssessments() {
         a.classList.add("AssessmentUpdate")
         a.href = ""
         a.dataset.parcelId = hoaRec.property.parcel_ID
-
         // >>>>> find a way to offer "Change Owner"
         //a.dataset.ownerId = ownerRec.ownerID
         a.dataset.ownerId = assessmentRec.ownerID
-
         a.dataset.assessmentId = assessmentRec.id
         a.dataset.fy = assessmentRec.fy
         a.textContent = assessmentRec.fy
