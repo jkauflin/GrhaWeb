@@ -1061,37 +1061,6 @@ namespace GrhaWeb.Function
 
             await container.ReplaceItemAsync(assessmentRec, assessmentRec.id, new PartitionKey(assessmentRec.Parcel_ID));
 
-            /*
-                                    assessmentRec.id": "7772019",
-                                    assessmentRec.OwnerID": 777,
-                                    assessmentRec.Parcel_ID": "R72617307 0002",
-                                    assessmentRec.FY": 2019,
-                                    assessmentRec.DuesAmt": "125.00",
-                                    assessmentRec.DateDue": "2018-10-01",
-                                    assessmentRec.Paid": 0,
-                                    assessmentRec.NonCollectible": 0,
-                                    assessmentRec.DatePaid": "",
-                                    assessmentRec.PaymentMethod": "",
-                                    assessmentRec.Lien": 1,
-                                    assessmentRec.LienRefNo": "2019-00051707",
-                                    assessmentRec.DateFiled": "2019-09-20T00:00:00",
-                                    assessmentRec.Disposition": "Open",
-                                    assessmentRec.FilingFee": 28,
-                                    assessmentRec.ReleaseFee": 34,
-                                    assessmentRec.DateReleased": "0001-01-01T00:00:00",
-                                    assessmentRec.LienDatePaid": "0001-01-01T00:00:00",
-                                    assessmentRec.AmountPaid": 0,
-                                    assessmentRec.StopInterestCalc": 0,
-                                    assessmentRec.FilingFeeInterest": 0,
-                                    assessmentRec.AssessmentInterest": 7.54,
-                                    assessmentRec.InterestNotPaid": 0,
-                                    assessmentRec.BankFee": 0,
-                                    assessmentRec.LienComment": "",
-                                    assessmentRec.Comments": "",
-                                    assessmentRec.LastChangedBy": "treasurer",
-                                    assessmentRec.LastChangedTs": "2019-09-23T20:21:10",
-                        */
-
             return assessmentRec;
         }
 
