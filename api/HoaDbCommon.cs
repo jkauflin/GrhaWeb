@@ -834,7 +834,7 @@ namespace GrhaWeb.Function
                 //string input = "$1,234.56";
                 if (decimal.TryParse(rawValue, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal moneyVal))
                 {
-                    Console.WriteLine($"Parsed currency: {moneyVal}");
+                    //Console.WriteLine($"Parsed currency: {moneyVal}");
                 }
                 value = moneyVal;
             }
@@ -1034,52 +1034,32 @@ namespace GrhaWeb.Function
 
             assessmentRec = await container.ReadItemAsync<hoa_assessments>(assessmentId, new PartitionKey(parcelId));
 
-            /*
-            string name = GetFieldValue<string>(formFields, "name");
-            int age = GetFieldValue<int>(formFields, "age", -1);
-            bool isSubscribed = GetFieldValue<bool>(formFields, "subscribe", false);
-            */
-
             assessmentRec.DuesAmt = GetFieldValueMoney(formFields, "DuesAmt").ToString("");
-            assessmentRec.DateDue = GetFieldValue<string>(formFields, "DateDue");
+            //assessmentRec.DateDue = GetFieldValue<string>(formFields, "DateDue");  // Can't change this in update
             assessmentRec.Paid = GetFieldValueBool(formFields, "Paid");
-
-            /*
-            int value = 0;
-                    if (formFields.ContainsKey(fieldName))
-                    {
-                        string checkedValue = formFields[fieldName]?.Trim() ?? string.Empty;
-                        if (checkedValue.Equals("on"))
-                        {
-                            value = 1;
-                        }
-                    }
-                    patchOperations.Add(PatchOperation.Replace("/" + fieldName, value));
-            */
-
-            /*
-            assessmentRec.NonCollectible =
-            assessmentRec.DatePaid = formFields[""].Trim();
-            assessmentRec.PaymentMethod = formFields[""].Trim();
-            assessmentRec.Lien =
-            assessmentRec.LienRefNo = formFields[""].Trim();
-            assessmentRec.DateFiled = formFields[""].Trim();
-            assessmentRec.Disposition = formFields[""].Trim();
-            assessmentRec.FilingFee = 
-            assessmentRec.ReleaseFee = 
-            assessmentRec.DateReleased = formFields[""].Trim();
-            assessmentRec.LienDatePaid = formFields[""].Trim();
-            assessmentRec.AmountPaid =
-            assessmentRec.StopInterestCalc = 
-            assessmentRec.FilingFeeInterest =
-            assessmentRec.AssessmentInterest =
-            assessmentRec.InterestNotPaid =
-            assessmentRec.BankFee =
-            assessmentRec.LienComment = formFields["LienComment"].Trim();
-            assessmentRec.Comments = formFields["Comments"].Trim();
+            assessmentRec.NonCollectible = GetFieldValueBool(formFields, "NonCollectible");
+            assessmentRec.DatePaid = GetFieldValue<string>(formFields, "DatePaid");
+            assessmentRec.PaymentMethod = GetFieldValue<string>(formFields, "PaymentMethod");
+            assessmentRec.Lien = GetFieldValueBool(formFields, "Lien");
+            assessmentRec.LienRefNo = GetFieldValue<string>(formFields, "LienRefNo");
+            assessmentRec.DateFiled = GetFieldValue<DateTime>(formFields, "DateFiled"); 
+            assessmentRec.Disposition = GetFieldValue<string>(formFields, "Disposition");
+            assessmentRec.FilingFee = GetFieldValueMoney(formFields, "FilingFee");
+            assessmentRec.ReleaseFee = GetFieldValueMoney(formFields, "ReleaseFee");
+            assessmentRec.DateReleased = GetFieldValue<DateTime>(formFields, "DateReleased"); 
+            assessmentRec.LienDatePaid = GetFieldValue<DateTime>(formFields, "LienDatePaid"); 
+            assessmentRec.AmountPaid = GetFieldValueMoney(formFields, "AmountPaid");
+            assessmentRec.StopInterestCalc = GetFieldValueBool(formFields, "StopInterestCalc");
+            assessmentRec.FilingFeeInterest = GetFieldValueMoney(formFields, "FilingFeeInterest");
+            assessmentRec.AssessmentInterest = GetFieldValueMoney(formFields, "AssessmentInterest");
+            assessmentRec.InterestNotPaid = GetFieldValueBool(formFields, "InterestNotPaid");
+            assessmentRec.BankFee = GetFieldValueMoney(formFields, "BankFee");
+            assessmentRec.LienComment = GetFieldValue<string>(formFields, "LienComment");
+            assessmentRec.Comments = GetFieldValue<string>(formFields, "Comments");
             assessmentRec.LastChangedBy = userName;
-            assessmentRec.LastChangedTs = LastChangedTs;
-            */
+            assessmentRec.LastChangedTs = currDateTime;
+
+            await container.ReplaceItemAsync(assessmentRec, assessmentRec.id, new PartitionKey(assessmentRec.Parcel_ID));
 
             /*
                                     assessmentRec.id": "7772019",
@@ -1111,32 +1091,6 @@ namespace GrhaWeb.Function
                                     assessmentRec.LastChangedBy": "treasurer",
                                     assessmentRec.LastChangedTs": "2019-09-23T20:21:10",
                         */
-
-            // Initialize a list of PatchOperation
-            List<PatchOperation> patchOperations = new List<PatchOperation>
-            {
-                PatchOperation.Replace("/LastChangedBy", userName),
-                PatchOperation.Replace("/LastChangedTs", LastChangedTs)
-            };
-
-            //AddPatchField(patchOperations, formFields, "CurrentOwner", "Bool");
-/*
-                                    if (decimal.TryParse(value, NumberStyles.Currency, CultureInfo.GetCultureInfo("en-US"), out decimal moneyVal))
-                        {
-                            Console.WriteLine($"Parsed currency: {moneyVal}");
-                            patchOperations.Add(PatchOperation.Replace("/" + fieldName, moneyVal));
-                        }
-*/
-            //AddPatchField(patchOperations, formFields, "", "Money");
-            AddPatchField(patchOperations, formFields, "DuesAmt");
-            AddPatchField(patchOperations, formFields, "DateDue");
-            AddPatchField(patchOperations, formFields, "Paid", "Bool");
-            AddPatchField(patchOperations, formFields, "NonCollectible", "Bool");
-            AddPatchField(patchOperations, formFields, "DatePaid");
-            AddPatchField(patchOperations, formFields, "PaymentMethod");
-            AddPatchField(patchOperations, formFields, "Lien", "Bool");
-            AddPatchField(patchOperations, formFields, "LienRefNo");
-
 
             return assessmentRec;
         }

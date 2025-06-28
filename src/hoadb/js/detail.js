@@ -391,17 +391,17 @@ async function updateAssessment() {
         await checkFetchResponse(response)
         // Success
         let assessmentRec = await response.json();
-        // Replace the record in the owners list
+        // Replace the record in the assessments list
         let assessmentFound = false
         for (let index in hoaRec.assessmentsList) {
-            if (hoaRec.property.parcel_ID == parcelId && hoaRec.assessmentsList[index].id == assessmentRec.assessmentId) {
+            if (hoaRec.property.parcel_ID == assessmentRec.parcel_ID && hoaRec.assessmentsList[index].id == assessmentRec.id) {
                 assessmentFound = true
                 hoaRec.assessmentsList[index] = assessmentRec
             }
         }
         if (!assessmentFound) {
-            console.error("Assessment ID not found in current hoaRec, id = "+assessmentRec.assessmentId)
-            UpdateAssessmentMessageDisplay.textContent = "Assessment ID not found in current hoaRec, id = "+assessmentRec.assessmentId
+            console.error("Assessment ID not found in current hoaRec, id = "+assessmentRec.id)
+            UpdateAssessmentMessageDisplay.textContent = "Assessment ID not found in current hoaRec, id = "+assessmentRec.id
             return        
         } else {
             displayDetailAssessments()
