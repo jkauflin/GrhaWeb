@@ -46,7 +46,7 @@
  *                  (and the owner and assessment updates use the current
  *                  data for formatting, and then update with new values)
  *                  >>>>> need to do NEW Owner (do when you work on Sales info)
- * 2025-06-15 JJK   Working on Assessment update
+ * 2025-06-29 JJK   Got Assessment update working
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
@@ -279,41 +279,9 @@ function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
     assLastChangedBy.value = assessmentRec.lastChangedBy
     assLastChangedTs.value = assessmentRec.lastChangedTs
 
-    /*
-    "id": "12007",
-    "OwnerID": 1,
-    "Parcel_ID": "R72617307 0001",
-    "FY": 2007,
-
-    "DuesAmt": "$89.00",
-    "DateDue": "10/1/2006 0:00:00",
-    "Paid": 1,
-    "NonCollectible": 0,
-    "DatePaid": "",
-    "PaymentMethod": "",
-    "Lien": 0,
-    "LienRefNo": "",
-    "DateFiled": "0001-01-01T00:00:00",
-    "Disposition": null,
-    "FilingFee": 0,
-    "ReleaseFee": 0,
-    "DateReleased": "0001-01-01T00:00:00",
-    "LienDatePaid": "0001-01-01T00:00:00",
-    "AmountPaid": 0,
-    "StopInterestCalc": 0,
-    "FilingFeeInterest": 0,
-    "AssessmentInterest": 0,
-    "InterestNotPaid": 0,
-    "BankFee": 0,
-    "LienComment": "",
-    "Comments": "",
-    "LastChangedBy": "import",
-    "LastChangedTs": "2016-08-14T13:43:43",
-    */
     new bootstrap.Modal(AssessmentUpdateModal).show();
 }
 
-//UpdateOwnerMessageDisplay
 var UpdateOwnerMessageDisplay = document.getElementById("UpdateOwnerMessageDisplay")
 var UpdateOwnerForm = document.getElementById("UpdateOwnerForm")
 
@@ -373,7 +341,6 @@ async function updateOwner() {
             displayDetailOwners()
             UpdateOwnerMessageDisplay.textContent = "Owner updated sucessfully"
         }
-        
     } catch (err) {
         console.error(err)
         UpdateOwnerMessageDisplay.textContent = `Error in Fetch: ${err.message}`
@@ -407,7 +374,6 @@ async function updateAssessment() {
             displayDetailAssessments()
             UpdateAssessmentMessageDisplay.textContent = "Assessment updated sucessfully"
         }
-        
     } catch (err) {
         console.error(err)
         UpdateAssessmentMessageDisplay.textContent = `Error in Fetch: ${err.message}`
@@ -530,22 +496,6 @@ function displayDetail() {
     //NewOwnerButton.dataset.ownerId = 
     CommunicationsButton.dataset.parcelId = hoaRec.property.parcel_ID
     //CommunicationsButton.dataset.ownerId = 
-
-    //$AddAssessment.html('<a id="AddAssessmentButton" href="#" class="btn btn-sm btn-info" role="button">Add Assessment</a>');
-
-    /*
-        >>>>>>>>>>> is it still the best idea to:
-            1) display property details as rows in a table - *** check some of the other WEB UI displays you've done - Genv?
-            2) Edit - build a Modal with INPUT fields?
-
-    function _render() {
-    */
-
-    /*
-    th = document.createElement("th"); th.textContent = "Parcel Location"; tr.appendChild(th)
-    th = document.createElement("th"); th.classList.add('d-none','d-lg-table-cell'); th.textContent = "Owner Phone"; tr.appendChild(th)
-    tbody.appendChild(tr)
-    */
 }
 
 function displayDetailOwners() {
@@ -572,13 +522,6 @@ function displayDetailOwners() {
     // Append a row for every record in list
     for (let index in hoaRec.ownersList) {
         let ownerRec = hoaRec.ownersList[index]
-
-        /*
-        if (rec.CurrentOwner) {
-            ownName1 = rec.Owner_Name1;
-            currOwnerID = rec.OwnerID;
-        }
-        */
 
         tr = document.createElement('tr')
         tr.classList.add('small')
