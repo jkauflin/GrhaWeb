@@ -42,11 +42,12 @@
  * 2025-05-16 JJK   Working on DuesStatement functions (and PDF)
  * 2025-05-20 JJK   Got rid of PDF and did a Print of the modal contents
  * 2025-06-01 JJK   Adding Property and Owner updates
- * 2025-06-14 JJK   Going back to the concept of hold a current hoaRec
+ * 2025-06-14 JJK   Going back to the concept of storing a current hoaRec
  *                  (and the owner and assessment updates use the current
  *                  data for formatting, and then update with new values)
  *                  >>>>> need to do NEW Owner (do when you work on Sales info)
  * 2025-06-29 JJK   Got Assessment update working
+ * 2025-07-18 JJK   Working on Lien button functionality
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
@@ -618,9 +619,10 @@ function displayDetailAssessments() {
             lienButton.setAttribute('type',"button")
             lienButton.setAttribute('role',"button")
             lienButton.dataset.parcelId = hoaRec.property.parcel_ID
+            lienButton.dataset.ownerId = assessmentRec.ownerID
+            lienButton.dataset.assessmentId = assessmentRec.id
             lienButton.dataset.fy = assessmentRec.fy
-            //lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
-            lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none')
+            lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none','AssessmentUpdate')
             lienButton.textContent = "Lien"
             td.appendChild(lienButton)
         } else {
@@ -630,9 +632,10 @@ function displayDetailAssessments() {
                 lienButton.setAttribute('type',"button")
                 lienButton.setAttribute('role',"button")
                 lienButton.dataset.parcelId = hoaRec.property.parcel_ID
+                lienButton.dataset.ownerId = assessmentRec.ownerID
+                lienButton.dataset.assessmentId = assessmentRec.id
                 lienButton.dataset.fy = assessmentRec.fy
-                //lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none','me-2','my-2',MediaFilterRequestClass)
-                lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none')
+                lienButton.classList.add('btn',buttonColor,'btn-sm','shadow-none','AssessmentUpdate')
                 lienButton.textContent = "Create Lien"
                 td.appendChild(lienButton)
             }
