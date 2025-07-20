@@ -48,14 +48,14 @@
  *                  >>>>> need to do NEW Owner (do when you work on Sales info)
  * 2025-06-29 JJK   Got Assessment update working
  * 2025-07-18 JJK   Working on Lien button functionality
+ * 2025-07-19 JJK   Moving Communications functionality here, and using a
+ *                  modal instead of a tab page
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
-//var searchStr = document.getElementById("searchStr")
-//var searchButton = document.getElementById("SearchButton")
 
 var detailPageTab = bootstrap.Tab.getOrCreateInstance(document.querySelector(`.navbar-nav a[href="#DetailPage"]`))
 var messageDisplay = document.getElementById("DetailMessageDisplay")
@@ -91,6 +91,8 @@ var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody
 var duesStatementModal = document.getElementById('duesStatementModal')
 var OwnerUpdateModal = document.getElementById('OwnerUpdateModal')
 var AssessmentUpdateModal = document.getElementById('AssessmentUpdateModal')
+var CommunicationsModal = document.getElementById('CommunicationsModal')
+var CommunicationsTbody = document.getElementById("CommunicationsTbody")
 
 var updParcel_ID = document.getElementById("updParcel_ID")
 var updParcelLocation = document.getElementById("updParcelLocation")
@@ -172,6 +174,10 @@ DuesStatementButton.addEventListener("click", function () {
     getDuesStatement(this.dataset.parcelId)
 })
 
+CommunicationsButton.addEventListener("click", function () {
+    getCommunications(this.dataset.parcelId)
+})
+//CommunicationsModal
 
 // Add form validation classes to the input fields
 document.querySelectorAll('.form-control').forEach(input => {
@@ -416,6 +422,102 @@ async function updateProperty() {
 }
 
 
+async function getCommunications(parcelId) {
+    //console.log("getCommunications called with parcelId = "+parcelId)
+    commParcel_ID.value = parcelId
+
+    // Show loading spinner in the modal or a suitable area
+    //showLoadingSpinner(CommunicationsModal)
+
+    let paramData = {
+        parcelId: parcelId
+    }
+
+    try {
+        const response = await fetch("/api/GetCommunications", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paramData)
+        })
+        await checkFetchResponse(response)
+        // Success
+        let communicationsList = await response.json();
+        // TODO: Format and display communicationsRec in the modal
+        // Example: formatCommunicationsResults(communicationsRec);
+        // You need to implement formatCommunicationsResults to populate the modal
+        formatCommunicationsResults(communicationsList);
+
+        new bootstrap.Modal(CommunicationsModal).show();
+    } catch (err) {
+        console.error(err)
+        // Display error in modal or suitable area
+        // Example: CommunicationsMessageDisplay.textContent = `Error in Fetch: ${err.message}`
+    }
+}
+
+function formatCommunicationsResults(communicationsList) {
+    // Example assumes communicationsRec is an array of communication objects
+    // and there is a table with id "CommunicationsTable" in the modal
+
+    let tbody = CommunicationsTbody
+    empty(tbody)
+    let tr = document.createElement("tr");
+    let td = document.createElement("td");
+    let th = document.createElement("th");
+    
+    if (!communicationsList || communicationsList.length === 0) {
+        td.colSpan = 4;
+        td.textContent = "No communications found.";
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+        return;
+    }
+
+    tr = document.createElement('tr')
+    tr.classList.add('small')
+    // Append the header elements
+    th = document.createElement("th"); th.textContent = "CommID"; tr.appendChild(th)        
+    th = document.createElement("th"); th.textContent = "Datetime"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Type"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Email"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Sent"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Address"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Name"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Description"; tr.appendChild(th)
+    //th = document.createElement("th"); th.textContent = "Last Changed"; tr.appendChild(th)
+
+    //th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Comments"; tr.appendChild(th)
+    tbody.appendChild(tr)
+
+    /*
+        for (let comm of communicationsRec) {
+        let tr = document.createElement("tr");
+        let tdDate = document.createElement("td");
+        tdDate.textContent = comm.dateSent || "";
+        tr.appendChild(tdDate);
+    */
+    // Append a row for every record in list
+    for (let index in communicationsList) {
+        let commRec = communicationsList[index]
+
+        tr = document.createElement('tr')
+        tr.classList.add('small')
+
+        td = document.createElement("td"); td.textContent = commRec.commID; tr.appendChild(td)
+        td = document.createElement("td"); td.textContent = standardizeDate(commRec.createTs); tr.appendChild(td)
+        td = document.createElement("td"); td.textContent = commRec.commType; tr.appendChild(td)
+        td = document.createElement("td"); td.textContent = commRec.emailAddr; tr.appendChild(td)
+        td = document.createElement("td"); td.textContent = commRec.sentStatus; tr.appendChild(td)
+        td = document.createElement("td"); td.textContent = "test address"; tr.appendChild(td)
+        td = document.createElement("td"); td.textContent = commRec.mailing_Name; tr.appendChild(td)
+        td = document.createElement("td"); td.textContent = commRec.commDesc; tr.appendChild(td)
+        //td = document.createElement("td"); td.textContent = standardizeDate(commRec.createTs); tr.appendChild(td)
+
+        tbody.appendChild(tr)
+    }
+
+}
+
 async function getHoaRec(parcelId) {
     // Clear out the property detail display fields
     //Parcel_ID.textContent = ""
@@ -603,9 +705,9 @@ function displayDetailAssessments() {
         td.appendChild(a);
         tr.appendChild(td)
 
-        //td = document.createElement("td"); td.textContent = formatMoney(assessmentRec.duesAmt); tr.appendChild(td)
         tr.appendChild(setTD("money",assessmentRec.duesAmt))
 
+        // Clicking the Lien button will open the Assessment Update modal
         td = document.createElement("td")
         if (assessmentRec.lien) {
             if (assessmentRec.disposition == 'Open') {

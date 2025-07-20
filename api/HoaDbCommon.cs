@@ -505,6 +505,40 @@ namespace GrhaWeb.Function
         }
 
 
+        public async Task<List<hoa_communications>> GetCommunications(string parcelId)
+        {
+            //------------------------------------------------------------------------------------------------------------------
+            // Query the NoSQL container to get values
+            //------------------------------------------------------------------------------------------------------------------
+            string containerId = "hoa_communications";
+            //string sql = $"";
+
+            List<hoa_communications> hoaCommunicationsList = new List<hoa_communications>();
+
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            //Container configContainer = db.GetContainer("hoa_config");
+
+            Container container = db.GetContainer(containerId);
+            var queryDefinition = new QueryDefinition(
+                "SELECT * FROM c WHERE c.Parcel_ID = @parcelId ORDER BY c.CommID DESC ")
+                    .WithParameter("@parcelId", parcelId);
+            var feed = container.GetItemQueryIterator<hoa_communications>(queryDefinition);
+            int cnt = 0;
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    cnt++;
+                    hoaCommunicationsList.Add(item);
+                }
+            }
+
+            return hoaCommunicationsList;
+        }
+
+
         public async Task<Trustee> GetTrusteeById(string trusteeId)
         {
             //------------------------------------------------------------------------------------------------------------------

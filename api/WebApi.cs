@@ -174,6 +174,55 @@ namespace GrhaWeb.Function
             return new OkObjectResult(hoaRec);
         }
 
+
+        [Function("GetCommunications")]
+        public async Task<IActionResult> GetCommunications(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            List<hoa_communications> hoaCommunicationsList = new List<hoa_communications>();
+
+            try
+            {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+
+                //log.LogInformation(">>> User is authorized ");
+
+                // Get the content string from the HTTP request body
+                string content = await new StreamReader(req.Body).ReadToEndAsync();
+                // Deserialize the JSON string into a generic JSON object
+                JObject jObject = JObject.Parse(content);
+
+                // Construct the query from the query parameters
+                string parcelId = "";
+
+                JToken? jToken;
+                if (jObject.TryGetValue("parcelId", out jToken))
+                {
+                    parcelId = jToken.ToString();
+                    if (parcelId.Equals(""))
+                    {
+                        return new BadRequestObjectResult("GetHoaRec failed because parcelId was blank");
+                    }
+                } else {
+                    return new BadRequestObjectResult("GetHoaRec failed because parcelId was NOT FOUND");
+                }
+
+                hoaCommunicationsList = await hoaDbCommon.GetCommunications(parcelId);
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+            }
+
+            return new OkObjectResult(hoaCommunicationsList);
+        }
+
+
         /*
         using Newtonsoft.Json.Linq;
 
