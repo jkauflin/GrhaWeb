@@ -155,23 +155,12 @@ export function formatDate(inDate) {
     return tempDate.getFullYear() + '-' + tempMonth + '-' + tempDay;
 }
 
-
-
-    function urlParam(name) {
-        var results = new RegExp('[\?&]' + name + '=([^&#]*)').exec(window.location.href);
-        if (results == null) {
-            return null;
-        }
-        else {
-            return results[1] || 0;
-        }
-    }
-    /*
-    example.com?param1=name&param2=&id=6
-        urlParam('param1');     // name
-        urlParam('id');         // 6
-        rlParam('param2');      // null
-    */
+// Filter out commas (for CSV outputs)
+var commaHexStr = "[\x2C]";
+var regexCommaHexStr = new RegExp(commaHexStr, "g");
+export function csvFilter(inVal) {
+    return inVal.toString().replace(regexCommaHexStr, '');
+}
 
     // Non-Printable characters - Hex 01 to 1F, and 7F
     var nonPrintableCharsStr = "[\x01-\x1F\x7F]";
@@ -179,13 +168,6 @@ export function formatDate(inDate) {
     var regexNonPrintableChars = new RegExp(nonPrintableCharsStr, "g");
     function cleanStr(inStr) {
         return inStr.replace(regexNonPrintableChars, '');
-    }
-
-    // Filter out commas (for CSV outputs)
-    var commaHexStr = "[\x2C]";
-    var regexCommaHexStr = new RegExp(commaHexStr, "g");
-    function csvFilter(inVal) {
-        return inVal.toString().replace(regexCommaHexStr, '');
     }
 
     function formatDate2(inDate) {
@@ -213,42 +195,4 @@ export function formatDate(inDate) {
         return months[tempDate.getMonth()] + ' ' + tempDate.getDate() + ', ' + tempDate.getFullYear();
     }
 
-
-    // Helper functions for setting UI components from data
-    function setBoolText(inBool) {
-        var tempStr = "NO";
-        if (inBool) {
-            tempStr = "YES";
-        }
-        return tempStr;
-    }
-    //function setCheckboxEdit(checkVal, idName) {
-    function setCheckboxEdit(idName, checkVal) {
-        var tempStr = '';
-        if (checkVal == 1) {
-            tempStr = 'checked=true';
-        }
-        return '<input id="' + idName + '" type="checkbox" ' + tempStr + '>';
-    }
-    function setInputText(idName, textVal, textSize) {
-        return '<input id="' + idName + '" name="' + idName + '" type="text" class="form-control input-sm resetval" value="' + textVal + '" size="' + textSize + '" maxlength="' + textSize + '">';
-    }
-    function setTextArea(idName, textVal, rows) {
-        return '<textarea id="' + idName + '" class="form-control input-sm" rows="' + rows + '">' + textVal + '</textarea>';
-    }
-    function setTextArea2(idName, textVal, rows, cols) {
-        return '<textarea id="' + idName + '" class="form-control input-sm" rows="' + rows + '" cols="' + cols + '">' + textVal + '</textarea>';
-    }
-    function setInputDate(idName, textVal, textSize) {
-        return '<input id="' + idName + '" type="text" class="form-control input-sm Date" value="' + textVal + '" size="' + textSize + '" maxlength="' + textSize + '" placeholder="YYYY-MM-DD">';
-    }
-    function setSelectOption(optVal, displayVal, selected, bg) {
-        var tempStr = '';
-        if (selected) {
-            tempStr = '<option class="' + bg + '" value="' + optVal + '" selected>' + displayVal + '</option>';
-        } else {
-            tempStr = '<option class="' + bg + '" value="' + optVal + '">' + displayVal + '</option>';
-        }
-        return tempStr;
-    }
 
