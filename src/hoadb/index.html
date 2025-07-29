@@ -191,15 +191,85 @@
 								type="button" role="button" class="btn btn-warning reportRequest me-1 mb-2">
 								<i class="fa fa-bank"></i> Unpaid Dues Ranking
 							</button>
+
+							<!--
                             <button data-reportTitle="Mailing List" type="button" role="button"
                                 class="btn btn-primary reportFilter me-1 mb-2">
-								<i class="fa fa-envelope"></i> Mailing List</button>
+								<i class="fa fa-envelope"></i> Mailing List
+							</button>
+                            <label class="ms-2">Welcome Letters (property addresses, Sales WelcomeSent = S)</label>
+
+
+                            <input class="ms-4" id="LogWelcomeLetters" name="LogWelcomeLetters" type="checkbox">
+                            <label>&nbsp; Mark Letters as MAILED</label>
+                            <br>
+                            <input id="MailingListName" name="MailingListName" type="radio" value="Newsletter">
+                            <label class="ms-2">Newsletter (ALL property addresses)</label>
+                            <br>
+                            <input id="MailingListName" name="MailingListName" type="radio" value="Duesletter1">
+                            <label class="ms-2">Dues Letter 1st Notice (ALL owner addresses using ALT if set, skipping UseEmail)</label>
+                            <br>
+                            <input id="MailingListName" name="MailingListName" type="radio" value="Duesletter2">
+                            <label class="ms-2">Dues Letter 2nd Notice (Unpaid owner addresses using ALT if set)</label>
+                            <input class="ms-4" id="LogDuesLetterSend" name="LogDuesLetterSend" type="checkbox">
+                            <label class="ms-2">Mark Dues Letters (1 or 2) as MAILED</label>
+                            <br>
+                            <a class="m-2 btn btn-primary reportRequest" id="MailingListReport" href="#" data-reportTitle="" role="button">Create List</a>
+							-->
+
+							<h6 class="mt-2" style="font-weight: bold; text-decoration: underline;">Mailing Lists</h6>
+							<div class="form-check">
+								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListWelcomeLetters" value="WelcomeLetters" checked>
+								<label class="form-check-label ms-2" for="MailingListWelcomeLetters">
+									Welcome Letters
+								</label>
+							</div>
+							<div class="form-check form-check-inline ms-4">
+								<input class="form-check-input shadow-none" type="checkbox" id="LogWelcomeLetters" name="LogWelcomeLetters">
+								<label class="form-check-label" for="LogWelcomeLetters">
+									Mark as MAILED
+								</label>
+							</div>
+							<br>
+							<div class="form-check">
+								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListNewsletter" value="Newsletter">
+								<label class="form-check-label ms-2" for="MailingListNewsletter">
+									Newsletter (ALL property addresses)
+								</label>
+							</div>
+							<br>
+							<div class="form-check">
+								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListDuesletter1" value="Duesletter1">
+								<label class="form-check-label ms-2" for="MailingListDuesletter1">
+									Dues Letter 1st Notice
+								</label>
+							</div>
+							<br>
+							<div class="form-check">
+								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListDuesletter2" value="Duesletter2">
+								<label class="form-check-label ms-2" for="MailingListDuesletter2">
+									Dues Letter 2nd Notice
+								</label>
+							</div>
+							<div class="form-check form-check-inline ms-4">
+								<input class="form-check-input shadow-none" type="checkbox" id="LogDuesLetterSend" name="LogDuesLetterSend">
+								<label class="form-check-label ms-2" for="LogDuesLetterSend">
+									Mark Dues Letters as MAILED
+								</label>
+							</div>
+							<br>
+							<a class="m-2 btn btn-info reportRequest" id="MailingListReport" href="#" data-reportTitle="" role="button">Create List</a>
+
+
 		                </div>
 
 					</div>
 				    <div class="col-sm-8 col-md-9 col-xl-10">
 	                	<div id="ReportDownloadLinks" class="float-right m-2"></div>
-                        <div id="ReportFilter" class="m-3"></div>
+
+						<div id="ReportFilter" class="m-3">
+                        </div>
+
                         <h5 id="ReportHeader"></h5>
 	                	<h6 id="ReportRecCnt"></h6>
 						<table class="table table-striped table-sm">
