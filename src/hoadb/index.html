@@ -50,20 +50,6 @@
                     	<button id="SearchButton" type="button" class="btn btn-primary mt-2 mb-2">
 							<i class="fa fa-search me-1"></i> Search
 						</button>
-
-						<!--
-                    	<button id="AdvancedOptionsButton" type="button" class="btn btn-info mt-2 ml-2 mb-2" data-bs-toggle="collapse" data-bs-target="#AdvancedSearchOptions">Advanced Options</button>
-						<div id="AdvancedSearchOptions" class="collapse">
-	                    	<div class="form-group">
-	                    		<input type="text" name="parcelId"  	id="parcelId" 	placeholder="Parcel Id (R35617399 0001)" class="form-control form-control-sm mb-1 resetval">
-	                    		<input type="text" name="lotNo"     	id="lotNo"		placeholder="Lot Number" class="form-control form-control-sm mb-1 resetval">
-	                    		<input type="text" name="address"       id="address"   	placeholder="Property Address" class="form-control form-control-sm mb-1 resetval">
-	                    		<input type="text" name="ownerName"     id="ownerName" 	placeholder="Owner Name (Last First)" class="form-control form-control-sm mb-1 resetval">
-	                    		<input type="text" name="phoneNo"       id="phoneNo"   	placeholder="Phone Number" class="form-control form-control-sm mb-1 resetval">
-	                    		<input type="text" name="altAddress"    id="altAddress"	placeholder="Alternate Address" class="form-control form-control-sm mb-1 resetval">
-                            </div>
-                        </div>
-						-->
                     </form>
 
 				  </div>
@@ -165,9 +151,7 @@
 				<div class="row">
 				    <div class="col-sm-4 col-md-3 col-xl-2">
 				    	<h5>Reports</h5>
-
-		                <div class="form-group">
-	                    	<button id="SalesReport" data-reportTitle="County Reported Sales of HOA properties"
+							<button id="SalesReport" data-reportTitle="County Reported Sales of HOA properties"
 	                    		type="button" role="button" class="btn btn-primary reportRequest me-1 mb-2">
 								<i class="fa fa-handshake-o"></i> Sales Report
 							</button>
@@ -175,14 +159,6 @@
 	                    		type="button" role="button" class="btn btn-primary reportRequest me-1 mb-2">
 								<i class="fa fa-users fa-lg float-left"></i> New Owners
 							</button>
-							<!-- 
-	                    	<button id="UnpaidDuesReport" data-reportTitle="Unpaid Dues Report"
-	                    		type="button" class="btn btn-primary reportRequest form-control mr-2 mb-2"><i class="fa fa-usd fa-lg float-left"></i>Unpaid Dues</button>
-	                    	<button id="PaidDuesReport" data-reportTitle="Paid Dues Report"
-	                    		type="button" class="btn btn-primary reportRequest form-control mr-2 mb-2"><i class="fa fa-usd fa-lg float-left"></i>Paid Dues</button>
-	                    	<button id="PropertyOwnerReport" data-reportTitle="Property/Owner Report"
-								type="button" class="btn btn-primary reportRequest form-control mr-2 mb-2"><i class="fa fa-user fa-lg float-left"></i>Property Owner</button>
-							-->
 	                    	<button id="PaidDuesCountsReport" data-reportTitle="Paid Dues Counts Report"
 	                    		type="button" role="button" class="btn btn-success reportRequest me-1 mb-2">
 								<i class="fa fa-usd"></i> Paid Dues Counts
@@ -191,31 +167,6 @@
 								type="button" role="button" class="btn btn-warning reportRequest me-1 mb-2">
 								<i class="fa fa-bank"></i> Unpaid Dues Ranking
 							</button>
-
-							<!--
-                            <button data-reportTitle="Mailing List" type="button" role="button"
-                                class="btn btn-primary reportFilter me-1 mb-2">
-								<i class="fa fa-envelope"></i> Mailing List
-							</button>
-                            <label class="ms-2">Welcome Letters (property addresses, Sales WelcomeSent = S)</label>
-
-
-                            <input class="ms-4" id="LogWelcomeLetters" name="LogWelcomeLetters" type="checkbox">
-                            <label>&nbsp; Mark Letters as MAILED</label>
-                            <br>
-                            <input id="MailingListName" name="MailingListName" type="radio" value="Newsletter">
-                            <label class="ms-2">Newsletter (ALL property addresses)</label>
-                            <br>
-                            <input id="MailingListName" name="MailingListName" type="radio" value="Duesletter1">
-                            <label class="ms-2">Dues Letter 1st Notice (ALL owner addresses using ALT if set, skipping UseEmail)</label>
-                            <br>
-                            <input id="MailingListName" name="MailingListName" type="radio" value="Duesletter2">
-                            <label class="ms-2">Dues Letter 2nd Notice (Unpaid owner addresses using ALT if set)</label>
-                            <input class="ms-4" id="LogDuesLetterSend" name="LogDuesLetterSend" type="checkbox">
-                            <label class="ms-2">Mark Dues Letters (1 or 2) as MAILED</label>
-                            <br>
-                            <a class="m-2 btn btn-primary reportRequest" id="MailingListReport" href="#" data-reportTitle="" role="button">Create List</a>
-							-->
 
 							<h6 class="mt-2" style="font-weight: bold; text-decoration: underline;">Mailing Lists</h6>
 							<div class="form-check">
@@ -230,21 +181,18 @@
 									Mark as MAILED
 								</label>
 							</div>
-							<br>
 							<div class="form-check">
 								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListNewsletter" value="Newsletter">
 								<label class="form-check-label ms-2" for="MailingListNewsletter">
 									Newsletter (ALL property addresses)
 								</label>
 							</div>
-							<br>
 							<div class="form-check">
 								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListDuesletter1" value="Duesletter1">
 								<label class="form-check-label ms-2" for="MailingListDuesletter1">
 									Dues Letter 1st Notice
 								</label>
 							</div>
-							<br>
 							<div class="form-check">
 								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListDuesletter2" value="Duesletter2">
 								<label class="form-check-label ms-2" for="MailingListDuesletter2">
@@ -257,11 +205,10 @@
 									Mark Dues Letters as MAILED
 								</label>
 							</div>
-							<br>
-							<a class="m-2 btn btn-info reportRequest" id="MailingListReport" href="#" data-reportTitle="" role="button">Create List</a>
-
-
-		                </div>
+							<button id="MailingListReport" data-reportTitle="Unpaid Dues Ranking Report"
+								type="button" role="button" class="btn btn-info reportRequest me-1 mb-2">
+								<i class="fa fa-envelope"></i> Create List
+							</button>
 
 					</div>
 				    <div class="col-sm-8 col-md-9 col-xl-10">

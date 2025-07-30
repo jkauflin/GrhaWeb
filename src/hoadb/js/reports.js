@@ -36,3 +36,58 @@
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox,csvFilter} from './util.js';
 
+
+document.getElementById("SalesReport").addEventListener("click", function () {
+    //getDuesStatement(this.dataset.parcelId)
+})
+document.getElementById("SalesNewOwnerReport").addEventListener("click", function () {
+    //getDuesStatement(this.dataset.parcelId)
+})
+document.getElementById("PaidDuesCountsReport").addEventListener("click", function () {
+    //getDuesStatement(this.dataset.parcelId)
+})
+document.getElementById("UnpaidDuesRankingReport").addEventListener("click", function () {
+    //getDuesStatement(this.dataset.parcelId)
+})
+document.getElementById("MailingListReport").addEventListener("click", function () {
+    //getDuesStatement(this.dataset.parcelId)
+})
+
+/*
+							<div class="form-check">
+								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListWelcomeLetters" value="WelcomeLetters" checked>
+								<label class="form-check-label ms-2" for="MailingListWelcomeLetters">
+									Welcome Letters
+								</label>
+							</div>
+							<div class="form-check form-check-inline ms-4">
+								<input class="form-check-input shadow-none" type="checkbox" id="LogWelcomeLetters" name="LogWelcomeLetters">
+								<label class="form-check-label" for="LogWelcomeLetters">
+									Mark as MAILED
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListNewsletter" value="Newsletter">
+								<label class="form-check-label ms-2" for="MailingListNewsletter">
+									Newsletter (ALL property addresses)
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListDuesletter1" value="Duesletter1">
+								<label class="form-check-label ms-2" for="MailingListDuesletter1">
+									Dues Letter 1st Notice
+								</label>
+							</div>
+							<div class="form-check">
+								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListDuesletter2" value="Duesletter2">
+								<label class="form-check-label ms-2" for="MailingListDuesletter2">
+									Dues Letter 2nd Notice
+								</label>
+							</div>
+							<div class="form-check form-check-inline ms-4">
+								<input class="form-check-input shadow-none" type="checkbox" id="LogDuesLetterSend" name="LogDuesLetterSend">
+								<label class="form-check-label ms-2" for="LogDuesLetterSend">
+									Mark Dues Letters as MAILED
+								</label>
+							</div>
+*/
