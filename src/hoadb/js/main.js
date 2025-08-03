@@ -72,6 +72,7 @@
 import {empty,checkFetchResponse} from './util.js';
 import {} from './search.js';
 import {} from './detail.js';
+import {} from './reports.js';
 
 // Keep track of the state of the navbar collapse (shown or hidden)
 var navbarCollapseShown = false;

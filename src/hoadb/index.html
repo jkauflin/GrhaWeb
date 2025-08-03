@@ -84,20 +84,6 @@
 										<tr class="small"><th class="d-none d-md-table-cell">State: </th><td id="Property_State" class="d-none d-md-table-cell"></td></tr>
 										<tr class="small"><th class="d-none d-md-table-cell">Zip Code: </th><td id="Property_Zip" class="d-none d-md-table-cell"></td></tr>
 										<tr class="small"><th>Total Due: </th><td id="TotalDue"></td></tr>
-										<!--
-										<tr class="small"><th class="d-none d-md-table-cell">Rental: </th><td class="d-none d-md-table-cell">
-											<input id="Rental" name="Rental" type="checkbox" class="form-check-input shadow-none">
-										</td></tr>
-										<tr class="small"><th class="d-none d-md-table-cell">Managed: </th><td class="d-none d-md-table-cell">
-											<input id="Managed" name="Managed" type="checkbox" class="form-check-input shadow-none">
-										</td></tr>
-										<tr class="small"><th class="d-none d-md-table-cell">Foreclosure: </th><td class="d-none d-md-table-cell">
-											<input id="Foreclosure" name="Foreclosure" type="checkbox" class="form-check-input shadow-none">
-										</td></tr>
-										<tr class="small"><th class="d-none d-md-table-cell">Bankruptcy: </th><td class="d-none d-md-table-cell">
-											<input id="Bankruptcy" name="Bankruptcy" type="checkbox" class="form-check-input shadow-none">
-										</td></tr>
-										-->
 										<tr  class="small"><th>Use Email: </th><td>
 											<input id="UseEmail" name="UseEmail" class="form-check-input shadow-none" type="checkbox">
 										</td></tr>
@@ -168,6 +154,8 @@
 								<i class="fa fa-bank"></i> Unpaid Dues Ranking
 							</button>
 
+							<div id="ReportsMessageDisplay" class="m-2"></div>
+
 							<h6 class="mt-2" style="font-weight: bold; text-decoration: underline;">Mailing Lists</h6>
 							<div class="form-check">
 								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListWelcomeLetters" value="WelcomeLetters" checked>
@@ -213,9 +201,6 @@
 					</div>
 				    <div class="col-sm-8 col-md-9 col-xl-10">
 	                	<div id="ReportDownloadLinks" class="float-right m-2"></div>
-
-						<div id="ReportFilter" class="m-3">
-                        </div>
 
                         <h5 id="ReportHeader"></h5>
 	                	<h6 id="ReportRecCnt"></h6>

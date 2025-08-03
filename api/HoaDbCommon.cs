@@ -538,6 +538,78 @@ namespace GrhaWeb.Function
             return hoaCommunicationsList;
         }
 
+        public async Task<List<hoa_sales>> GetSalesListDb(string reportName = "")
+        {
+            //------------------------------------------------------------------------------------------------------------------
+            // Query the NoSQL container to get values
+            //------------------------------------------------------------------------------------------------------------------
+            string containerId = "hoa_sales";
+
+            List<hoa_sales> hoaSalesList = new List<hoa_sales>();
+
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            //Container configContainer = db.GetContainer("hoa_config");
+
+            Container container = db.GetContainer(containerId);
+            var queryDefinition = new QueryDefinition(
+                "SELECT * FROM c ORDER BY c.CreateTimestamp DESC ");
+                    //.WithParameter("@parcelId", parcelId);
+                                    //ORDER BY c._ts DESC
+
+                    
+/*
+                                                    if ($reportName == "SalesNewOwnerReport") {
+                                                        $sql = "SELECT * FROM hoa_sales WHERE ProcessedFlag != 'Y' ORDER BY CreateTimestamp DESC; ";
+                                                    } else {
+                                                        $sql = "SELECT * FROM hoa_sales ORDER BY CreateTimestamp DESC; ";
+                                                    }
+                                                    $stmt = $conn->prepare($sql);
+                                                    $stmt->execute();
+                                                    $result = $stmt->get_result();
+                                                    $stmt->close();
+
+                                                    if ($result->num_rows > 0) {
+                                                        while($row = $result->fetch_assoc()) {
+                                                            $hoaSalesRec = new HoaSalesRec();
+                                                            $hoaSalesRec->PARID = $row["PARID"];
+                                                            $hoaSalesRec->CONVNUM = $row["CONVNUM"];
+                                                            $hoaSalesRec->SALEDT = $row["SALEDT"];
+                                                            $hoaSalesRec->PRICE = $row["PRICE"];
+                                                            $hoaSalesRec->OLDOWN = $row["OLDOWN"];
+                                                            $hoaSalesRec->OWNERNAME1 = $row["OWNERNAME1"];
+                                                            $hoaSalesRec->PARCELLOCATION = $row["PARCELLOCATION"];
+                                                            $hoaSalesRec->MAILINGNAME1 = $row["MAILINGNAME1"];
+                                                            $hoaSalesRec->MAILINGNAME2 = $row["MAILINGNAME2"];
+                                                            $hoaSalesRec->PADDR1 = $row["PADDR1"];
+                                                            $hoaSalesRec->PADDR2 = $row["PADDR2"];
+                                                            $hoaSalesRec->PADDR3 = $row["PADDR3"];
+                                                            $hoaSalesRec->CreateTimestamp = $row["CreateTimestamp"];
+                                                            $hoaSalesRec->NotificationFlag = $row["NotificationFlag"];
+                                                            $hoaSalesRec->ProcessedFlag = $row["ProcessedFlag"];
+                                                            $hoaSalesRec->LastChangedBy = $row["LastChangedBy"];
+                                                            $hoaSalesRec->LastChangedTs = $row["LastChangedTs"];
+                                                            $hoaSalesRec->WelcomeSent = $row["WelcomeSent"];
+
+                                                            $hoaSalesRec->adminLevel = $userRec->userLevel;
+
+                                                            array_push($outputArray,$hoaSalesRec);
+
+                                    */
+            var feed = container.GetItemQueryIterator<hoa_sales>(queryDefinition);
+            int cnt = 0;
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    cnt++;
+                    hoaSalesList.Add(item);
+                }
+            }
+
+            return hoaSalesList;
+        }
 
         public async Task<Trustee> GetTrusteeById(string trusteeId)
         {

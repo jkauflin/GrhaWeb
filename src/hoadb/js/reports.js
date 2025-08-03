@@ -31,18 +31,21 @@
  * 2025-07-21 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
  *                  js module, and move from PHP/MySQL to Azure SWA
  *                  and C# API's
- * 
+ * 2025-08-02 JJK   Added SalesNewOwnerReport to show sales to new owners
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox,csvFilter} from './util.js';
 
+var ReportListTbody = document.getElementById("ReportListTbody")
+var ReportsMessageDisplay = document.getElementById("ReportsMessageDisplay")
 
 document.getElementById("SalesReport").addEventListener("click", function (event) {
-    _reportRequest(event)
+    salesReport(event)
 })
 document.getElementById("SalesNewOwnerReport").addEventListener("click", function (event) {
-    _reportRequest(event)
+    salesReport(event)
 })
+
 document.getElementById("PaidDuesCountsReport").addEventListener("click", function (event) {
     _reportRequest(event)
 })
@@ -53,72 +56,30 @@ document.getElementById("MailingListReport").addEventListener("click", function 
     _reportRequest(event)
 })
 
-/*
-							<div class="form-check">
-								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListWelcomeLetters" value="WelcomeLetters" checked>
-								<label class="form-check-label ms-2" for="MailingListWelcomeLetters">
-									Welcome Letters
-								</label>
-							</div>
-							<div class="form-check form-check-inline ms-4">
-								<input class="form-check-input shadow-none" type="checkbox" id="LogWelcomeLetters" name="LogWelcomeLetters">
-								<label class="form-check-label" for="LogWelcomeLetters">
-									Mark as MAILED
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListNewsletter" value="Newsletter">
-								<label class="form-check-label ms-2" for="MailingListNewsletter">
-									Newsletter (ALL property addresses)
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListDuesletter1" value="Duesletter1">
-								<label class="form-check-label ms-2" for="MailingListDuesletter1">
-									Dues Letter 1st Notice
-								</label>
-							</div>
-							<div class="form-check">
-								<input class="form-check-input shadow-none" type="radio" name="MailingListName" id="MailingListDuesletter2" value="Duesletter2">
-								<label class="form-check-label ms-2" for="MailingListDuesletter2">
-									Dues Letter 2nd Notice
-								</label>
-							</div>
-							<div class="form-check form-check-inline ms-4">
-								<input class="form-check-input shadow-none" type="checkbox" id="LogDuesLetterSend" name="LogDuesLetterSend">
-								<label class="form-check-label ms-2" for="LogDuesLetterSend">
-									Mark Dues Letters as MAILED
-								</label>
-							</div>
-*/
 
+async function salesReport(event) {
+	let reportName = event.target.getAttribute("id");
+    let reportTitle = event.target.getAttribute("data-reportTitle");
 
-async function getCommunications(parcelId) {
-	//console.log("getCommunications called with parcelId = "+parcelId)
-	commParcel_ID.value = parcelId
-
-	// Show loading spinner in the modal or a suitable area
-	//showLoadingSpinner(CommunicationsModal)
+	showLoadingSpinner(ReportsMessageDisplay)
 
 	let paramData = {
-		parcelId: parcelId
+		reportName: reportName
 	}
 
 	try {
-		const response = await fetch("/api/GetCommunications", {
+		const response = await fetch("/api/GetSalesList", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(paramData)
 		})
 		await checkFetchResponse(response)
 		// Success
-		let communicationsList = await response.json();
+		let salesList = await response.json();
 		// TODO: Format and display communicationsRec in the modal
 		// Example: formatCommunicationsResults(communicationsRec);
 		// You need to implement formatCommunicationsResults to populate the modal
-		formatCommunicationsResults(communicationsList);
-
-		new bootstrap.Modal(CommunicationsModal).show();
+		formatSalesResults(salesList);
 	} catch (err) {
 		console.error(err)
 		// Display error in modal or suitable area
@@ -126,9 +87,109 @@ async function getCommunications(parcelId) {
 	}
 }
 
-function _reportRequest(event) {
-    let reportName = event.target.getAttribute("id");
-    let reportTitle = event.target.getAttribute("data-reportTitle");
+function formatSalesResults(salesList) {
+	// Example assumes communicationsRec is an array of communication objects
+	// and there is a table with id "CommunicationsTable" in the modal
+
+	let tbody = ReportListTbody
+	empty(tbody)
+	let tr = document.createElement("tr");
+	let td = document.createElement("td");
+	let th = document.createElement("th");
+	
+	if (!salesList || salesList.length === 0) {
+		td.colSpan = 4;
+		td.textContent = "No sales found.";
+		tr.appendChild(td);
+		tbody.appendChild(tr);
+		return;
+	}
+
+	tr = document.createElement('tr')
+	tr.classList.add('small')
+	// Append the header elements
+	th = document.createElement("th"); th.textContent = "Row"; tr.appendChild(th)        
+	th = document.createElement("th"); th.textContent = "Sale Date"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Welcome Sent"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Parcel Location"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Old Owner Name"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "New Owner Name"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Mailing Name"; tr.appendChild(th)
+	tbody.appendChild(tr)
+
+	/*
+		for (let comm of communicationsRec) {
+		let tr = document.createElement("tr");
+		let tdDate = document.createElement("td");
+		tdDate.textContent = comm.dateSent || "";
+		tr.appendChild(tdDate);
+	*/
+	// Append a row for every record in list
+	let index = 0;
+
+	salesList.forEach(salesRec => {
+
+		index++
+
+		tr = document.createElement('tr')
+		tr.classList.add('small')
+/*
+        public string? salesRec.id { get; set; }
+        public string? salesRec.PARID { get; set; }           // Partition key:  /PARID
+        public string? salesRec.CONVNUM { get; set; }
+        public string? salesRec.SALEDT { get; set; }          // Id
+        public string? salesRec.PRICE { get; set; }
+        public string? salesRec.OLDOWN { get; set; }
+        public string? salesRec.OWNERNAME1 { get; set; }
+        public string? salesRec.PARCELLOCATION { get; set; }
+        public string? salesRec.MAILINGNAME1 { get; set; }
+        public string? salesRec.MAILINGNAME2 { get; set; }
+        public string? salesRec.PADDR1 { get; set; }
+        public string? salesRec.PADDR2 { get; set; }
+        public string? salesRec.PADDR3 { get; set; }
+        public string? salesRec.CreateTimestamp { get; set; }
+        public string? salesRec.NotificationFlag { get; set; }
+        public string? salesRec.ProcessedFlag { get; set; }
+        public string? salesRec.LastChangedBy { get; set; }
+        public DateTime salesRec.LastChangedTs { get; set; }
+        public string? salesRec.WelcomeSent { get; set; }
+
+	
+salesRec.convnum
+salesRec.createTimestamp
+salesRec.id
+salesRec.lastChangedBy
+salesRec.lastChangedTs
+salesRec.mailingnamE1
+salesRec.mailingnamE2
+salesRec.notificationFlag
+salesRec.oldown
+salesRec.ownernamE1
+salesRec.paddR1
+salesRec.paddR2
+salesRec.paddR3
+salesRec.parcellocation
+salesRec.parid
+salesRec.price
+salesRec.processedFlag
+salesRec.saledt
+salesRec.welcomeSent
+
+*/
+		td = document.createElement("td"); td.textContent = index; tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = salesRec.saledt; tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = salesRec.welcomeSent; tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = salesRec.parcellocation; tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = salesRec.oldown; tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = salesRec.ownernamE1; tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = salesRec.mailingnamE1 + " " + salesRec.mailingnamE2; tr.appendChild(td)
+
+		tbody.appendChild(tr)
+
+	});
+
+}
+
 	/*
         $ReportHeader.html("Executing report query...");
         $ReportListDisplay.html("");
@@ -162,68 +223,5 @@ function _reportRequest(event) {
                 }
             });
 	*/
-}
 
 
-function formatCommunicationsResults(communicationsList) {
-	// Example assumes communicationsRec is an array of communication objects
-	// and there is a table with id "CommunicationsTable" in the modal
-
-	let tbody = CommunicationsTbody
-	empty(tbody)
-	let tr = document.createElement("tr");
-	let td = document.createElement("td");
-	let th = document.createElement("th");
-	
-	if (!communicationsList || communicationsList.length === 0) {
-		td.colSpan = 4;
-		td.textContent = "No communications found.";
-		tr.appendChild(td);
-		tbody.appendChild(tr);
-		return;
-	}
-
-	tr = document.createElement('tr')
-	tr.classList.add('small')
-	// Append the header elements
-	th = document.createElement("th"); th.textContent = "CommID"; tr.appendChild(th)        
-	th = document.createElement("th"); th.textContent = "Datetime"; tr.appendChild(th)
-	th = document.createElement("th"); th.textContent = "Type"; tr.appendChild(th)
-	th = document.createElement("th"); th.textContent = "Email"; tr.appendChild(th)
-	th = document.createElement("th"); th.textContent = "Sent"; tr.appendChild(th)
-	th = document.createElement("th"); th.textContent = "Address"; tr.appendChild(th)
-	th = document.createElement("th"); th.textContent = "Name"; tr.appendChild(th)
-	th = document.createElement("th"); th.textContent = "Description"; tr.appendChild(th)
-	//th = document.createElement("th"); th.textContent = "Last Changed"; tr.appendChild(th)
-
-	//th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Comments"; tr.appendChild(th)
-	tbody.appendChild(tr)
-
-	/*
-		for (let comm of communicationsRec) {
-		let tr = document.createElement("tr");
-		let tdDate = document.createElement("td");
-		tdDate.textContent = comm.dateSent || "";
-		tr.appendChild(tdDate);
-	*/
-	// Append a row for every record in list
-	for (let index in communicationsList) {
-		let commRec = communicationsList[index]
-
-		tr = document.createElement('tr')
-		tr.classList.add('small')
-
-		td = document.createElement("td"); td.textContent = commRec.commID; tr.appendChild(td)
-		td = document.createElement("td"); td.textContent = standardizeDate(commRec.createTs); tr.appendChild(td)
-		td = document.createElement("td"); td.textContent = commRec.commType; tr.appendChild(td)
-		td = document.createElement("td"); td.textContent = commRec.emailAddr; tr.appendChild(td)
-		td = document.createElement("td"); td.textContent = commRec.sentStatus; tr.appendChild(td)
-		td = document.createElement("td"); td.textContent = "test address"; tr.appendChild(td)
-		td = document.createElement("td"); td.textContent = commRec.mailing_Name; tr.appendChild(td)
-		td = document.createElement("td"); td.textContent = commRec.commDesc; tr.appendChild(td)
-		//td = document.createElement("td"); td.textContent = standardizeDate(commRec.createTs); tr.appendChild(td)
-
-		tbody.appendChild(tr)
-	}
-
-}

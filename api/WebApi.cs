@@ -173,353 +173,340 @@ namespace GrhaWeb.Function
 
             return new OkObjectResult(hoaRec);
         }
-/*
-    $username = $userRec->userName;
-    $reportName = getParamVal("reportName");
-    $mailingListName = getParamVal("mailingListName");
-    $logDuesLetterSend = paramBoolVal("logDuesLetterSend");
-    $logWelcomeLetters = paramBoolVal("logWelcomeLetters");
-
-    $outputArray = array();
-    $conn = getConn($host, $dbadmin, $password, $dbname);
-
-    if ($reportName == "SalesReport" || $reportName == "SalesNewOwnerReport") {
-        $sql = "";
-    	if ($reportName == "SalesNewOwnerReport") {
-    		$sql = "SELECT * FROM hoa_sales WHERE ProcessedFlag != 'Y' ORDER BY CreateTimestamp DESC; ";
-    	} else {
-    		$sql = "SELECT * FROM hoa_sales ORDER BY CreateTimestamp DESC; ";
-    	}
-		$stmt = $conn->prepare($sql);
-    	$stmt->execute();
-    	$result = $stmt->get_result();
-    	$stmt->close();
-
-    	if ($result->num_rows > 0) {
-    		while($row = $result->fetch_assoc()) {
-    			$hoaSalesRec = new HoaSalesRec();
-    			$hoaSalesRec->PARID = $row["PARID"];
-    			$hoaSalesRec->CONVNUM = $row["CONVNUM"];
-    			$hoaSalesRec->SALEDT = $row["SALEDT"];
-    			$hoaSalesRec->PRICE = $row["PRICE"];
-    			$hoaSalesRec->OLDOWN = $row["OLDOWN"];
-    			$hoaSalesRec->OWNERNAME1 = $row["OWNERNAME1"];
-    			$hoaSalesRec->PARCELLOCATION = $row["PARCELLOCATION"];
-    			$hoaSalesRec->MAILINGNAME1 = $row["MAILINGNAME1"];
-    			$hoaSalesRec->MAILINGNAME2 = $row["MAILINGNAME2"];
-    			$hoaSalesRec->PADDR1 = $row["PADDR1"];
-    			$hoaSalesRec->PADDR2 = $row["PADDR2"];
-    			$hoaSalesRec->PADDR3 = $row["PADDR3"];
-    			$hoaSalesRec->CreateTimestamp = $row["CreateTimestamp"];
-    			$hoaSalesRec->NotificationFlag = $row["NotificationFlag"];
-    			$hoaSalesRec->ProcessedFlag = $row["ProcessedFlag"];
-    			$hoaSalesRec->LastChangedBy = $row["LastChangedBy"];
-    			$hoaSalesRec->LastChangedTs = $row["LastChangedTs"];
-    			$hoaSalesRec->WelcomeSent = $row["WelcomeSent"];
-
-    			$hoaSalesRec->adminLevel = $userRec->userLevel;
-
-                array_push($outputArray,$hoaSalesRec);
-    		}
-    		$result->close();
-    	}
-    	// End of if ($reportName == "SalesReport" || $reportName == "SalesNewOwnerReport") {
-
-    } else if ($reportName == "IssuesReport") {
-		$sql = "SELECT * FROM hoa_communications WHERE CommType='Issue' ORDER BY LastChangedTs DESC ";
-		$stmt = $conn->prepare($sql);
-    	$stmt->execute();
-    	$result = $stmt->get_result();
-    	$stmt->close();
-    	$cnt = 0;
-
-        if ($result->num_rows > 0) {
-    		// Loop through all the member properties
-    		while($row = $result->fetch_assoc()) {
-                $cnt = $cnt + 1;
-
-                $hoaCommRec = new HoaCommRec();
-                $hoaCommRec->Parcel_ID = $row["Parcel_ID"];
-                $hoaCommRec->CommID = $row["CommID"];
-                $hoaCommRec->CreateTs = $row["CreateTs"];
-                $hoaCommRec->OwnerID = $row["OwnerID"];
-                $hoaCommRec->CommType = $row["CommType"];
-                $hoaCommRec->CommDesc = $row["CommDesc"];
-
-    			$hoaRec = getHoaRec($conn,$hoaCommRec->Parcel_ID,$hoaCommRec->OwnerID);
-                $hoaRec->commList = array();
-				array_push($hoaRec->commList,$hoaCommRec);
-    			array_push($outputArray,$hoaRec);
-    		}
-        }
-
-    } else if ($reportName == "PaidDuesCountsReport") {
-
-    	// get the data for the counts summary by FY
-    	$parcelId = "";
-    	$ownerId = "";
-    	$fy = 0;
-    	$duesAmt = "";
-    	$paid = FALSE;
-    	$nonCollectible = FALSE;
-
-    	//$sql = "SELECT * FROM hoa_assessments WHERE FY > 2006 ORDER BY FY DESC; ";
-    	$sql = "SELECT * FROM hoa_assessments WHERE FY > 2006 ORDER BY FY,Parcel_ID,OwnerID DESC; ";
-
-    //  a.FY
-    //	a.Paid
-
-    	$stmt = $conn->prepare($sql);
-    	$stmt->execute();
-    	$result = $stmt->get_result();
-    	$stmt->close();
-
-    	$paidCnt = 0;
-    	$unPaidCnt = 0;
-    	$nonCollCnt = 0;
-    	$totalDue = 0.0;
-    	$nonCollDue = 0.0;
-    	$cnt = 0;
-    	$prevFY = "";
-    	$prevParcelId = "";
-    	$prevOwnerId = "";
-    	if ($result->num_rows > 0) {
-    		// Loop through all the member properties
-    		while($row = $result->fetch_assoc()) {
-    			$cnt = $cnt + 1;
-
-    			//$parcelId = $row["Parcel_ID"];
-    			//$ownerId = $row["OwnerID"];
-
-    			$fy = $row["FY"];
-    			$duesAmt = $row["DuesAmt"];
-    			$paid = $row["Paid"];
-    			$nonCollectible = $row["NonCollectible"];
-
-    			if ($cnt == 1) {
-    				$prevFY = $fy;
-    			}
 
 
-    			if ($fy != $prevFY) {
-    				$paidDuesCountsRec = new PaidDuesCountsRec();
-    				$paidDuesCountsRec->fy = $prevFY;
-    				$paidDuesCountsRec->paidCnt = $paidCnt;
-    				$paidDuesCountsRec->unpaidCnt = $unPaidCnt;
-    				$paidDuesCountsRec->nonCollCnt = $nonCollCnt;
-    				$paidDuesCountsRec->totalDue = $totalDue;
-    				$paidDuesCountsRec->nonCollDue = $nonCollDue;
-    				array_push($outputArray,$paidDuesCountsRec);
+        [Function("GetSalesList")]
+        public async Task<IActionResult> GetSalesList(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            List<hoa_sales> hoaSalesList = new List<hoa_sales>();
 
-    				// reset counts
-    				$paidCnt = 0;
-    				$unPaidCnt = 0;
-    				$nonCollCnt = 0;
-    				$totalDue = 0.0;
-    				$nonCollDue = 0.0;
-    				$prevFY = $fy;
-    				$prevParcelId = $parcelId;
-    				$prevOwnerId = $ownerId;
-    			}
-
-    			// Find duplicate assessments for the same parcel
-
-    			if ($paid) {
-    				$paidCnt++;
-    			} else {
-    				if ($nonCollectible) {
-    					$nonCollCnt++;
-    					$nonCollDue += stringToMoney($duesAmt);
-    				} else {
-    					$unPaidCnt++;
-    					$totalDue += stringToMoney($duesAmt);
-    				}
-    			}
-
-    		}
-
-    		// Get the last bucket
-    		$paidDuesCountsRec = new PaidDuesCountsRec();
-    		$paidDuesCountsRec->fy = $prevFY;
-    		$paidDuesCountsRec->paidCnt = $paidCnt;
-    		$paidDuesCountsRec->unpaidCnt = $unPaidCnt;
-    		$paidDuesCountsRec->nonCollCnt = $nonCollCnt;
-    		$paidDuesCountsRec->totalDue = $totalDue;
-    		$paidDuesCountsRec->nonCollDue = $nonCollDue;
-    		array_push($outputArray,$paidDuesCountsRec);
-
-    	}
-
-    } else {
-        // The general Reports query - creating a list of HoaRec records (with all data for the Property)
-        // This PHP service is about getting the list of HOA records, then the javascript will display the
-        // records and provide downloads for each particular report
-    	//$parcelId = "";
-    	$ownerId = "";
-    	$fy = 0;
-
-        $duesOwed = false;
-        $skipEmail = false;
-        $salesWelcome = false;
-        $currYearPaid = false;
-        $currYearUnpaid = false;
-
-        if ($reportName == "PaidDuesReport") {
-            $currYearPaid = true;
-        }
-        if ($reportName == "UnpaidDuesReport") {
-            $currYearUnpaid = true;
-        }
-
-        if ($mailingListName == 'WelcomeLetters') {
-            $salesWelcome = true;
-        }
-
-        // If creating Dues Letters, skip properties that don't owe anything
-        if (substr($mailingListName,0,10) == 'Duesletter') {
-            $duesOwed = true;
-        }
-        // Skip postal mail for 1st Notices if Member has asked to use Email
-        if ($mailingListName == 'Duesletter1') {
-            $skipEmail = true;
-        }
-
-        $outputArray = getHoaRecList($conn,$duesOwed,$skipEmail,$salesWelcome,$currYearPaid,$currYearUnpaid);
-
-        if ($userRec->userLevel > 1) {
-            foreach ($outputArray as $hoaRec)  {
-
-                // If flag is set, mark the Welcome Letters as MAILED
-                if ($logWelcomeLetters) {
-                    $stmt = $conn->prepare("UPDATE hoa_sales SET WelcomeSent='Y',LastChangedBy=?,LastChangedTs=CURRENT_TIMESTAMP WHERE PARID = ? AND WelcomeSent = 'S' ; ");
-	                $stmt->bind_param("ss",$userRec->userName,$hoaRec->Parcel_ID);
-	                $stmt->execute();
-	                $stmt->close();
+            try
+            {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
 
-                if ($logDuesLetterSend) {
-                    $commType = 'Dues Notice';
-                    $commDesc = "Postal mail notice sent";
-                    $Email = false;
-                    $SentStatus = 'Y';
+                //log.LogInformation(">>> User is authorized ");
 
-                    if ($hoaRec->ownersList[0]->AlternateMailing) {
-                        $Addr = $hoaRec->ownersList[0]->Alt_Address_Line1;
-                    } else {
-                        $Addr = $hoaRec->Parcel_Location;
+                // Get the content string from the HTTP request body
+                string content = await new StreamReader(req.Body).ReadToEndAsync();
+                // Deserialize the JSON string into a generic JSON object
+                JObject jObject = JObject.Parse(content);
+
+                // Construct the query from the query parameters
+                string reportName = "";
+
+                JToken? jToken;
+                if (jObject.TryGetValue("reportName", out jToken))
+                {
+                    reportName = jToken.ToString().Trim();
+                    if (reportName.Equals(""))
+                    {
+                        return new BadRequestObjectResult("Query failed because reportName was blank");
+                    }
+                } else {
+                    return new BadRequestObjectResult("Query failed because reportName was NOT FOUND");
+                }
+
+                hoaSalesList = await hoaDbCommon.GetSalesListDb(reportName);
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+            }
+
+            return new OkObjectResult(hoaSalesList);
+        }
+
+/*
+            $username = $userRec->userName;
+            $reportName = getParamVal("reportName");
+            $mailingListName = getParamVal("mailingListName");
+            $logDuesLetterSend = paramBoolVal("logDuesLetterSend");
+            $logWelcomeLetters = paramBoolVal("logWelcomeLetters");
+
+            $outputArray = array();
+            $conn = getConn($host, $dbadmin, $password, $dbname);
+
+            if ($reportName == "SalesReport" || $reportName == "SalesNewOwnerReport") {
+                $sql = "";
+                    }
+                    $result->close();
+                }
+                // End of if ($reportName == "SalesReport" || $reportName == "SalesNewOwnerReport") {
+
+
+            } else if ($reportName == "PaidDuesCountsReport") {
+
+                // get the data for the counts summary by FY
+                $parcelId = "";
+                $ownerId = "";
+                $fy = 0;
+                $duesAmt = "";
+                $paid = FALSE;
+                $nonCollectible = FALSE;
+
+                //$sql = "SELECT * FROM hoa_assessments WHERE FY > 2006 ORDER BY FY DESC; ";
+                $sql = "SELECT * FROM hoa_assessments WHERE FY > 2006 ORDER BY FY,Parcel_ID,OwnerID DESC; ";
+
+            //  a.FY
+            //	a.Paid
+
+                $stmt = $conn->prepare($sql);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $stmt->close();
+
+                $paidCnt = 0;
+                $unPaidCnt = 0;
+                $nonCollCnt = 0;
+                $totalDue = 0.0;
+                $nonCollDue = 0.0;
+                $cnt = 0;
+                $prevFY = "";
+                $prevParcelId = "";
+                $prevOwnerId = "";
+                if ($result->num_rows > 0) {
+                    // Loop through all the member properties
+                    while($row = $result->fetch_assoc()) {
+                        $cnt = $cnt + 1;
+
+                        //$parcelId = $row["Parcel_ID"];
+                        //$ownerId = $row["OwnerID"];
+
+                        $fy = $row["FY"];
+                        $duesAmt = $row["DuesAmt"];
+                        $paid = $row["Paid"];
+                        $nonCollectible = $row["NonCollectible"];
+
+                        if ($cnt == 1) {
+                            $prevFY = $fy;
+                        }
+
+
+                        if ($fy != $prevFY) {
+                            $paidDuesCountsRec = new PaidDuesCountsRec();
+                            $paidDuesCountsRec->fy = $prevFY;
+                            $paidDuesCountsRec->paidCnt = $paidCnt;
+                            $paidDuesCountsRec->unpaidCnt = $unPaidCnt;
+                            $paidDuesCountsRec->nonCollCnt = $nonCollCnt;
+                            $paidDuesCountsRec->totalDue = $totalDue;
+                            $paidDuesCountsRec->nonCollDue = $nonCollDue;
+                            array_push($outputArray,$paidDuesCountsRec);
+
+                            // reset counts
+                            $paidCnt = 0;
+                            $unPaidCnt = 0;
+                            $nonCollCnt = 0;
+                            $totalDue = 0.0;
+                            $nonCollDue = 0.0;
+                            $prevFY = $fy;
+                            $prevParcelId = $parcelId;
+                            $prevOwnerId = $ownerId;
+                        }
+
+                        // Find duplicate assessments for the same parcel
+
+                        if ($paid) {
+                            $paidCnt++;
+                        } else {
+                            if ($nonCollectible) {
+                                $nonCollCnt++;
+                                $nonCollDue += stringToMoney($duesAmt);
+                            } else {
+                                $unPaidCnt++;
+                                $totalDue += stringToMoney($duesAmt);
+                            }
+                        }
+
                     }
 
-                    insertCommRec($conn,$hoaRec->Parcel_ID,$hoaRec->ownersList[0]->OwnerID,$commType,$commDesc,
-                        $hoaRec->ownersList[0]->Mailing_Name,$Email,
-                        $Addr,$SentStatus,$userRec->userName);
+                    // Get the last bucket
+                    $paidDuesCountsRec = new PaidDuesCountsRec();
+                    $paidDuesCountsRec->fy = $prevFY;
+                    $paidDuesCountsRec->paidCnt = $paidCnt;
+                    $paidDuesCountsRec->unpaidCnt = $unPaidCnt;
+                    $paidDuesCountsRec->nonCollCnt = $nonCollCnt;
+                    $paidDuesCountsRec->totalDue = $totalDue;
+                    $paidDuesCountsRec->nonCollDue = $nonCollDue;
+                    array_push($outputArray,$paidDuesCountsRec);
 
-                } // if ($logDuesLetterSend) {
-
-            } // Loop through hoa recs
-        } // If admin
-
-    } // End of } else if ($reportName == "DuesReport") {
-
-    // Close db connection
-    $conn->close();
-
-    echo json_encode($outputArray);
-
-} catch(Exception $e) {
-    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
-    echo json_encode(
-        array(
-            'error' => $e->getMessage(),
-            'error_code' => $e->getCode()
-        )
-    );
-}
-
-function getHoaRecList($conn,$duesOwed=false,$skipEmail=false,$salesWelcome=false,
-    $currYearPaid=false,$currYearUnpaid=false,$testEmail=false) {
-
-
-//----------------------------------------------------------------------------------------------------------------
-//  Function to return an array of full hoaRec objects (with a couple of parameters to filter list)
-//----------------------------------------------------------------------------------------------------------------
-function getHoaRecList($conn,$duesOwed=false,$skipEmail=false,$salesWelcome=false,
-    $currYearPaid=false,$currYearUnpaid=false,$testEmail=false) {
-
-    $outputArray = array();
-
-    if ($testEmail) {
-        $testEmailParcel = getConfigValDB($conn,'duesEmailTestParcel');
-        $sql = "SELECT * FROM hoa_properties p, hoa_owners o WHERE p.Parcel_ID = '$testEmailParcel' AND p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 ";
-    } else {
-        $fy = 0;
-        if ($currYearPaid || $currYearUnpaid) {
-            // *** just use the highest FY - the first assessment record ***
-            $result = $conn->query("SELECT MAX(FY) AS maxFY FROM hoa_assessments; ");
-            if ($result->num_rows > 0) {
-                while($row = $result->fetch_assoc()) {
-                    $fy = $row["maxFY"];
                 }
-                $result->close();
-            }
+
+            } else {
+                // The general Reports query - creating a list of HoaRec records (with all data for the Property)
+                // This PHP service is about getting the list of HOA records, then the javascript will display the
+                // records and provide downloads for each particular report
+                //$parcelId = "";
+                $ownerId = "";
+                $fy = 0;
+
+                $duesOwed = false;
+                $skipEmail = false;
+                $salesWelcome = false;
+                $currYearPaid = false;
+                $currYearUnpaid = false;
+
+                if ($reportName == "PaidDuesReport") {
+                    $currYearPaid = true;
+                }
+                if ($reportName == "UnpaidDuesReport") {
+                    $currYearUnpaid = true;
+                }
+
+                if ($mailingListName == 'WelcomeLetters') {
+                    $salesWelcome = true;
+                }
+
+                // If creating Dues Letters, skip properties that don't owe anything
+                if (substr($mailingListName,0,10) == 'Duesletter') {
+                    $duesOwed = true;
+                }
+                // Skip postal mail for 1st Notices if Member has asked to use Email
+                if ($mailingListName == 'Duesletter1') {
+                    $skipEmail = true;
+                }
+
+                $outputArray = getHoaRecList($conn,$duesOwed,$skipEmail,$salesWelcome,$currYearPaid,$currYearUnpaid);
+
+                if ($userRec->userLevel > 1) {
+                    foreach ($outputArray as $hoaRec)  {
+
+                        // If flag is set, mark the Welcome Letters as MAILED
+                        if ($logWelcomeLetters) {
+                            $stmt = $conn->prepare("UPDATE hoa_sales SET WelcomeSent='Y',LastChangedBy=?,LastChangedTs=CURRENT_TIMESTAMP WHERE PARID = ? AND WelcomeSent = 'S' ; ");
+                            $stmt->bind_param("ss",$userRec->userName,$hoaRec->Parcel_ID);
+                            $stmt->execute();
+                            $stmt->close();
+                        }
+
+                        if ($logDuesLetterSend) {
+                            $commType = 'Dues Notice';
+                            $commDesc = "Postal mail notice sent";
+                            $Email = false;
+                            $SentStatus = 'Y';
+
+                            if ($hoaRec->ownersList[0]->AlternateMailing) {
+                                $Addr = $hoaRec->ownersList[0]->Alt_Address_Line1;
+                            } else {
+                                $Addr = $hoaRec->Parcel_Location;
+                            }
+
+                            insertCommRec($conn,$hoaRec->Parcel_ID,$hoaRec->ownersList[0]->OwnerID,$commType,$commDesc,
+                                $hoaRec->ownersList[0]->Mailing_Name,$Email,
+                                $Addr,$SentStatus,$userRec->userName);
+
+                        } // if ($logDuesLetterSend) {
+
+                    } // Loop through hoa recs
+                } // If admin
+
+            } // End of } else if ($reportName == "DuesReport") {
+
+            // Close db connection
+            $conn->close();
+
+            echo json_encode($outputArray);
+
+        } catch(Exception $e) {
+            error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
+            echo json_encode(
+                array(
+                    'error' => $e->getMessage(),
+                    'error_code' => $e->getCode()
+                )
+            );
         }
 
-        // try to get the parameters into the initial select query to limit the records it then tries to get from the getHoaRec
-        if ($salesWelcome) {
-            $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_sales s" .
-                            " WHERE p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 AND p.Parcel_ID = s.PARID" .
-                            " AND s.WelcomeSent = 'S' ORDER BY s.CreateTimestamp DESC; ";
-        } else if ($currYearUnpaid) {
-            $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_assessments a " .
-                        "WHERE p.Parcel_ID = o.Parcel_ID AND a.OwnerID = o.OwnerID AND p.Parcel_ID = a.Parcel_ID " .
-                        "AND a.FY = " . $fy . " AND a.Paid = 0 ORDER BY p.Parcel_ID; ";
-                        // current owner?
-        } else if ($currYearPaid) {
-            $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_assessments a " .
-                        "WHERE p.Parcel_ID = o.Parcel_ID AND a.OwnerID = o.OwnerID AND p.Parcel_ID = a.Parcel_ID " .
-                        "AND a.FY = " . $fy . " AND a.Paid = 1 ORDER BY p.Parcel_ID; ";
-                        // current owner?
-        } else {
-            // All properties and current owner
-            $sql = "SELECT * FROM hoa_properties p, hoa_owners o WHERE p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 ".
-                            "ORDER BY p.Parcel_ID; ";
+        function getHoaRecList($conn,$duesOwed=false,$skipEmail=false,$salesWelcome=false,
+            $currYearPaid=false,$currYearUnpaid=false,$testEmail=false) {
+
+
+        //----------------------------------------------------------------------------------------------------------------
+        //  Function to return an array of full hoaRec objects (with a couple of parameters to filter list)
+        //----------------------------------------------------------------------------------------------------------------
+        function getHoaRecList($conn,$duesOwed=false,$skipEmail=false,$salesWelcome=false,
+            $currYearPaid=false,$currYearUnpaid=false,$testEmail=false) {
+
+            $outputArray = array();
+
+            if ($testEmail) {
+                $testEmailParcel = getConfigValDB($conn,'duesEmailTestParcel');
+                $sql = "SELECT * FROM hoa_properties p, hoa_owners o WHERE p.Parcel_ID = '$testEmailParcel' AND p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 ";
+            } else {
+                $fy = 0;
+                if ($currYearPaid || $currYearUnpaid) {
+                    // *** just use the highest FY - the first assessment record ***
+                    $result = $conn->query("SELECT MAX(FY) AS maxFY FROM hoa_assessments; ");
+                    if ($result->num_rows > 0) {
+                        while($row = $result->fetch_assoc()) {
+                            $fy = $row["maxFY"];
+                        }
+                        $result->close();
+                    }
+                }
+
+                // try to get the parameters into the initial select query to limit the records it then tries to get from the getHoaRec
+                if ($salesWelcome) {
+                    $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_sales s" .
+                                    " WHERE p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 AND p.Parcel_ID = s.PARID" .
+                                    " AND s.WelcomeSent = 'S' ORDER BY s.CreateTimestamp DESC; ";
+                } else if ($currYearUnpaid) {
+                    $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_assessments a " .
+                                "WHERE p.Parcel_ID = o.Parcel_ID AND a.OwnerID = o.OwnerID AND p.Parcel_ID = a.Parcel_ID " .
+                                "AND a.FY = " . $fy . " AND a.Paid = 0 ORDER BY p.Parcel_ID; ";
+                                // current owner?
+                } else if ($currYearPaid) {
+                    $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_assessments a " .
+                                "WHERE p.Parcel_ID = o.Parcel_ID AND a.OwnerID = o.OwnerID AND p.Parcel_ID = a.Parcel_ID " .
+                                "AND a.FY = " . $fy . " AND a.Paid = 1 ORDER BY p.Parcel_ID; ";
+                                // current owner?
+                } else {
+                    // All properties and current owner
+                    $sql = "SELECT * FROM hoa_properties p, hoa_owners o WHERE p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 ".
+                                    "ORDER BY p.Parcel_ID; ";
+                }
+            }
+
+            $stmt = $conn->prepare($sql);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $stmt->close();
+
+            $cnt = 0;
+            if ($result->num_rows > 0) {
+                // Loop through all the member properties
+                while($row = $result->fetch_assoc()) {
+                    $cnt = $cnt + 1;
+
+                    $parcelId = $row["Parcel_ID"];
+                    $ownerId = $row["OwnerID"];
+
+                    // Don't include FY because you want all assessments to calculate Total Due
+                    //$hoaRec = getHoaRec($conn,$parcelId,$ownerId,$fy);
+                    $hoaRec = getHoaRec($conn,$parcelId,$ownerId);
+
+                    // If creating Dues Letters, skip properties that don't owe anything
+                    if ($duesOwed && $hoaRec->TotalDue < 0.01) {
+                        continue;
+                    }
+                    // Skip postal mail for 1st Notices if Member has asked to use Email
+                    if ($skipEmail && $hoaRec->UseEmail) {
+                        continue;
+                    }
+
+                    array_push($outputArray,$hoaRec);
+                }
+            }
+
+            return $outputArray;
         }
-    }
 
-    $stmt = $conn->prepare($sql);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $stmt->close();
-
-    $cnt = 0;
-    if ($result->num_rows > 0) {
-    	// Loop through all the member properties
-    	while($row = $result->fetch_assoc()) {
-    		$cnt = $cnt + 1;
-
-    		$parcelId = $row["Parcel_ID"];
-    		$ownerId = $row["OwnerID"];
-
-            // Don't include FY because you want all assessments to calculate Total Due
-    		//$hoaRec = getHoaRec($conn,$parcelId,$ownerId,$fy);
-    		$hoaRec = getHoaRec($conn,$parcelId,$ownerId);
-
-            // If creating Dues Letters, skip properties that don't owe anything
-            if ($duesOwed && $hoaRec->TotalDue < 0.01) {
-                continue;
-            }
-            // Skip postal mail for 1st Notices if Member has asked to use Email
-            if ($skipEmail && $hoaRec->UseEmail) {
-                continue;
-            }
-
-    	    array_push($outputArray,$hoaRec);
-    	}
-    }
-
-    return $outputArray;
-}
-
-*/
+        */
         [Function("GetCommunications")]
         public async Task<IActionResult> GetCommunications(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
