@@ -9,10 +9,10 @@ namespace GrhaWeb.Function.Model
 {
     public class hoa_sales
     {
-        public string? id { get; set; }
-        public string? PARID { get; set; }           // Partition key:  /PARID
+        public string? id { get; set; }             // id is Parcel ID
+        public string? PARID { get; set; }           
         public string? CONVNUM { get; set; }
-        public string? SALEDT { get; set; }          // Id
+        public string? SALEDT { get; set; }          // Partition key: /SALEDT
         public string? PRICE { get; set; }
         public string? OLDOWN { get; set; }
         public string? OWNERNAME1 { get; set; }

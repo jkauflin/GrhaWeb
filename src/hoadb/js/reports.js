@@ -40,26 +40,63 @@ var ReportListTbody = document.getElementById("ReportListTbody")
 var ReportsMessageDisplay = document.getElementById("ReportsMessageDisplay")
 
 document.getElementById("SalesReport").addEventListener("click", function (event) {
-    salesReport(event)
+	salesReport(event)
 })
 document.getElementById("SalesNewOwnerReport").addEventListener("click", function (event) {
-    salesReport(event)
+	salesReport(event)
 })
 
+// Handle clicks to SalesFlagUpdate buttons (Send/Ignore)
+document.body.addEventListener("click", async function (event) {
+	if (event.target.classList.contains("SalesFlagUpdate")) {
+		event.preventDefault();
+		await handleSalesFlagUpdate(event.target);
+	}
+});
+// Handles the Send/Ignore button click for sales records
+async function handleSalesFlagUpdate(button) {
+	showLoadingSpinner(ReportsMessageDisplay);
+	const parcelId = button.dataset.parcelId;
+	const saleDate = button.dataset.saleDate;
+	const action = button.dataset.action;
+
+	// Compose request body
+	let paramData = {
+		parid: parcelId,
+		saledt: saleDate,
+		welcomeSent: (action === "WelcomeSend") ? "Y" : "I"
+	};
+
+	try {
+		const response = await fetch("/api/UpdateSales", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(paramData)
+		});
+		await checkFetchResponse(response);
+		ReportsMessageDisplay.textContent = "Sales flag updated.";
+		// Optionally refresh the report
+		// salesReport({ target: document.getElementById("SalesReport") });
+	} catch (err) {
+		console.error(err);
+		ReportsMessageDisplay.textContent = `Error updating sales flag: ${err.message}`;
+	}
+}
+
 document.getElementById("PaidDuesCountsReport").addEventListener("click", function (event) {
-    _reportRequest(event)
+	_reportRequest(event)
 })
 document.getElementById("UnpaidDuesRankingReport").addEventListener("click", function (event) {
-    _reportRequest(event)
+	_reportRequest(event)
 })
 document.getElementById("MailingListReport").addEventListener("click", function (event) {
-    _reportRequest(event)
+	_reportRequest(event)
 })
 
 
 async function salesReport(event) {
 	let reportName = event.target.getAttribute("id");
-    let reportTitle = event.target.getAttribute("data-reportTitle");
+	let reportTitle = event.target.getAttribute("data-reportTitle");
 
 	showLoadingSpinner(ReportsMessageDisplay)
 
@@ -74,6 +111,7 @@ async function salesReport(event) {
 			body: JSON.stringify(paramData)
 		})
 		await checkFetchResponse(response)
+		ReportsMessageDisplay.textContent = ""
 		// Success
 		let salesList = await response.json();
 		// TODO: Format and display communicationsRec in the modal
@@ -82,21 +120,19 @@ async function salesReport(event) {
 		formatSalesResults(salesList);
 	} catch (err) {
 		console.error(err)
-		// Display error in modal or suitable area
-		// Example: CommunicationsMessageDisplay.textContent = `Error in Fetch: ${err.message}`
+		ReportsMessageDisplay.textContent = `Error in Fetch: ${err.message}`
 	}
 }
 
 function formatSalesResults(salesList) {
-	// Example assumes communicationsRec is an array of communication objects
-	// and there is a table with id "CommunicationsTable" in the modal
-
 	let tbody = ReportListTbody
 	empty(tbody)
 	let tr = document.createElement("tr");
 	let td = document.createElement("td");
 	let th = document.createElement("th");
-	
+	let a = document.createElement("a")
+	let button = document.createElement("button")
+
 	if (!salesList || salesList.length === 0) {
 		td.colSpan = 4;
 		td.textContent = "No sales found.";
@@ -109,52 +145,23 @@ function formatSalesResults(salesList) {
 	tr.classList.add('small')
 	// Append the header elements
 	th = document.createElement("th"); th.textContent = "Row"; tr.appendChild(th)        
-	th = document.createElement("th"); th.textContent = "Sale Date"; tr.appendChild(th)
-	th = document.createElement("th"); th.textContent = "Welcome Sent"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Sales Dates"; tr.appendChild(th)
+	//th = document.createElement("th"); th.textContent = "Welcome Sent"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Sent"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "Parcel Location"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "Old Owner Name"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "New Owner Name"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "Mailing Name"; tr.appendChild(th)
 	tbody.appendChild(tr)
 
-	/*
-		for (let comm of communicationsRec) {
-		let tr = document.createElement("tr");
-		let tdDate = document.createElement("td");
-		tdDate.textContent = comm.dateSent || "";
-		tr.appendChild(tdDate);
-	*/
 	// Append a row for every record in list
 	let index = 0;
-
 	salesList.forEach(salesRec => {
-
 		index++
 
 		tr = document.createElement('tr')
 		tr.classList.add('small')
 /*
-        public string? salesRec.id { get; set; }
-        public string? salesRec.PARID { get; set; }           // Partition key:  /PARID
-        public string? salesRec.CONVNUM { get; set; }
-        public string? salesRec.SALEDT { get; set; }          // Id
-        public string? salesRec.PRICE { get; set; }
-        public string? salesRec.OLDOWN { get; set; }
-        public string? salesRec.OWNERNAME1 { get; set; }
-        public string? salesRec.PARCELLOCATION { get; set; }
-        public string? salesRec.MAILINGNAME1 { get; set; }
-        public string? salesRec.MAILINGNAME2 { get; set; }
-        public string? salesRec.PADDR1 { get; set; }
-        public string? salesRec.PADDR2 { get; set; }
-        public string? salesRec.PADDR3 { get; set; }
-        public string? salesRec.CreateTimestamp { get; set; }
-        public string? salesRec.NotificationFlag { get; set; }
-        public string? salesRec.ProcessedFlag { get; set; }
-        public string? salesRec.LastChangedBy { get; set; }
-        public DateTime salesRec.LastChangedTs { get; set; }
-        public string? salesRec.WelcomeSent { get; set; }
-
-	
 salesRec.convnum
 salesRec.createTimestamp
 salesRec.id
@@ -178,50 +185,81 @@ salesRec.welcomeSent
 */
 		td = document.createElement("td"); td.textContent = index; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = salesRec.saledt; tr.appendChild(td)
-		td = document.createElement("td"); td.textContent = salesRec.welcomeSent; tr.appendChild(td)
+
+		if (salesRec.welcomeSent == null || salesRec.welcomeSent == 'X' || salesRec.welcomeSent == ' ' || salesRec.welcomeSent == '') {
+			// offer buttons for Send and Ignore
+			td = document.createElement("td");
+
+			button = document.createElement("button")
+			button.setAttribute('type',"button")
+			button.setAttribute('role',"button")
+			button.dataset.parcelId = salesRec.parid
+			button.dataset.saleDate = salesRec.saledt
+			button.dataset.action = "WelcomeSend"
+			button.classList.add('btn','btn-success','btn-sm','mb-1','shadow-none','SalesFlagUpdate')
+			button.textContent = "Send"
+			td.appendChild(button);
+
+			button = document.createElement("button")
+			button.setAttribute('type',"button")
+			button.setAttribute('role',"button")
+			button.dataset.parcelId = salesRec.parid
+			button.dataset.saleDate = salesRec.saledt
+			button.dataset.action = "WelcomeIgnore"
+			button.classList.add('btn','btn-warning','btn-sm','shadow-none','SalesFlagUpdate')
+			button.textContent = "Ignore"
+			td.appendChild(button);
+
+			tr.appendChild(td)
+
+		} else {
+			td = document.createElement("td"); td.textContent = salesRec.welcomeSent; tr.appendChild(td)
+		}
+
 		td = document.createElement("td"); td.textContent = salesRec.parcellocation; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = salesRec.oldown; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = salesRec.ownernamE1; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = salesRec.mailingnamE1 + " " + salesRec.mailingnamE2; tr.appendChild(td)
 
 		tbody.appendChild(tr)
-
 	});
 
 }
 
+
+
 	/*
-        $ReportHeader.html("Executing report query...");
-        $ReportListDisplay.html("");
-        $ReportRecCnt.html("");
-        $ReportDownloadLinks.html("");
+		$ReportHeader.html("Executing report query...");
+		$ReportListDisplay.html("");
+		$ReportRecCnt.html("");
+		$ReportDownloadLinks.html("");
 
-        // check user logged in
-            var mailingListName = '';
-            var logWelcomeLetters = '';
-            var logDuesLetterSend = '';
-            if (reportName == 'MailingListReport') {
-                mailingListName = $('input:radio[name=MailingListName]:checked').val();
-                logDuesLetterSend = $('#LogDuesLetterSend').is(":checked");
-                logWelcomeLetters = $('#LogWelcomeLetters').is(":checked");
-            } else {
-                $ReportFilter.empty();
-            }
+		// check user logged in
+			var mailingListName = '';
+			var logWelcomeLetters = '';
+			var logDuesLetterSend = '';
+			if (reportName == 'MailingListReport') {
+				mailingListName = $('input:radio[name=MailingListName]:checked').val();
+				logDuesLetterSend = $('#LogDuesLetterSend').is(":checked");
+				logWelcomeLetters = $('#LogWelcomeLetters').is(":checked");
+			} else {
+				$ReportFilter.empty();
+			}
 
-            $.getJSON("getHoaReportData.php", "reportName=" + reportName + "&mailingListName="
-                  + mailingListName + "&logDuesLetterSend=" + logDuesLetterSend+"&logWelcomeLetters="+logWelcomeLetters, function (result) {
-                if (result.error) {
-                    console.log("error = " + result.error);
-                    $ajaxError.html("<b>" + result.error + "</b>");
-                } else {
-                    var reportList = result;
-                    if (reportName == 'UnpaidDuesRankingReport') {
-                        _duesRank(reportList, reportName);
-                    } else {
-                        _formatReportList(reportName, reportTitle, reportList, mailingListName);
-                    }
-                }
-            });
+			$.getJSON("getHoaReportData.php", "reportName=" + reportName + "&mailingListName="
+				  + mailingListName + "&logDuesLetterSend=" + logDuesLetterSend+"&logWelcomeLetters="+logWelcomeLetters, function (result) {
+				if (result.error) {
+					console.log("error = " + result.error);
+					$ajaxError.html("<b>" + result.error + "</b>");
+				} else {
+					var reportList = result;
+					if (reportName == 'UnpaidDuesRankingReport') {
+						_duesRank(reportList, reportName);
+					} else {
+						_formatReportList(reportName, reportTitle, reportList, mailingListName);
+					}
+				}
+			});
 	*/
 
 

@@ -16,6 +16,8 @@ Modification History
 2025-05=16 JJK  Working on DuesStatement (and PDF)
 2025-05-31 JJK  Added AddPatchField and functions to update hoadb property
 2025-06-27 JJK  Added Assessment update
+2025-08-03 JJK  Added GetSalesList and UpdateSales functions to get sales data
+                and update the sales record WelcomeSent flag
 ================================================================================*/
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
@@ -564,37 +566,6 @@ namespace GrhaWeb.Function
                                                     } else {
                                                         $sql = "SELECT * FROM hoa_sales ORDER BY CreateTimestamp DESC; ";
                                                     }
-                                                    $stmt = $conn->prepare($sql);
-                                                    $stmt->execute();
-                                                    $result = $stmt->get_result();
-                                                    $stmt->close();
-
-                                                    if ($result->num_rows > 0) {
-                                                        while($row = $result->fetch_assoc()) {
-                                                            $hoaSalesRec = new HoaSalesRec();
-                                                            $hoaSalesRec->PARID = $row["PARID"];
-                                                            $hoaSalesRec->CONVNUM = $row["CONVNUM"];
-                                                            $hoaSalesRec->SALEDT = $row["SALEDT"];
-                                                            $hoaSalesRec->PRICE = $row["PRICE"];
-                                                            $hoaSalesRec->OLDOWN = $row["OLDOWN"];
-                                                            $hoaSalesRec->OWNERNAME1 = $row["OWNERNAME1"];
-                                                            $hoaSalesRec->PARCELLOCATION = $row["PARCELLOCATION"];
-                                                            $hoaSalesRec->MAILINGNAME1 = $row["MAILINGNAME1"];
-                                                            $hoaSalesRec->MAILINGNAME2 = $row["MAILINGNAME2"];
-                                                            $hoaSalesRec->PADDR1 = $row["PADDR1"];
-                                                            $hoaSalesRec->PADDR2 = $row["PADDR2"];
-                                                            $hoaSalesRec->PADDR3 = $row["PADDR3"];
-                                                            $hoaSalesRec->CreateTimestamp = $row["CreateTimestamp"];
-                                                            $hoaSalesRec->NotificationFlag = $row["NotificationFlag"];
-                                                            $hoaSalesRec->ProcessedFlag = $row["ProcessedFlag"];
-                                                            $hoaSalesRec->LastChangedBy = $row["LastChangedBy"];
-                                                            $hoaSalesRec->LastChangedTs = $row["LastChangedTs"];
-                                                            $hoaSalesRec->WelcomeSent = $row["WelcomeSent"];
-
-                                                            $hoaSalesRec->adminLevel = $userRec->userLevel;
-
-                                                            array_push($outputArray,$hoaSalesRec);
-
                                     */
             var feed = container.GetItemQueryIterator<hoa_sales>(queryDefinition);
             int cnt = 0;
@@ -610,6 +581,52 @@ namespace GrhaWeb.Function
 
             return hoaSalesList;
         }
+
+
+        public async Task UpdateSalesDB(string userName, string parid, string saledt, string welcomeSent)
+        {
+            DateTime currDateTime = DateTime.Now;
+            string LastChangedTs = currDateTime.ToString("o");
+
+            string databaseId = "hoadb";
+            string containerId = "hoa_sales";
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
+
+            /*
+            string parid = formFields.ContainsKey("parid") ? formFields["parid"].Trim() : "";
+            string saledt = formFields.ContainsKey("saledt") ? formFields["saledt"].Trim() : "";
+            if (string.IsNullOrEmpty(parid) || string.IsNullOrEmpty(saledt))
+            {
+                throw new ArgumentException("Missing required sales record keys (parid, saledt)");
+            }
+            */
+
+            // Patch operations for sales record
+            List<PatchOperation> patchOperations = new List<PatchOperation>
+            {
+                PatchOperation.Replace("/LastChangedBy", userName),
+                PatchOperation.Replace("/LastChangedTs", LastChangedTs),
+                PatchOperation.Replace("/WelcomeSent", welcomeSent)
+            };
+
+            // Only allow updating WelcomeSent for now
+            //AddPatchField(patchOperations, formFields, "welcomeSent", "Text");
+
+            PatchOperation[] patchArray = patchOperations.ToArray();
+
+            // Compose id for sales record: usually composite key, but here use saledt as id
+            string itemId = parid; 
+            PartitionKey pk = new PartitionKey(saledt);
+
+            ItemResponse<dynamic> response = await container.PatchItemAsync<dynamic>(
+                itemId,
+                pk,
+                patchArray
+            );
+        }
+
 
         public async Task<Trustee> GetTrusteeById(string trusteeId)
         {
