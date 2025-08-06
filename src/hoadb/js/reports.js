@@ -46,11 +46,6 @@ document.getElementById("SalesReport").addEventListener("click", function (event
 	salesReport(reportTitle)
 })
 
-document.getElementById("SalesNewOwnerReport").addEventListener("click", function (event) {
-	let reportTitle = event.target.getAttribute("data-reportTitle");
-	salesReport(reportTitle)
-})
-
 /* figure out what I'm doing for new owner processing
 document.body.addEventListener("click", async function (event) {
 	if (event.target.classList.contains("SalesNewOwnerProcess")) {
@@ -73,12 +68,20 @@ async function handleSalesFlagUpdate(button) {
 	const parcelId = button.dataset.parcelId;
 	const saleDate = button.dataset.saleDate;
 	const action = button.dataset.action;
+	let welcomeSent = ""
+	if (action == "WelcomeSend") {
+		welcomeSent = "Y"
+	}
+	if (action == "WelcomeIgnore") {
+		welcomeSent = "N"
+	}
 
 	// Compose request body
 	let paramData = {
 		parid: parcelId,
 		saledt: saleDate,
-		welcomeSent: (action === "WelcomeSend") ? "Y" : "I"
+		processedFlag: (action === "NewOwnerIgnore") ? "Y" : "",
+		welcomeSent: welcomeSent
 	};
 
 	try {
@@ -222,7 +225,7 @@ salesRec.welcomeSent
 			button.dataset.parcelId = salesRec.parid
 			button.dataset.saleDate = salesRec.saledt
 			button.dataset.action = "Process"
-			button.classList.add('btn','btn-primary','btn-sm','mb-1','me-1','shadow-none','SalesNewOwnerProcess')
+			button.classList.add('btn','btn-primary','btn-sm','mb-1','mx-1','shadow-none','SalesNewOwnerProcess')
 			button.textContent = "New Owner"
 			td.appendChild(button);
 

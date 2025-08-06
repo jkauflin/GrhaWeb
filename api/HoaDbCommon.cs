@@ -570,7 +570,7 @@ namespace GrhaWeb.Function
         }
 
 
-        public async Task UpdateSalesDB(string userName, string parid, string saledt, string welcomeSent)
+        public async Task UpdateSalesDB(string userName, string parid, string saledt, string processedFlag, string welcomeSent)
         {
             DateTime currDateTime = DateTime.Now;
             string LastChangedTs = currDateTime.ToString("o");
@@ -585,9 +585,20 @@ namespace GrhaWeb.Function
             List<PatchOperation> patchOperations = new List<PatchOperation>
             {
                 PatchOperation.Replace("/LastChangedBy", userName),
-                PatchOperation.Replace("/LastChangedTs", LastChangedTs),
-                PatchOperation.Replace("/WelcomeSent", welcomeSent)
+                PatchOperation.Replace("/LastChangedTs", LastChangedTs)
             };
+
+            if (!string.IsNullOrWhiteSpace(processedFlag))
+            {
+                // If processedFlag is not empty, add it to the patch operations
+                patchOperations.Add(PatchOperation.Replace("/ProcessedFlag", processedFlag));
+            }
+
+            if (!string.IsNullOrWhiteSpace(welcomeSent))
+            {
+                // If processedFlag is not empty, add it to the patch operations
+                patchOperations.Add(PatchOperation.Replace("/WelcomeSent", welcomeSent));
+            }
 
             PatchOperation[] patchArray = patchOperations.ToArray();
 

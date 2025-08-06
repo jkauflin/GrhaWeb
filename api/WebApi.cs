@@ -247,6 +247,7 @@ namespace GrhaWeb.Function
                 // Construct the query from the query parameters
                 string parid = "";
                 string saledt = "";
+                string processedFlag = "";
                 string welcomeSent = "";
 
                 JToken? jToken;
@@ -272,18 +273,17 @@ namespace GrhaWeb.Function
                     return new BadRequestObjectResult("Query failed because saledt was NOT FOUND");
                 }
 
+                if (jObject.TryGetValue("processedFlag", out jToken))
+                {
+                    processedFlag = jToken.ToString().Trim();
+                }
+
                 if (jObject.TryGetValue("welcomeSent", out jToken))
                 {
                     welcomeSent = jToken.ToString().Trim();
-                    if (welcomeSent.Equals(""))
-                    {
-                        return new BadRequestObjectResult("Query failed because welcomeSent was blank");
-                    }
-                } else {
-                    return new BadRequestObjectResult("Query failed because welcomeSent was NOT FOUND");
                 }
 
-                await hoaDbCommon.UpdateSalesDB(userName, parid, saledt, welcomeSent);
+                await hoaDbCommon.UpdateSalesDB(userName, parid, saledt, processedFlag, welcomeSent);
                 returnMessage = "Sales record was updated";
             }
             catch (Exception ex)
