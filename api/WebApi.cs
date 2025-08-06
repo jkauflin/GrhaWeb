@@ -194,6 +194,7 @@ namespace GrhaWeb.Function
                 //log.LogInformation(">>> User is authorized ");
 
                 // Get the content string from the HTTP request body
+                /*
                 string content = await new StreamReader(req.Body).ReadToEndAsync();
                 // Deserialize the JSON string into a generic JSON object
                 JObject jObject = JObject.Parse(content);
@@ -212,8 +213,8 @@ namespace GrhaWeb.Function
                 } else {
                     return new BadRequestObjectResult("Query failed because reportName was NOT FOUND");
                 }
-
-                hoaSalesList = await hoaDbCommon.GetSalesListDb(reportName);
+                */
+                hoaSalesList = await hoaDbCommon.GetSalesListDb();
             }
             catch (Exception ex)
             {
@@ -580,6 +581,7 @@ namespace GrhaWeb.Function
                 }
 
                 */
+
         [Function("GetCommunications")]
         public async Task<IActionResult> GetCommunications(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)

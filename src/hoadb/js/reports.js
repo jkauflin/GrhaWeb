@@ -39,12 +39,26 @@ import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,f
 var ReportListTbody = document.getElementById("ReportListTbody")
 var ReportsMessageDisplay = document.getElementById("ReportsMessageDisplay")
 
+var ReportHeader = document.getElementById("ReportHeader")
+
 document.getElementById("SalesReport").addEventListener("click", function (event) {
-	salesReport(event)
+	let reportTitle = event.target.getAttribute("data-reportTitle");
+	salesReport(reportTitle)
 })
+
 document.getElementById("SalesNewOwnerReport").addEventListener("click", function (event) {
-	salesReport(event)
+	let reportTitle = event.target.getAttribute("data-reportTitle");
+	salesReport(reportTitle)
 })
+
+/* figure out what I'm doing for new owner processing
+document.body.addEventListener("click", async function (event) {
+	if (event.target.classList.contains("SalesNewOwnerProcess")) {
+		event.preventDefault();
+		await handleSalesFlagUpdate(event.target);
+	}
+});
+*/
 
 // Handle clicks to SalesFlagUpdate buttons (Send/Ignore)
 document.body.addEventListener("click", async function (event) {
@@ -75,8 +89,8 @@ async function handleSalesFlagUpdate(button) {
 		});
 		await checkFetchResponse(response);
 		ReportsMessageDisplay.textContent = "Sales flag updated.";
-		// Optionally refresh the report
-		// salesReport({ target: document.getElementById("SalesReport") });
+		// Refresh the report
+		salesReport("County Reported Sales of HOA properties")
 	} catch (err) {
 		console.error(err);
 		ReportsMessageDisplay.textContent = `Error updating sales flag: ${err.message}`;
@@ -94,29 +108,19 @@ document.getElementById("MailingListReport").addEventListener("click", function 
 })
 
 
-async function salesReport(event) {
-	let reportName = event.target.getAttribute("id");
-	let reportTitle = event.target.getAttribute("data-reportTitle");
-
+async function salesReport(reportTitle) {
 	showLoadingSpinner(ReportsMessageDisplay)
-
-	let paramData = {
-		reportName: reportName
-	}
+	ReportHeader.textContent = reportTitle
 
 	try {
 		const response = await fetch("/api/GetSalesList", {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(paramData)
+			headers: { "Content-Type": "application/json" }
 		})
 		await checkFetchResponse(response)
 		ReportsMessageDisplay.textContent = ""
 		// Success
 		let salesList = await response.json();
-		// TODO: Format and display communicationsRec in the modal
-		// Example: formatCommunicationsResults(communicationsRec);
-		// You need to implement formatCommunicationsResults to populate the modal
 		formatSalesResults(salesList);
 	} catch (err) {
 		console.error(err)
@@ -146,8 +150,7 @@ function formatSalesResults(salesList) {
 	// Append the header elements
 	th = document.createElement("th"); th.textContent = "Row"; tr.appendChild(th)        
 	th = document.createElement("th"); th.textContent = "Sales Dates"; tr.appendChild(th)
-	//th = document.createElement("th"); th.textContent = "Welcome Sent"; tr.appendChild(th)
-	th = document.createElement("th"); th.textContent = "Sent"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Welcome Sent"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "Parcel Location"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "Old Owner Name"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "New Owner Name"; tr.appendChild(th)
@@ -186,17 +189,16 @@ salesRec.welcomeSent
 		td = document.createElement("td"); td.textContent = index; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = salesRec.saledt; tr.appendChild(td)
 
+		td = document.createElement("td");
 		if (salesRec.welcomeSent == null || salesRec.welcomeSent == 'X' || salesRec.welcomeSent == ' ' || salesRec.welcomeSent == '') {
 			// offer buttons for Send and Ignore
-			td = document.createElement("td");
-
 			button = document.createElement("button")
 			button.setAttribute('type',"button")
 			button.setAttribute('role',"button")
 			button.dataset.parcelId = salesRec.parid
 			button.dataset.saleDate = salesRec.saledt
 			button.dataset.action = "WelcomeSend"
-			button.classList.add('btn','btn-success','btn-sm','mb-1','shadow-none','SalesFlagUpdate')
+			button.classList.add('btn','btn-success','btn-sm','mb-1','me-1','shadow-none','SalesFlagUpdate')
 			button.textContent = "Send"
 			td.appendChild(button);
 
@@ -206,15 +208,35 @@ salesRec.welcomeSent
 			button.dataset.parcelId = salesRec.parid
 			button.dataset.saleDate = salesRec.saledt
 			button.dataset.action = "WelcomeIgnore"
-			button.classList.add('btn','btn-warning','btn-sm','shadow-none','SalesFlagUpdate')
+			button.classList.add('btn','btn-warning','btn-sm','mb-1','me-1','shadow-none','SalesFlagUpdate')
 			button.textContent = "Ignore"
 			td.appendChild(button);
-
-			tr.appendChild(td)
-
 		} else {
-			td = document.createElement("td"); td.textContent = salesRec.welcomeSent; tr.appendChild(td)
+			td.textContent = salesRec.welcomeSent
 		}
+		if (salesRec.processedFlag != 'Y') {
+			// offer buttons for New Owner and Ignore Owner
+			button = document.createElement("button")
+			button.setAttribute('type',"button")
+			button.setAttribute('role',"button")
+			button.dataset.parcelId = salesRec.parid
+			button.dataset.saleDate = salesRec.saledt
+			button.dataset.action = "Process"
+			button.classList.add('btn','btn-primary','btn-sm','mb-1','me-1','shadow-none','SalesNewOwnerProcess')
+			button.textContent = "New Owner"
+			td.appendChild(button);
+
+			button = document.createElement("button")
+			button.setAttribute('type',"button")
+			button.setAttribute('role',"button")
+			button.dataset.parcelId = salesRec.parid
+			button.dataset.saleDate = salesRec.saledt
+			button.dataset.action = "NewOwnerIgnore"
+			button.classList.add('btn','btn-info','btn-sm','mb-1','me-1','shadow-none','SalesFlagUpdate')
+			button.textContent = "Ignore Owner"
+			td.appendChild(button);
+		}		
+		tr.appendChild(td)
 
 		td = document.createElement("td"); td.textContent = salesRec.parcellocation; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = salesRec.oldown; tr.appendChild(td)

@@ -540,7 +540,7 @@ namespace GrhaWeb.Function
             return hoaCommunicationsList;
         }
 
-        public async Task<List<hoa_sales>> GetSalesListDb(string reportName = "")
+        public async Task<List<hoa_sales>> GetSalesListDb()
         {
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
@@ -552,21 +552,8 @@ namespace GrhaWeb.Function
             CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
             //Container configContainer = db.GetContainer("hoa_config");
-
             Container container = db.GetContainer(containerId);
-            var queryDefinition = new QueryDefinition(
-                "SELECT * FROM c ORDER BY c.CreateTimestamp DESC ");
-                    //.WithParameter("@parcelId", parcelId);
-                                    //ORDER BY c._ts DESC
-
-                    
-/*
-                                                    if ($reportName == "SalesNewOwnerReport") {
-                                                        $sql = "SELECT * FROM hoa_sales WHERE ProcessedFlag != 'Y' ORDER BY CreateTimestamp DESC; ";
-                                                    } else {
-                                                        $sql = "SELECT * FROM hoa_sales ORDER BY CreateTimestamp DESC; ";
-                                                    }
-                                    */
+            var queryDefinition = new QueryDefinition("SELECT * FROM c ORDER BY c.CreateTimestamp DESC OFFSET 0 LIMIT 200 ");
             var feed = container.GetItemQueryIterator<hoa_sales>(queryDefinition);
             int cnt = 0;
             while (feed.HasMoreResults)
@@ -594,15 +581,6 @@ namespace GrhaWeb.Function
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
 
-            /*
-            string parid = formFields.ContainsKey("parid") ? formFields["parid"].Trim() : "";
-            string saledt = formFields.ContainsKey("saledt") ? formFields["saledt"].Trim() : "";
-            if (string.IsNullOrEmpty(parid) || string.IsNullOrEmpty(saledt))
-            {
-                throw new ArgumentException("Missing required sales record keys (parid, saledt)");
-            }
-            */
-
             // Patch operations for sales record
             List<PatchOperation> patchOperations = new List<PatchOperation>
             {
@@ -610,9 +588,6 @@ namespace GrhaWeb.Function
                 PatchOperation.Replace("/LastChangedTs", LastChangedTs),
                 PatchOperation.Replace("/WelcomeSent", welcomeSent)
             };
-
-            // Only allow updating WelcomeSent for now
-            //AddPatchField(patchOperations, formFields, "welcomeSent", "Text");
 
             PatchOperation[] patchArray = patchOperations.ToArray();
 
