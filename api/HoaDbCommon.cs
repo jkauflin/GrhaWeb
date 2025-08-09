@@ -310,7 +310,7 @@ namespace GrhaWeb.Function
                     {
                         continue;
                     }
-
+                    /*
                     if (item.DateDue is null)
                     {
                         dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
@@ -319,6 +319,8 @@ namespace GrhaWeb.Function
                     {
                         dateDue = DateTime.Parse(item.DateDue);
                     }
+                    */
+                    dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
                     item.DateDue = dateDue.ToString("yyyy-MM-dd");
                     // If you don't need the DateTime object, you can do it in 1 line
                     //item.DateDue = DateTime.Parse(item.DateDue).ToString("yyyy-MM-dd");
@@ -455,6 +457,7 @@ namespace GrhaWeb.Function
                 foreach (var item in response)
                 {
                     cnt++;
+                    /*
                     if (item.DateDue is null)
                     {
                         dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
@@ -463,6 +466,8 @@ namespace GrhaWeb.Function
                     {
                         dateDue = DateTime.Parse(item.DateDue);
                     }
+                    */
+                    dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
                     item.DateDue = dateDue.ToString("yyyy-MM-dd");
                     // If you don't need the DateTime object, you can do it in 1 line
                     //item.DateDue = DateTime.Parse(item.DateDue).ToString("yyyy-MM-dd");
@@ -1013,10 +1018,6 @@ namespace GrhaWeb.Function
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
 
-            //foreach (var field in formFields)
-            //{
-            //    log.LogWarning($">>> in DB, Field {field.Key}: {field.Value}");
-            //}
             string parcelId = formFields["Parcel_ID"].Trim();
             string ownerId = formFields["OwnerID"].Trim();
 
@@ -1069,6 +1070,7 @@ namespace GrhaWeb.Function
                 patchArray
             );
 
+            // Get the updated owner record for the return value (for display in UI)
             containerId = "hoa_owners";
             Container ownersContainer = db.GetContainer(containerId);
             var queryDefinition = new QueryDefinition(
@@ -1084,6 +1086,7 @@ namespace GrhaWeb.Function
                     ownerRec = item;
                 }
             }
+
 
             // if current owner, update the OWNER fields in the hoa_properties record
             if (ownerRec.CurrentOwner == 1)
@@ -1123,6 +1126,133 @@ namespace GrhaWeb.Function
             return ownerRec;
         }
 
+        public async Task<hoa_owners> NewOwnerDB(string userName, Dictionary<string, string> formFields)
+        {
+            DateTime currDateTime = DateTime.Now;
+            string LastChangedTs = currDateTime.ToString("o");
+            hoa_owners ownerRec = null;
+
+            string parcelId = formFields["Parcel_ID"].Trim();
+            //string ownerId = formFields["OwnerID"].Trim();
+
+            //------------------------------------------------------------------------------------------------------------------
+            // Query the NoSQL container to get values
+            //------------------------------------------------------------------------------------------------------------------
+            string databaseId = "hoadb";
+            string containerId = "hoa_owners";
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
+            // Get the current owner record for this parcel
+            var queryDefinition = new QueryDefinition(
+                "SELECT * FROM c WHERE c.Parcel_ID = @parcelId AND c.CurrentOwner = 1 ")
+                .WithParameter("@parcelId", parcelId);
+            var ownersFeed = container.GetItemQueryIterator<hoa_owners>(queryDefinition);
+            while (ownersFeed.HasMoreResults)
+            {
+                var ownersResponse = await ownersFeed.ReadNextAsync();
+                foreach (var item in ownersResponse)
+                {
+                    ownerRec = item;
+                }
+            }
+            if (ownerRec == null)
+            {
+                throw new Exception("Current owner not found for parcel: " + parcelId);
+            }
+
+            int maxOwnerID = 0;
+            queryDefinition = new QueryDefinition("SELECT * FROM c ORDER BY c.OwnerID DESC OFFSET 0 LIMIT 1 ");
+            var feed = container.GetItemQueryIterator<hoa_owners>(queryDefinition);
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    maxOwnerID = item.OwnerID;
+                }
+            }
+
+            // Set the current owner "off" on the previous owner record
+            // Initialize a list of PatchOperation
+            List<PatchOperation> patchOperations = new List<PatchOperation>
+            {
+                PatchOperation.Replace("/CurrentOwner", 0)
+            };
+            // Convert the list to an array
+            PatchOperation[] patchArray = patchOperations.ToArray();
+            ItemResponse<dynamic> response2 = await container.PatchItemAsync<dynamic>(
+                ownerRec.OwnerID.ToString(),
+                new PartitionKey(parcelId),
+                patchArray
+            );
+
+            // Overwrite values from the current owner record with values from the form
+            ownerRec.OwnerID = maxOwnerID + 1; // Increment to get a new id
+            ownerRec.id = ownerRec.OwnerID.ToString(); // Set the id to the new OwnerID
+            ownerRec.CurrentOwner = 1;  // Make new owner the current owner
+            ownerRec.Owner_Name1 = GetFieldValue<string>(formFields, "Owner_Name1", "");
+            ownerRec.Owner_Name2 = GetFieldValue<string>(formFields, "Owner_Name2", "");
+            ownerRec.DatePurchased = GetFieldValue<string>(formFields, "DatePurchased", "");
+            ownerRec.Mailing_Name = GetFieldValue<string>(formFields, "Mailing_Name", "");
+            ownerRec.Owner_Phone = GetFieldValue<string>(formFields, "Owner_Phone", "");
+            ownerRec.EmailAddr = GetFieldValue<string>(formFields, "EmailAddr", "");
+            ownerRec.EmailAddr2 = GetFieldValue<string>(formFields, "EmailAddr2", "");
+            ownerRec.Comments = GetFieldValue<string>(formFields, "Comments", "");
+            ownerRec.AlternateMailing = GetFieldValueBool(formFields, "AlternateMailing");
+            ownerRec.Alt_Address_Line1 = GetFieldValue<string>(formFields, "Alt_Address_Line1", "");
+            ownerRec.Alt_Address_Line2 = GetFieldValue<string>(formFields, "Alt_Address_Line2", "");
+            ownerRec.Alt_City = GetFieldValue<string>(formFields, "Alt_City", "");
+            ownerRec.Alt_State = GetFieldValue<string>(formFields, "Alt_State", "");
+            ownerRec.Alt_Zip = GetFieldValue<string>(formFields, "Alt_Zip", "");
+            ownerRec.LastChangedBy = userName;
+            ownerRec.LastChangedTs = currDateTime;
+            await container.CreateItemAsync(ownerRec, new PartitionKey(parcelId));
+
+
+            // if current owner, update the OWNER fields in the hoa_properties record
+            containerId = "hoa_properties";
+            container = db.GetContainer(containerId);
+            // Initialize a list of PatchOperation (and default to setting the mandatory LastChanged fields)
+            List<PatchOperation> patchOperations3 = new List<PatchOperation>
+            {
+                PatchOperation.Replace("/OwnerID", ownerRec.OwnerID)
+            };
+            AddPatchField(patchOperations3, formFields, "Owner_Name1");
+            AddPatchField(patchOperations3, formFields, "Owner_Name2");
+            AddPatchField(patchOperations3, formFields, "Mailing_Name");
+            AddPatchField(patchOperations3, formFields, "Owner_Phone");
+            AddPatchField(patchOperations3, formFields, "Alt_Address_Line1");
+            // Convert the list to an array
+            PatchOperation[] patchArray3 = patchOperations3.ToArray();
+            ItemResponse<dynamic> response3 = await container.PatchItemAsync<dynamic>(
+                parcelId,
+                new PartitionKey(parcelId),
+                patchArray3
+            );
+
+
+            // Update any ProcessedFlag not set to "Y" in the sales records for this parcel (assuming a new owner means the sales record is now processed)
+            containerId = "hoa_sales";
+            container = db.GetContainer(containerId);
+            var queryDefinition4 = new QueryDefinition(
+                "SELECT * FROM c WHERE c.PARID = @parcelId AND c.ProcessedFlag != @processedFlag ")
+                .WithParameter("@parcelId", parcelId)
+                .WithParameter("@processedFlag", "Y");
+            var salesFeed = container.GetItemQueryIterator<hoa_sales>(queryDefinition4);
+            while (salesFeed.HasMoreResults)
+            {
+                var salesResponse = await salesFeed.ReadNextAsync();
+                foreach (var item in salesResponse)
+                {
+                    item.ProcessedFlag = "Y";
+                    await container.ReplaceItemAsync(item, item.id, new PartitionKey(item.SALEDT));
+                }
+            }
+
+            return ownerRec;
+        }
+
         public async Task<hoa_assessments> UpdateAssessmentDB(string userName, Dictionary<string, string> formFields)
         {
             DateTime currDateTime = DateTime.Now;
@@ -1151,12 +1281,12 @@ namespace GrhaWeb.Function
             assessmentRec.PaymentMethod = GetFieldValue<string>(formFields, "PaymentMethod");
             assessmentRec.Lien = GetFieldValueBool(formFields, "Lien");
             assessmentRec.LienRefNo = GetFieldValue<string>(formFields, "LienRefNo");
-            assessmentRec.DateFiled = GetFieldValue<DateTime>(formFields, "DateFiled"); 
+            assessmentRec.DateFiled = GetFieldValue<DateTime>(formFields, "DateFiled");
             assessmentRec.Disposition = GetFieldValue<string>(formFields, "Disposition");
             assessmentRec.FilingFee = GetFieldValueMoney(formFields, "FilingFee");
             assessmentRec.ReleaseFee = GetFieldValueMoney(formFields, "ReleaseFee");
-            assessmentRec.DateReleased = GetFieldValue<DateTime>(formFields, "DateReleased"); 
-            assessmentRec.LienDatePaid = GetFieldValue<DateTime>(formFields, "LienDatePaid"); 
+            assessmentRec.DateReleased = GetFieldValue<DateTime>(formFields, "DateReleased");
+            assessmentRec.LienDatePaid = GetFieldValue<DateTime>(formFields, "LienDatePaid");
             assessmentRec.AmountPaid = GetFieldValueMoney(formFields, "AmountPaid");
             assessmentRec.StopInterestCalc = GetFieldValueBool(formFields, "StopInterestCalc");
             assessmentRec.FilingFeeInterest = GetFieldValueMoney(formFields, "FilingFeeInterest");

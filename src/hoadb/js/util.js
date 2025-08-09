@@ -128,16 +128,76 @@ export function setCheckbox(checkVal) {
     return '<input type="checkbox" ' + tempStr + ' disabled="disabled">';
 }
 
-export function standardizeDate(dateStr) {
-    let outDateStr = dateStr
-    const containsSlash = dateStr.includes("/")
+// DD-mon-YY like 18-JUL-25
+/*
+export function standardizeDate(input) {
+    let outinput = input
+    const containsSlash = input.includes("/")
     if (containsSlash) {
         //const [month, day, year] = slashDate.split("/")
-        const [month, day, year] = dateStr.split("/")
-        outDateStr = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+        const [month, day, year] = input.split("/")
+        outinput = `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
     }
-    return outDateStr
+    return outinput
 }
+*/
+
+export function standardizeDate(input) {
+    const monthMap = {
+        JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5,
+        JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11
+    };
+
+    if (!input || typeof input !== 'string' || input.trim() === '') {
+        //throw new Error("Invalid date input: Input must be a non-empty string.");
+        return ""
+    }
+
+    // Match DD-mon-YY format
+    const ddMonYyRegex = /^(\d{2})-([A-Z]{3})-(\d{2})$/i;
+    const match = input.match(ddMonYyRegex);
+
+    if (match) {
+        let [_, day, mon, year] = match;
+        day = parseInt(day, 10);
+        mon = mon.toUpperCase();
+        year = parseInt(year, 10);
+
+        // Convert two-digit year to four-digit year (assumes 1950–2049 window)
+        year += year >= 50 ? 1900 : 2000;
+
+        const monthIndex = monthMap[mon];
+        if (monthIndex === undefined) {
+        throw new Error(`Invalid month abbreviation: ${mon}`);
+        }
+
+        const date = new Date(year, monthIndex, day);
+        return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD
+    }
+
+    const containsSlash = input.includes("/")
+    if (containsSlash) {
+        const [inputDate, inputTime] = input.split(" ")
+        let [month, day, year] = inputDate.split("/")
+        let yearInt = parseInt(year, 10);
+        // Convert two-digit year to four-digit year (assumes 1950–2049 window)
+        if (yearInt < 100) {
+            yearInt += yearInt >= 50 ? 1900 : 2000;
+        }
+        year = yearInt.toString()
+        return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`
+    }
+
+    // Fallback: try native Date parsing
+    const fallbackDate = new Date(input);
+    if (!isNaN(fallbackDate)) {
+        return fallbackDate.toISOString().split('T')[0];
+    }
+
+    throw new Error(`Unrecognized date format: ${input}`);
+}
+
+
 
 export function formatDate(inDate) {
     var tempDate = inDate;

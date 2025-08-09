@@ -747,12 +747,20 @@ namespace GrhaWeb.Function
                     section = await reader.ReadNextSectionAsync();
                 }
 
-                ownerRec = await hoaDbCommon.UpdateOwnerDB(userName, formFields);
+                string ownerId = formFields["OwnerID"].Trim();
+                if (ownerId.Equals("*** CREATE NEW OWNER (on Save) ***"))
+                {
+                    ownerRec = await hoaDbCommon.NewOwnerDB(userName, formFields);
+                }
+                else
+                {
+                    ownerRec = await hoaDbCommon.UpdateOwnerDB(userName, formFields);
+                }
             }
             catch (Exception ex)
             {
                 log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult("Error in update of Property - check log");
+                return new BadRequestObjectResult("Error in update of Owner - check log");
             }
 
             return new OkObjectResult(ownerRec);

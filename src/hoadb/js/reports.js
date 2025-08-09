@@ -32,36 +32,55 @@
  *                  js module, and move from PHP/MySQL to Azure SWA
  *                  and C# API's
  * 2025-08-02 JJK   Added SalesNewOwnerReport to show sales to new owners
+ * 2025-08-05 JJK   Added SalesFlagUpdate to handle Send/Ignore buttons
+ * 2025-08-08 JJK   Added logic to call new owner function in detail.js
+ * 					(which looks up sales record values and puts them
+ * 					into the Owner Update modal)
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox,csvFilter} from './util.js';
+import {formatUpdateOwnerSale} from './detail.js';
 
-var ReportListTbody = document.getElementById("ReportListTbody")
-var ReportsMessageDisplay = document.getElementById("ReportsMessageDisplay")
+var ReportListTbody
+var ReportsMessageDisplay
+var ReportHeader
 
-var ReportHeader = document.getElementById("ReportHeader")
+document.addEventListener('DOMContentLoaded', () => {
+    // Assign DOM elements after DOM is ready
+	ReportListTbody = document.getElementById("ReportListTbody")
+	ReportsMessageDisplay = document.getElementById("ReportsMessageDisplay")
+	ReportHeader = document.getElementById("ReportHeader")
 
-document.getElementById("SalesReport").addEventListener("click", function (event) {
-	let reportTitle = event.target.getAttribute("data-reportTitle");
-	salesReport(reportTitle)
+	document.getElementById("SalesReport").addEventListener("click", function (event) {
+		let reportTitle = event.target.getAttribute("data-reportTitle");
+		salesReport(reportTitle)
+	})
+
+	document.getElementById("PaidDuesCountsReport").addEventListener("click", function (event) {
+	_reportRequest(event)
+	})
+	document.getElementById("UnpaidDuesRankingReport").addEventListener("click", function (event) {
+		_reportRequest(event)
+	})
+	document.getElementById("MailingListReport").addEventListener("click", function (event) {
+		_reportRequest(event)
+	})
+
 })
 
-/* figure out what I'm doing for new owner processing
 document.body.addEventListener("click", async function (event) {
 	if (event.target.classList.contains("SalesNewOwnerProcess")) {
+		event.preventDefault()
+		const parcelId = event.target.dataset.parcelId
+		const saleDate = event.target.dataset.saleDate
+		formatUpdateOwnerSale(parcelId,saleDate)
+	} else if (event.target.classList.contains("SalesFlagUpdate")) {
 		event.preventDefault();
 		await handleSalesFlagUpdate(event.target);
 	}
-});
-*/
+})
 
 // Handle clicks to SalesFlagUpdate buttons (Send/Ignore)
-document.body.addEventListener("click", async function (event) {
-	if (event.target.classList.contains("SalesFlagUpdate")) {
-		event.preventDefault();
-		await handleSalesFlagUpdate(event.target);
-	}
-});
 // Handles the Send/Ignore button click for sales records
 async function handleSalesFlagUpdate(button) {
 	showLoadingSpinner(ReportsMessageDisplay);
@@ -99,16 +118,6 @@ async function handleSalesFlagUpdate(button) {
 		ReportsMessageDisplay.textContent = `Error updating sales flag: ${err.message}`;
 	}
 }
-
-document.getElementById("PaidDuesCountsReport").addEventListener("click", function (event) {
-	_reportRequest(event)
-})
-document.getElementById("UnpaidDuesRankingReport").addEventListener("click", function (event) {
-	_reportRequest(event)
-})
-document.getElementById("MailingListReport").addEventListener("click", function (event) {
-	_reportRequest(event)
-})
 
 
 async function salesReport(reportTitle) {
@@ -164,31 +173,8 @@ function formatSalesResults(salesList) {
 	let index = 0;
 	salesList.forEach(salesRec => {
 		index++
-
 		tr = document.createElement('tr')
 		tr.classList.add('small')
-/*
-salesRec.convnum
-salesRec.createTimestamp
-salesRec.id
-salesRec.lastChangedBy
-salesRec.lastChangedTs
-salesRec.mailingnamE1
-salesRec.mailingnamE2
-salesRec.notificationFlag
-salesRec.oldown
-salesRec.ownernamE1
-salesRec.paddR1
-salesRec.paddR2
-salesRec.paddR3
-salesRec.parcellocation
-salesRec.parid
-salesRec.price
-salesRec.processedFlag
-salesRec.saledt
-salesRec.welcomeSent
-
-*/
 		td = document.createElement("td"); td.textContent = index; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = salesRec.saledt; tr.appendChild(td)
 
@@ -250,8 +236,6 @@ salesRec.welcomeSent
 	});
 
 }
-
-
 
 	/*
 		$ReportHeader.html("Executing report query...");

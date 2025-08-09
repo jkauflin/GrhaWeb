@@ -50,103 +50,241 @@
  * 2025-07-18 JJK   Working on Lien button functionality
  * 2025-07-19 JJK   Moving Communications functionality here, and using a
  *                  modal instead of a tab page
+ * 2025-08-07 JJK   Added create new owner functionality
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
+// Current hoaRec from last query and updates
 
-var detailPageTab = bootstrap.Tab.getOrCreateInstance(document.querySelector(`.navbar-nav a[href="#DetailPage"]`))
-var messageDisplay = document.getElementById("DetailMessageDisplay")
+var hoaRec
+var createNewOwnerIdStr = "*** CREATE NEW OWNER (on Save) ***"
 var isTouchDevice = 'ontouchstart' in document.documentElement
 
-// Current hoaRec from last query and updates
-var hoaRec
-
-var DuesStatementButton = document.getElementById("DuesStatementButton")
-var NewOwnerButton = document.getElementById("NewOwnerButton")
-var CommunicationsButton = document.getElementById("CommunicationsButton")
-
-var Parcel_ID = document.getElementById("Parcel_ID")
-var LotNo = document.getElementById("LotNo")
-var Property_Street_No = document.getElementById("Property_Street_No")
-var Property_Street_Name = document.getElementById("Property_Street_Name")
-var Property_City = document.getElementById("Property_City")
-var Property_State = document.getElementById("Property_State")
-var Property_Zip = document.getElementById("Property_Zip")
-var TotalDue = document.getElementById("TotalDue")
-/*
-var Rental = document.getElementById("Rental")
-var Managed = document.getElementById("Managed")
-var Foreclosure = document.getElementById("Foreclosure")
-var Bankruptcy = document.getElementById("Bankruptcy")
-*/
-var UseEmail = document.getElementById("UseEmail")
-var Comments = document.getElementById("Comments")
-
-var propertyOwnersTbody = document.getElementById("PropertyOwnersTbody")
-var propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody")
-
-var duesStatementModal = document.getElementById('duesStatementModal')
-var OwnerUpdateModal = document.getElementById('OwnerUpdateModal')
-var AssessmentUpdateModal = document.getElementById('AssessmentUpdateModal')
-var CommunicationsModal = document.getElementById('CommunicationsModal')
-var CommunicationsTbody = document.getElementById("CommunicationsTbody")
-
-var updParcel_ID = document.getElementById("updParcel_ID")
-var updParcelLocation = document.getElementById("updParcelLocation")
-var updOwnerID = document.getElementById("updOwnerID")
-var updCurrentOwner = document.getElementById("updCurrentOwner")
-var updOwner_Name1 = document.getElementById("updOwner_Name1")
-var updOwner_Name2 = document.getElementById("updOwner_Name2")
-var updDatePurchased = document.getElementById("updDatePurchased")
-var updMailing_Name = document.getElementById("updMailing_Name")
-var updAlternateMailing = document.getElementById("updAlternateMailing")
-var updAlt_Address_Line1 = document.getElementById("updAlt_Address_Line1")
-var updAlt_Address_Line2 = document.getElementById("updAlt_Address_Line2")
-var updAlt_City = document.getElementById("updAlt_City")
-var updAlt_State = document.getElementById("updAlt_State")
-var updAlt_Zip = document.getElementById("updAlt_Zip")
-var updOwner_Phone = document.getElementById("updOwner_Phone")
-var updEmailAddr = document.getElementById("updEmailAddr")
-var updEmailAddr2 = document.getElementById("updEmailAddr2")
-var updComments = document.getElementById("updComments")
-var updLastChangedTs = document.getElementById("updLastChangedTs")
-var updLastChangedBy = document.getElementById("updLastChangedBy")
-
-var assId = document.getElementById("assId")
-var assParcel_ID = document.getElementById("assParcel_ID")
-var assParcelLocation = document.getElementById("assParcelLocation")
-var assOwnerID = document.getElementById("assOwnerID")
-var assFY = document.getElementById("assFY")
-var assDuesAmt = document.getElementById("assDuesAmt")
-var assDateDue = document.getElementById("assDateDue")
-var assPaid = document.getElementById("assPaid")
-var assNonCollectible = document.getElementById("assNonCollectible")
-var assDatePaid = document.getElementById("assDatePaid")
-var assPaymentMethod = document.getElementById("assPaymentMethod")
-var assLien = document.getElementById("assLien")
-var assLienRefNo = document.getElementById("assLienRefNo")
-var assDateFiled = document.getElementById("assDateFiled")
-var assDisposition = document.getElementById("assDisposition")
-var assFilingFee = document.getElementById("assFilingFee")
-var assReleaseFee = document.getElementById("assReleaseFee")
-var assDateReleased = document.getElementById("assDateReleased")
-var assLienDatePaid = document.getElementById("assLienDatePaid")
-var assAmountPaid = document.getElementById("assAmountPaid")
-var assStopInterestCalc = document.getElementById("assStopInterestCalc")
-var assFilingFeeInterest = document.getElementById("assFilingFeeInterest")
-var assAssessmentInterest = document.getElementById("assAssessmentInterest")
-var assInterestNotPaid = document.getElementById("assInterestNotPaid")
-var assBankFee = document.getElementById("assBankFee")
-var assLienComment = document.getElementById("assLienComment")
-var assComments = document.getElementById("assComments")
-var assLastChangedBy = document.getElementById("assLastChangedBy")
-var assLastChangedTs = document.getElementById("assLastChangedTs")
+// DOM elements
+var messageDisplay
+var DuesStatementButton
+var NewOwnerButton
+var CommunicationsButton
+var Parcel_ID
+var LotNo
+var Property_Street_No
+var Property_Street_Name
+var Property_City
+var Property_State
+var Property_Zip
+var TotalDue
+var UseEmail
+var Comments
+var updParcel_ID
+var updParcelLocation
+var updOwnerID
+var updCurrentOwner
+var updOwner_Name1
+var updOwner_Name2
+var updDatePurchased
+var updMailing_Name
+var updAlternateMailing
+var updAlt_Address_Line1
+var updAlt_Address_Line2
+var updAlt_City
+var updAlt_State
+var updAlt_Zip
+var updOwner_Phone
+var updEmailAddr
+var updEmailAddr2
+var updComments
+var updLastChangedTs
+var updLastChangedBy
+var assId
+var assParcel_ID
+var assParcelLocation
+var assOwnerID
+var assFY
+var assDuesAmt
+var assDateDue
+var assPaid
+var assNonCollectible
+var assDatePaid
+var assPaymentMethod
+var assLien
+var assLienRefNo
+var assDateFiled
+var assDisposition
+var assFilingFee
+var assReleaseFee
+var assDateReleased
+var assLienDatePaid
+var assAmountPaid
+var assStopInterestCalc
+var assFilingFeeInterest
+var assAssessmentInterest
+var assInterestNotPaid
+var assBankFee
+var assLienComment
+var assComments
+var assLastChangedBy
+var assLastChangedTs
+var UpdatePropertyForm
+var propertyOwnersTbody
+var propertyAssessmentsTbody
+var CommunicationsTbody
+var duesStatementModal
+var OwnerUpdateModal
+var AssessmentUpdateModal
+var CommunicationsModal
+var detailPageTab
 
 //=================================================================================================================
 // Bind events
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Assign DOM elements after DOM is ready
+    messageDisplay = document.getElementById("DetailMessageDisplay")
+    DuesStatementButton = document.getElementById("DuesStatementButton")
+    NewOwnerButton = document.getElementById("NewOwnerButton")
+    CommunicationsButton = document.getElementById("CommunicationsButton")
+    Parcel_ID = document.getElementById("Parcel_ID")
+    LotNo = document.getElementById("LotNo")
+    Property_Street_No = document.getElementById("Property_Street_No")
+    Property_Street_Name = document.getElementById("Property_Street_Name")
+    Property_City = document.getElementById("Property_City")
+    Property_State = document.getElementById("Property_State")
+    Property_Zip = document.getElementById("Property_Zip")
+    TotalDue = document.getElementById("TotalDue")
+    UseEmail = document.getElementById("UseEmail")
+    Comments = document.getElementById("Comments")
+    updParcel_ID = document.getElementById("updParcel_ID")
+    updParcelLocation = document.getElementById("updParcelLocation")
+    updOwnerID = document.getElementById("updOwnerID")
+    updCurrentOwner = document.getElementById("updCurrentOwner")
+    updOwner_Name1 = document.getElementById("updOwner_Name1")
+    updOwner_Name2 = document.getElementById("updOwner_Name2")
+    updDatePurchased = document.getElementById("updDatePurchased")
+    updMailing_Name = document.getElementById("updMailing_Name")
+    updAlternateMailing = document.getElementById("updAlternateMailing")
+    updAlt_Address_Line1 = document.getElementById("updAlt_Address_Line1")
+    updAlt_Address_Line2 = document.getElementById("updAlt_Address_Line2")
+    updAlt_City = document.getElementById("updAlt_City")
+    updAlt_State = document.getElementById("updAlt_State")
+    updAlt_Zip = document.getElementById("updAlt_Zip")
+    updOwner_Phone = document.getElementById("updOwner_Phone")
+    updEmailAddr = document.getElementById("updEmailAddr")
+    updEmailAddr2 = document.getElementById("updEmailAddr2")
+    updComments = document.getElementById("updComments")
+    updLastChangedTs = document.getElementById("updLastChangedTs")
+    updLastChangedBy = document.getElementById("updLastChangedBy")
+    assId = document.getElementById("assId")
+    assParcel_ID = document.getElementById("assParcel_ID")
+    assParcelLocation = document.getElementById("assParcelLocation")
+    assOwnerID = document.getElementById("assOwnerID")
+    assFY = document.getElementById("assFY")
+    assDuesAmt = document.getElementById("assDuesAmt")
+    assDateDue = document.getElementById("assDateDue")
+    assPaid = document.getElementById("assPaid")
+    assNonCollectible = document.getElementById("assNonCollectible")
+    assDatePaid = document.getElementById("assDatePaid")
+    assPaymentMethod = document.getElementById("assPaymentMethod")
+    assLien = document.getElementById("assLien")
+    assLienRefNo = document.getElementById("assLienRefNo")
+    assDateFiled = document.getElementById("assDateFiled")
+    assDisposition = document.getElementById("assDisposition")
+    assFilingFee = document.getElementById("assFilingFee")
+    assReleaseFee = document.getElementById("assReleaseFee")
+    assDateReleased = document.getElementById("assDateReleased")
+    assLienDatePaid = document.getElementById("assLienDatePaid")
+    assAmountPaid = document.getElementById("assAmountPaid")
+    assStopInterestCalc = document.getElementById("assStopInterestCalc")
+    assFilingFeeInterest = document.getElementById("assFilingFeeInterest")
+    assAssessmentInterest = document.getElementById("assAssessmentInterest")
+    assInterestNotPaid = document.getElementById("assInterestNotPaid")
+    assBankFee = document.getElementById("assBankFee")
+    assLienComment = document.getElementById("assLienComment")
+    assComments = document.getElementById("assComments")
+    assLastChangedBy = document.getElementById("assLastChangedBy")
+    assLastChangedTs = document.getElementById("assLastChangedTs")
+    UpdatePropertyForm = document.getElementById("UpdatePropertyForm")
+    propertyOwnersTbody = document.getElementById("PropertyOwnersTbody")
+    propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody")
+    CommunicationsTbody = document.getElementById("CommunicationsTbody")
+    duesStatementModal = new bootstrap.Modal(document.getElementById('duesStatementModal'));
+    OwnerUpdateModal = new bootstrap.Modal(document.getElementById('OwnerUpdateModal'));
+    AssessmentUpdateModal = new bootstrap.Modal(document.getElementById('AssessmentUpdateModal'));
+    CommunicationsModal = new bootstrap.Modal(document.getElementById('CommunicationsModal'));
+    detailPageTab = bootstrap.Tab.getOrCreateInstance(document.querySelector(`.navbar-nav a[href="#DetailPage"]`))
+
+    NewOwnerButton.addEventListener("click", function (event) {
+        //console.log(">>> event.target.dataset.parcelId = "+event.target.dataset.parcelId)
+        UpdateOwnerMessageDisplay.textContent = ""
+        formatUpdateOwner(event.target.dataset.parcelId, "NEW")
+    })
+
+    DuesStatementButton.addEventListener("click", function () {
+        getDuesStatement(this.dataset.parcelId)
+    })
+
+    CommunicationsButton.addEventListener("click", function () {
+        getCommunications(this.dataset.parcelId)
+    })
+
+    // Add form validation classes to the input fields
+    document.querySelectorAll('.form-control').forEach(input => {
+        input.addEventListener('input', () => {
+            if (input.checkValidity()) {
+            input.classList.add('is-valid')
+            input.classList.remove('is-invalid')
+            } else {
+            input.classList.add('is-invalid')
+            input.classList.remove('is-valid')
+            }
+        })
+    })
+
+    UpdatePropertyForm.addEventListener('submit', (event) => {
+        let formValid = UpdatePropertyForm.checkValidity()
+        event.preventDefault()
+        event.stopPropagation()
+        messageDisplay.textContent = ""
+        if (!formValid) {
+            messageDisplay.textContent = "Form inputs are NOT valid"
+        } else {
+            updateProperty()
+        }
+        UpdatePropertyForm.classList.add('was-validated')
+    })
+
+    UpdateOwnerForm.addEventListener('submit', (event) => {
+        let formValid = UpdateOwnerForm.checkValidity()
+        event.preventDefault()
+        event.stopPropagation()
+        UpdateOwnerMessageDisplay.textContent = ""
+        if (!formValid) {
+            UpdateOwnerMessageDisplay.textContent = "Form inputs are NOT valid"
+        } else {
+            updateOwner()
+        }
+        UpdateOwnerForm.classList.add('was-validated')
+    })
+
+    UpdateAssessmentForm.addEventListener('submit', (event) => {
+        let formValid = UpdateAssessmentForm.checkValidity()
+        event.preventDefault()
+        event.stopPropagation()
+        UpdateAssessmentMessageDisplay.textContent = ""
+        if (!formValid) {
+            UpdateAssessmentMessageDisplay.textContent = "Form inputs are NOT valid"
+        } else {
+            updateAssessment()
+        }
+        UpdateAssessmentForm.classList.add('was-validated')
+    })
+
+    PrintModalButton.addEventListener("click", function () {
+        printModal()
+    })
+})
 
 // Respond to any clicks in the document and check for specific classes to respond to
 // (Do it dynamically because elements with classes will be added to the DOM dynamically)
@@ -155,7 +293,7 @@ document.body.addEventListener('click', function (event) {
     // Check for specific classes
     if (event.target && event.target.classList.contains("DetailDisplay")) {
         event.preventDefault();
-        UpdatePropertyMessageDisplay.textContent = ""
+        messageDisplay.textContent = ""
         getHoaRec(event.target.dataset.parcelId)
     } else if (event.target && event.target.classList.contains("OwnerUpdate")) {
         event.preventDefault();
@@ -170,39 +308,50 @@ document.body.addEventListener('click', function (event) {
     }
 })
 
-DuesStatementButton.addEventListener("click", function () {
-    getDuesStatement(this.dataset.parcelId)
-})
 
-CommunicationsButton.addEventListener("click", function () {
-    getCommunications(this.dataset.parcelId)
-})
-//CommunicationsModal
+export async function formatUpdateOwnerSale(parcelId,saleDate) {
+    await getHoaRec(parcelId)
+    formatUpdateOwner(parcelId,"NEW",saleDate)
+}
 
-// Add form validation classes to the input fields
-document.querySelectorAll('.form-control').forEach(input => {
-    input.addEventListener('input', () => {
-        if (input.checkValidity()) {
-          input.classList.add('is-valid')
-          input.classList.remove('is-invalid')
-        } else {
-          input.classList.add('is-invalid')
-          input.classList.remove('is-valid')
-        }
-    })
-})
-
-function formatUpdateOwner(parcelId,ownerId) {
-    // Find the correct owner rec
-    let ownerRec = null
-    for (let index in hoaRec.ownersList) {
-        if (hoaRec.property.parcel_ID == parcelId && hoaRec.ownersList[index].ownerID == ownerId) {
-            ownerRec = hoaRec.ownersList[index]
-        }
+export function formatUpdateOwner(parcelId,ownerId,saleDate="") {
+    if (hoaRec.property.parcel_ID != parcelId) {
+        console.error("Parcel ID not found in current hoaRec, id = "+parcelId)
+         messageDisplay.textContent = `Parcel ID not found in current hoaRec, id = ${parcelId}`
+        return        
     }
 
+    let ownerRec = null
+    let salesRec = null
+
+    if (ownerId == "NEW") {
+        // Get the current owner rec
+        for (let index in hoaRec.ownersList) {
+            if (hoaRec.ownersList[index].currentOwner == 1) {
+                ownerRec = hoaRec.ownersList[index]
+            }
+        }
+
+        // get the Sales record for this parcel (if new and saledt passed)
+        if (saleDate != "") {
+            for (let index in hoaRec.salesList) {
+                //if (hoaRec.property.parcel_ID == parcelId && hoaRec.salesList[index].saleDate == saleDate) {
+                if (hoaRec.property.parcel_ID == parcelId && hoaRec.salesList[index].saledt == saleDate) {
+                    salesRec = hoaRec.salesList[index]
+                }
+            }
+        }
+    } else {
+        // Find the correct owner rec
+        for (let index in hoaRec.ownersList) {
+            if (hoaRec.property.parcel_ID == parcelId && hoaRec.ownersList[index].ownerID == ownerId) {
+                ownerRec = hoaRec.ownersList[index]
+            }
+        }
+    }
     if (ownerRec == null) {
         console.error("Owner ID not found in current hoaRec, id = "+ownerId)
+        messageDisplay.textContent = `Owner ID not found in current hoaRec, id = ${ownerId}`
         return        
     }
 
@@ -226,8 +375,19 @@ function formatUpdateOwner(parcelId,ownerId) {
     updComments.value = ownerRec.comments
     updLastChangedTs.value = ownerRec.lastChangedTs
     updLastChangedBy.value = ownerRec.lastChangedBy
-    
-    new bootstrap.Modal(OwnerUpdateModal).show();
+
+    // If creating a NEW owner, override values from the sale rec
+    if (ownerId == "NEW") {
+        updOwnerID.value = createNewOwnerIdStr
+        if (salesRec != null) {
+            updOwner_Name1.value = salesRec.ownernamE1
+            updOwner_Name2.value = ""
+            updDatePurchased.value = standardizeDate(salesRec.saledt)
+            updMailing_Name.value = salesRec.mailingnamE1 + " " + salesRec.mailingnamE2
+        }
+    }
+
+    OwnerUpdateModal.show()
 }
 
 function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
@@ -286,7 +446,7 @@ function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
     assLastChangedBy.value = assessmentRec.lastChangedBy
     assLastChangedTs.value = assessmentRec.lastChangedTs
 
-    new bootstrap.Modal(AssessmentUpdateModal).show();
+    AssessmentUpdateModal.show()
 }
 
 var UpdateOwnerMessageDisplay = document.getElementById("UpdateOwnerMessageDisplay")
@@ -295,35 +455,16 @@ var UpdateOwnerForm = document.getElementById("UpdateOwnerForm")
 var UpdateAssessmentMessageDisplay = document.getElementById("UpdateAssessmentMessageDisplay")
 var UpdateAssessmentForm = document.getElementById("UpdateAssessmentForm")
 
-UpdateOwnerForm.addEventListener('submit', (event) => {
-    let formValid = UpdateOwnerForm.checkValidity()
-    event.preventDefault()
-    event.stopPropagation()
-    UpdateOwnerMessageDisplay.textContent = ""
-    if (!formValid) {
-        UpdateOwnerMessageDisplay.textContent = "Form inputs are NOT valid"
-    } else {
-        updateOwner()
-    }
-    UpdateOwnerForm.classList.add('was-validated')
-})
-
-UpdateAssessmentForm.addEventListener('submit', (event) => {
-    let formValid = UpdateAssessmentForm.checkValidity()
-    event.preventDefault()
-    event.stopPropagation()
-    UpdateAssessmentMessageDisplay.textContent = ""
-    if (!formValid) {
-        UpdateAssessmentMessageDisplay.textContent = "Form inputs are NOT valid"
-    } else {
-        updateAssessment()
-    }
-    UpdateAssessmentForm.classList.add('was-validated')
-})
 
 // Handle the file upload backend server call
 async function updateOwner() {
     UpdateOwnerMessageDisplay.textContent = "Updating Owner..."
+
+    let newOwner = false
+    if (updOwnerID.value == createNewOwnerIdStr) {
+        newOwner = true
+    }
+
     try {
         const response = await fetch("/api/UpdateOwner", {
             method: "POST",
@@ -332,21 +473,27 @@ async function updateOwner() {
         await checkFetchResponse(response)
         // Success
         let ownerRec = await response.json();
-        // Replace the record in the owners list
-        let ownerFound = false
-        for (let index in hoaRec.ownersList) {
-            if (hoaRec.property.parcel_ID == ownerRec.parcel_ID && hoaRec.ownersList[index].ownerID == ownerRec.ownerID) {
-                ownerFound = true
-                hoaRec.ownersList[index] = ownerRec
-            }
-        }
-        if (!ownerFound) {
-            console.error("Owner ID not found in current hoaRec, id = "+ownerRec.ownerId)
-            UpdateOwnerMessageDisplay.textContent = "Owner ID not found in current hoaRec, id = "+ownerRec.ownerId
-            return        
+        OwnerUpdateModal.hide()
+        if (newOwner) {
+            await getHoaRec(ownerRec.parcel_ID)
+            messageDisplay.textContent = "New Owner created sucessfully"
         } else {
+            // Replace the record in the owners list
+            let ownerFound = false
+            for (let index in hoaRec.ownersList) {
+                if (hoaRec.property.parcel_ID == ownerRec.parcel_ID && hoaRec.ownersList[index].ownerID == ownerRec.ownerID) {
+                    ownerFound = true
+                    hoaRec.ownersList[index] = ownerRec
+                }
+            }
+            if (!ownerFound) {
+                console.error("Owner ID not found in current hoaRec, id = "+ownerRec.ownerId)
+                messageDisplay.textContent = "Owner ID not found in current hoaRec, id = "+ownerRec.ownerId
+                return        
+            }
+            // Display the updated owner record
+            messageDisplay.textContent = "Owner updated sucessfully"
             displayDetailOwners()
-            UpdateOwnerMessageDisplay.textContent = "Owner updated sucessfully"
         }
     } catch (err) {
         console.error(err)
@@ -364,7 +511,8 @@ async function updateAssessment() {
         })
         await checkFetchResponse(response)
         // Success
-        let assessmentRec = await response.json();
+        let assessmentRec = await response.json()
+        AssessmentUpdateModal.hide()
         // Replace the record in the assessments list
         let assessmentFound = false
         for (let index in hoaRec.assessmentsList) {
@@ -375,11 +523,11 @@ async function updateAssessment() {
         }
         if (!assessmentFound) {
             console.error("Assessment ID not found in current hoaRec, id = "+assessmentRec.id)
-            UpdateAssessmentMessageDisplay.textContent = "Assessment ID not found in current hoaRec, id = "+assessmentRec.id
+            messageDisplay.textContent = "Assessment ID not found in current hoaRec, id = "+assessmentRec.id
             return        
         } else {
             displayDetailAssessments()
-            UpdateAssessmentMessageDisplay.textContent = "Assessment updated sucessfully"
+            messageDisplay.textContent = "Assessment updated sucessfully"
         }
     } catch (err) {
         console.error(err)
@@ -388,25 +536,10 @@ async function updateAssessment() {
 }
 
 
-var UpdatePropertyMessageDisplay = document.getElementById("UpdatePropertyMessageDisplay")
-var UpdatePropertyForm = document.getElementById("UpdatePropertyForm")
-
-UpdatePropertyForm.addEventListener('submit', (event) => {
-    let formValid = UpdatePropertyForm.checkValidity()
-    event.preventDefault()
-    event.stopPropagation()
-    UpdatePropertyMessageDisplay.textContent = ""
-    if (!formValid) {
-        UpdatePropertyMessageDisplay.textContent = "Form inputs are NOT valid"
-    } else {
-        updateProperty()
-    }
-    UpdatePropertyForm.classList.add('was-validated')
-})
 
 // Handle the file upload backend server call
 async function updateProperty() {
-    UpdatePropertyMessageDisplay.textContent = "Updating Property..."
+    messageDisplay.textContent = "Updating Property..."
     try {
         const response = await fetch("/api/UpdateProperty", {
             method: "POST",
@@ -414,10 +547,10 @@ async function updateProperty() {
         })
         await checkFetchResponse(response)
         // Success
-        UpdatePropertyMessageDisplay.textContent = await response.text();
+        messageDisplay.textContent = await response.text();
     } catch (err) {
         console.error(err)
-        UpdatePropertyMessageDisplay.textContent = `Error in Fetch: ${err.message}`
+        messageDisplay.textContent = `Error in Fetch: ${err.message}`
     }
 }
 
@@ -425,9 +558,7 @@ async function updateProperty() {
 async function getCommunications(parcelId) {
     //console.log("getCommunications called with parcelId = "+parcelId)
     commParcel_ID.value = parcelId
-
-    // Show loading spinner in the modal or a suitable area
-    //showLoadingSpinner(CommunicationsModal)
+    showLoadingSpinner(messageDisplay)
 
     let paramData = {
         parcelId: parcelId
@@ -442,16 +573,12 @@ async function getCommunications(parcelId) {
         await checkFetchResponse(response)
         // Success
         let communicationsList = await response.json();
-        // TODO: Format and display communicationsRec in the modal
-        // Example: formatCommunicationsResults(communicationsRec);
-        // You need to implement formatCommunicationsResults to populate the modal
         formatCommunicationsResults(communicationsList);
-
-        new bootstrap.Modal(CommunicationsModal).show();
+         messageDisplay.textContent = ""
+        CommunicationsModal.show();
     } catch (err) {
         console.error(err)
-        // Display error in modal or suitable area
-        // Example: CommunicationsMessageDisplay.textContent = `Error in Fetch: ${err.message}`
+        messageDisplay.textContent = `Error in Fetch: ${err.message}`
     }
 }
 
@@ -489,13 +616,6 @@ function formatCommunicationsResults(communicationsList) {
     //th = document.createElement("th"); th.classList.add('d-none','d-md-table-cell'); th.textContent = "Comments"; tr.appendChild(th)
     tbody.appendChild(tr)
 
-    /*
-        for (let comm of communicationsRec) {
-        let tr = document.createElement("tr");
-        let tdDate = document.createElement("td");
-        tdDate.textContent = comm.dateSent || "";
-        tr.appendChild(tdDate);
-    */
     // Append a row for every record in list
     for (let index in communicationsList) {
         let commRec = communicationsList[index]
@@ -529,14 +649,8 @@ async function getHoaRec(parcelId) {
     Property_State.textContent = ""
     Property_Zip.textContent = ""
     TotalDue.textContent = ""
-    /*
-    Rental.checked = false
-    Managed.checked = false
-    Foreclosure.checked = false
-    Bankruptcy.checked = false
-    */
     UseEmail.checked = false
-    Comments.textContent = ""
+    Comments.value = ""
 
     // Clear out the display tables for Owner and Assessment lists
     empty(propertyOwnersTbody)
@@ -574,12 +688,7 @@ async function getHoaRec(parcelId) {
 
 function displayDetail() {
     // *** Remember C# object to JS JSON structure object has different camel-case rules (makes 1st character lowercase, etc.) ***
-    let tr = ''
-    let th = ''
-    let td = ''
-    let tbody = ''
 
-    //Parcel_ID.textContent = hoaRec.property.parcel_ID
     Parcel_ID.value = hoaRec.property.parcel_ID
     LotNo.textContent = hoaRec.property.lotNo
     Property_Street_No.textContent = hoaRec.property.property_Street_No
@@ -589,16 +698,14 @@ function displayDetail() {
     Property_Zip.textContent = hoaRec.property.property_Zip
     TotalDue.textContent = "$"+hoaRec.totalDue
     UseEmail.checked = hoaRec.property.useEmail
-    Comments.textContent = hoaRec.property.comments
+    Comments.value = hoaRec.property.comments
 
     displayDetailOwners()
     displayDetailAssessments()
 
     DuesStatementButton.dataset.parcelId = hoaRec.property.parcel_ID
     NewOwnerButton.dataset.parcelId = hoaRec.property.parcel_ID
-    //NewOwnerButton.dataset.ownerId = 
     CommunicationsButton.dataset.parcelId = hoaRec.property.parcel_ID
-    //CommunicationsButton.dataset.ownerId = 
 }
 
 function displayDetailOwners() {
@@ -695,8 +802,7 @@ function displayDetailAssessments() {
         a.classList.add("AssessmentUpdate")
         a.href = ""
         a.dataset.parcelId = hoaRec.property.parcel_ID
-        // >>>>> find a way to offer "Change Owner"
-        //a.dataset.ownerId = ownerRec.ownerID
+        // >>>>> find a way to offer "Change Owner"?
         a.dataset.ownerId = assessmentRec.ownerID
         a.dataset.assessmentId = assessmentRec.id
         a.dataset.fy = assessmentRec.fy
@@ -776,7 +882,7 @@ async function getDuesStatement(parcelId) {
         let hoaRec = await response.json();
         messageDisplay.textContent = ""
         formatDuesStatementResults(hoaRec);
-        new bootstrap.Modal(duesStatementModal).show();
+        duesStatementModal.show();
     } catch (err) {
         console.error(err)
         messageDisplay.textContent = `Error in Fetch: ${err.message}`
@@ -913,9 +1019,6 @@ function formatDuesStatementResults(hoaRec) {
 
 var DuesStatementContent = document.getElementById("DuesStatementContent")
 var PrintModalButton = document.getElementById("PrintModalButton")
-PrintModalButton.addEventListener("click", function () {
-    printModal()
-})
 
 function printModal() {
     // Get modal content
