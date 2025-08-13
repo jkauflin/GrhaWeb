@@ -154,11 +154,20 @@ namespace GrhaWeb.Function
         }
 
 
-        [Function("GetSalesList")]
-        public async Task<IActionResult> GetSalesList(
+        //==============================================================================================================
+        // Function to return a list of full HoaRec objects with filtering options (for Reports and Mailing Lists)
+        //==============================================================================================================
+        [Function("GetHoaRecList")]
+        public async Task<IActionResult> GetHoaRecList(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            List<hoa_sales> hoaSalesList = new List<hoa_sales>();
+            List<HoaRec> hoaRecList = new List<HoaRec>();
+            bool duesOwed = false;
+            bool skipEmail = false;
+            bool salesWelcome = false;
+            bool currYearPaid = false;
+            bool currYearUnpaid = false;
+            bool testEmail = false;
 
             try
             {
@@ -171,554 +180,644 @@ namespace GrhaWeb.Function
                 //log.LogInformation(">>> User is authorized ");
 
                 // Get the content string from the HTTP request body
-                /*
                 string content = await new StreamReader(req.Body).ReadToEndAsync();
                 // Deserialize the JSON string into a generic JSON object
                 JObject jObject = JObject.Parse(content);
 
                 // Construct the query from the query parameters
                 string reportName = "";
+                string mailingListName = "";
+                bool logDuesLetterSend = false;
+                bool logWelcomeLetters = false;
 
                 JToken? jToken;
                 if (jObject.TryGetValue("reportName", out jToken))
                 {
-                    reportName = jToken.ToString().Trim();
+                    reportName = jToken.ToString();
                     if (reportName.Equals(""))
                     {
-                        return new BadRequestObjectResult("Query failed because reportName was blank");
+                        return new BadRequestObjectResult("GetHoaRecList failed because reportName was blank");
                     }
-                } else {
-                    return new BadRequestObjectResult("Query failed because reportName was NOT FOUND");
-                }
-                */
-                hoaSalesList = await hoaDbCommon.GetSalesListDb();
-            }
-            catch (Exception ex)
-            {
-                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
-            }
-
-            return new OkObjectResult(hoaSalesList);
-        }
-
-
-        [Function("GetPaidDuesCountList")]
-        public async Task<IActionResult> GetPaidDuesCountList(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
-        {
-            List<PaidDuesCount> duesCountList = new List<PaidDuesCount>();
-
-            try
-            {
-                string userName = "";
-                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
-                {
-                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                }
-
-                //log.LogInformation(">>> User is authorized ");
-
-                duesCountList = await hoaDbCommon.GetPaidDuesCountListDb();
-            }
-            catch (Exception ex)
-            {
-                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
-            }
-
-            return new OkObjectResult(duesCountList);
-        }
-
-
-        [Function("UpdateSales")]
-        public async Task<IActionResult> UpdateSales(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
-        {
-            string returnMessage = "";
-            try
-            {
-                string userName = "";
-                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
-                {
-                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                }
-
-                // Get the content string from the HTTP request body
-                string content = await new StreamReader(req.Body).ReadToEndAsync();
-                // Deserialize the JSON string into a generic JSON object
-                JObject jObject = JObject.Parse(content);
-
-                // Construct the query from the query parameters
-                string parid = "";
-                string saledt = "";
-                string processedFlag = "";
-                string welcomeSent = "";
-
-                JToken? jToken;
-                if (jObject.TryGetValue("parid", out jToken))
-                {
-                    parid = jToken.ToString().Trim();
-                    if (parid.Equals(""))
-                    {
-                        return new BadRequestObjectResult("Query failed because parid was blank");
-                    }
-                } else {
-                    return new BadRequestObjectResult("Query failed because parid was NOT FOUND");
-                }
-
-                if (jObject.TryGetValue("saledt", out jToken))
-                {
-                    saledt = jToken.ToString().Trim();
-                    if (saledt.Equals(""))
-                    {
-                        return new BadRequestObjectResult("Query failed because saledt was blank");
-                    }
-                } else {
-                    return new BadRequestObjectResult("Query failed because saledt was NOT FOUND");
-                }
-
-                if (jObject.TryGetValue("processedFlag", out jToken))
-                {
-                    processedFlag = jToken.ToString().Trim();
-                }
-
-                if (jObject.TryGetValue("welcomeSent", out jToken))
-                {
-                    welcomeSent = jToken.ToString().Trim();
-                }
-
-                await hoaDbCommon.UpdateSalesDB(userName, parid, saledt, processedFlag, welcomeSent);
-                returnMessage = "Sales record was updated";
-            }
-            catch (Exception ex)
-            {
-                log.LogError($"Exception in UpdateSales, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult("Error in update of Sales record - check log");
-            }
-
-            return new OkObjectResult(returnMessage);
-        }
-
-
-        /*
-                    $username = $userRec->userName;
-                    $reportName = getParamVal("reportName");
-                    $mailingListName = getParamVal("mailingListName");
-                    $logDuesLetterSend = paramBoolVal("logDuesLetterSend");
-                    $logWelcomeLetters = paramBoolVal("logWelcomeLetters");
-
-                    $outputArray = array();
-
-
-                    } else {
-                        // The general Reports query - creating a list of HoaRec records (with all data for the Property)
-                        // This PHP service is about getting the list of HOA records, then the javascript will display the
-                        // records and provide downloads for each particular report
-                        //$parcelId = "";
-                        $ownerId = "";
-                        $fy = 0;
-
-                        $duesOwed = false;
-                        $skipEmail = false;
-                        $salesWelcome = false;
-                        $currYearPaid = false;
-                        $currYearUnpaid = false;
-
-                        if ($reportName == "PaidDuesReport") {
-                            $currYearPaid = true;
-                        }
-                        if ($reportName == "UnpaidDuesReport") {
-                            $currYearUnpaid = true;
-                        }
-
-                        if ($mailingListName == 'WelcomeLetters') {
-                            $salesWelcome = true;
-                        }
-
-                        // If creating Dues Letters, skip properties that don't owe anything
-                        if (substr($mailingListName,0,10) == 'Duesletter') {
-                            $duesOwed = true;
-                        }
-                        // Skip postal mail for 1st Notices if Member has asked to use Email
-                        if ($mailingListName == 'Duesletter1') {
-                            $skipEmail = true;
-                        }
-
-                        $outputArray = getHoaRecList($conn,$duesOwed,$skipEmail,$salesWelcome,$currYearPaid,$currYearUnpaid);
-
-                        if ($userRec->userLevel > 1) {
-                            foreach ($outputArray as $hoaRec)  {
-
-                                // If flag is set, mark the Welcome Letters as MAILED
-                                if ($logWelcomeLetters) {
-                                    $stmt = $conn->prepare("UPDATE hoa_sales SET WelcomeSent='Y',LastChangedBy=?,LastChangedTs=CURRENT_TIMESTAMP WHERE PARID = ? AND WelcomeSent = 'S' ; ");
-                                    $stmt->bind_param("ss",$userRec->userName,$hoaRec->Parcel_ID);
-                                    $stmt->execute();
-                                    $stmt->close();
-                                }
-
-                                if ($logDuesLetterSend) {
-                                    $commType = 'Dues Notice';
-                                    $commDesc = "Postal mail notice sent";
-                                    $Email = false;
-                                    $SentStatus = 'Y';
-
-                                    if ($hoaRec->ownersList[0]->AlternateMailing) {
-                                        $Addr = $hoaRec->ownersList[0]->Alt_Address_Line1;
-                                    } else {
-                                        $Addr = $hoaRec->Parcel_Location;
-                                    }
-
-                                    insertCommRec($conn,$hoaRec->Parcel_ID,$hoaRec->ownersList[0]->OwnerID,$commType,$commDesc,
-                                        $hoaRec->ownersList[0]->Mailing_Name,$Email,
-                                        $Addr,$SentStatus,$userRec->userName);
-
-                                } // if ($logDuesLetterSend) {
-
-                            } // Loop through hoa recs
-                        } // If admin
-
-                    } // End of } else if ($reportName == "DuesReport") {
-
-                    // Close db connection
-                    $conn->close();
-
-                    echo json_encode($outputArray);
-
-                } catch(Exception $e) {
-                    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
-                    echo json_encode(
-                        array(
-                            'error' => $e->getMessage(),
-                            'error_code' => $e->getCode()
-                        )
-                    );
-                }
-
-                function getHoaRecList($conn,$duesOwed=false,$skipEmail=false,$salesWelcome=false,
-                    $currYearPaid=false,$currYearUnpaid=false,$testEmail=false) {
-
-
-                //----------------------------------------------------------------------------------------------------------------
-                //  Function to return an array of full hoaRec objects (with a couple of parameters to filter list)
-                //----------------------------------------------------------------------------------------------------------------
-                function getHoaRecList($conn,$duesOwed=false,$skipEmail=false,$salesWelcome=false,
-                    $currYearPaid=false,$currYearUnpaid=false,$testEmail=false) {
-
-                    $outputArray = array();
-
-                    if ($testEmail) {
-                        $testEmailParcel = getConfigValDB($conn,'duesEmailTestParcel');
-                        $sql = "SELECT * FROM hoa_properties p, hoa_owners o WHERE p.Parcel_ID = '$testEmailParcel' AND p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 ";
-                    } else {
-                        $fy = 0;
-                        if ($currYearPaid || $currYearUnpaid) {
-                            // *** just use the highest FY - the first assessment record ***
-                            $result = $conn->query("SELECT MAX(FY) AS maxFY FROM hoa_assessments; ");
-                            if ($result->num_rows > 0) {
-                                while($row = $result->fetch_assoc()) {
-                                    $fy = $row["maxFY"];
-                                }
-                                $result->close();
-                            }
-                        }
-
-                        // try to get the parameters into the initial select query to limit the records it then tries to get from the getHoaRec
-                        if ($salesWelcome) {
-                            $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_sales s" .
-                                            " WHERE p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 AND p.Parcel_ID = s.PARID" .
-                                            " AND s.WelcomeSent = 'S' ORDER BY s.CreateTimestamp DESC; ";
-                        } else if ($currYearUnpaid) {
-                            $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_assessments a " .
-                                        "WHERE p.Parcel_ID = o.Parcel_ID AND a.OwnerID = o.OwnerID AND p.Parcel_ID = a.Parcel_ID " .
-                                        "AND a.FY = " . $fy . " AND a.Paid = 0 ORDER BY p.Parcel_ID; ";
-                                        // current owner?
-                        } else if ($currYearPaid) {
-                            $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_assessments a " .
-                                        "WHERE p.Parcel_ID = o.Parcel_ID AND a.OwnerID = o.OwnerID AND p.Parcel_ID = a.Parcel_ID " .
-                                        "AND a.FY = " . $fy . " AND a.Paid = 1 ORDER BY p.Parcel_ID; ";
-                                        // current owner?
-                        } else {
-                            // All properties and current owner
-                            $sql = "SELECT * FROM hoa_properties p, hoa_owners o WHERE p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 ".
-                                            "ORDER BY p.Parcel_ID; ";
-                        }
-                    }
-
-                    $stmt = $conn->prepare($sql);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
-                    $stmt->close();
-
-                    $cnt = 0;
-                    if ($result->num_rows > 0) {
-                        // Loop through all the member properties
-                        while($row = $result->fetch_assoc()) {
-                            $cnt = $cnt + 1;
-
-                            $parcelId = $row["Parcel_ID"];
-                            $ownerId = $row["OwnerID"];
-
-                            // Don't include FY because you want all assessments to calculate Total Due
-                            //$hoaRec = getHoaRec($conn,$parcelId,$ownerId,$fy);
-                            $hoaRec = getHoaRec($conn,$parcelId,$ownerId);
-
-                            // If creating Dues Letters, skip properties that don't owe anything
-                            if ($duesOwed && $hoaRec->TotalDue < 0.01) {
-                                continue;
-                            }
-                            // Skip postal mail for 1st Notices if Member has asked to use Email
-                            if ($skipEmail && $hoaRec->UseEmail) {
-                                continue;
-                            }
-
-                            array_push($outputArray,$hoaRec);
-                        }
-                    }
-
-                    return $outputArray;
-                }
-
-                */
-
-        [Function("GetCommunications")]
-        public async Task<IActionResult> GetCommunications(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
-        {
-            List<hoa_communications> hoaCommunicationsList = new List<hoa_communications>();
-
-            try
-            {
-                string userName = "";
-                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
-                {
-                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                }
-
-                //log.LogInformation(">>> User is authorized ");
-
-                // Get the content string from the HTTP request body
-                string content = await new StreamReader(req.Body).ReadToEndAsync();
-                // Deserialize the JSON string into a generic JSON object
-                JObject jObject = JObject.Parse(content);
-
-                // Construct the query from the query parameters
-                string parcelId = "";
-
-                JToken? jToken;
-                if (jObject.TryGetValue("parcelId", out jToken))
-                {
-                    parcelId = jToken.ToString();
-                    if (parcelId.Equals(""))
-                    {
-                        return new BadRequestObjectResult("GetHoaRec failed because parcelId was blank");
-                    }
-                } else {
-                    return new BadRequestObjectResult("GetHoaRec failed because parcelId was NOT FOUND");
-                }
-
-                hoaCommunicationsList = await hoaDbCommon.GetCommunications(parcelId);
-            }
-            catch (Exception ex)
-            {
-                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
-            }
-
-            return new OkObjectResult(hoaCommunicationsList);
-        }
-
-
-        /*
-        using Newtonsoft.Json.Linq;
-        string json = "{\"Name\":\"John\",\"Age\":30}";
-        JObject obj = JObject.Parse(json);
-        Console.WriteLine($"Name: {obj["Name"]}, Age: {obj["Age"]}"); // Use index-based access
-        */
-
-        [Function("UpdateProperty")]
-        public async Task<IActionResult> UpdateProperty(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
-        {
-            string returnMessage = "";
-            try
-            {
-                string userName = "";
-                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
-                {
-                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                }
-                //log.LogInformation($">>> User is authorized - userName: {userName}");
-
-                // Get content from the Request BODY
-                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
-                var reader = new MultipartReader(boundary, req.Body);
-                var section = await reader.ReadNextSectionAsync();
-
-                var formFields = new Dictionary<string, string>();
-                var files = new List<(string fieldName, string fileName, byte[] content)>();
-
-                while (section != null)
-                {
-                    var contentDisposition = section.GetContentDispositionHeader();
-                    if (contentDisposition != null)
-                    {
-                        if (contentDisposition.IsFileDisposition())
-                        {
-                            using var memoryStream = new MemoryStream();
-                            await section.Body.CopyToAsync(memoryStream);
-                            files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
-                        }
-                        else if (contentDisposition.IsFormDisposition())
-                        {
-                            using var streamReader = new StreamReader(section.Body);
-                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
-                        }
-                    }
-
-                    section = await reader.ReadNextSectionAsync();
-                }
-
-                /*
-                foreach (var field in formFields)
-                {
-                    log.LogWarning($"Field {field.Key}: {field.Value}");
-                }
-                */
-                await hoaDbCommon.UpdatePropertyDB(userName, formFields);
-
-                returnMessage = "Property was updated";
-            }
-            catch (Exception ex)
-            {
-                log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult("Error in update of Property - check log");
-            }
-
-            return new OkObjectResult(returnMessage);
-        }
-
-
-        [Function("UpdateOwner")]
-        public async Task<IActionResult> UpdateOwner(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
-        {
-            hoa_owners ownerRec = new hoa_owners();
-            //string returnMessage = "";
-            try
-            {
-                string userName = "";
-                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
-                {
-                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                }
-                //log.LogInformation($">>> User is authorized - userName: {userName}");
-
-                // Get content from the Request BODY
-                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
-                var reader = new MultipartReader(boundary, req.Body);
-                var section = await reader.ReadNextSectionAsync();
-
-                var formFields = new Dictionary<string, string>();
-                var files = new List<(string fieldName, string fileName, byte[] content)>();
-
-                while (section != null)
-                {
-                    var contentDisposition = section.GetContentDispositionHeader();
-                    if (contentDisposition != null)
-                    {
-                        if (contentDisposition.IsFileDisposition())
-                        {
-                            using var memoryStream = new MemoryStream();
-                            await section.Body.CopyToAsync(memoryStream);
-                            files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
-                        }
-                        else if (contentDisposition.IsFormDisposition())
-                        {
-                            using var streamReader = new StreamReader(section.Body);
-                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
-                        }
-                    }
-
-                    section = await reader.ReadNextSectionAsync();
-                }
-
-                string ownerId = formFields["OwnerID"].Trim();
-                if (ownerId.Equals("*** CREATE NEW OWNER (on Save) ***"))
-                {
-                    ownerRec = await hoaDbCommon.NewOwnerDB(userName, formFields);
                 }
                 else
                 {
-                    ownerRec = await hoaDbCommon.UpdateOwnerDB(userName, formFields);
+                    return new BadRequestObjectResult("GetHoaRecList failed because reportName was NOT FOUND");
                 }
+
+                if (jObject.TryGetValue("mailingListName", out jToken))
+                {
+                    mailingListName = jToken.ToString();
+                }
+                if (jObject.TryGetValue("logDuesLetterSend", out jToken))
+                {
+                    logDuesLetterSend = jToken.Type == JTokenType.Boolean ? jToken.Value<bool>() : false;
+                }
+                if (jObject.TryGetValue("logWelcomeLetters", out jToken))
+                {
+                    logWelcomeLetters = jToken.Type == JTokenType.Boolean ? jToken.Value<bool>() : false;
+                }
+
+
+                if (reportName.Equals("PaidDuesReport"))
+                {
+                    currYearPaid = true;
+                }
+                if (reportName.Equals("UnpaidDuesReport"))
+                {
+                    currYearUnpaid = true;
+                }
+                if (mailingListName.Equals("WelcomeLetters"))
+                {
+                    salesWelcome = true;
+                }
+                if (mailingListName.StartsWith("Duesletter"))
+                {
+                    duesOwed = true;
+                }
+                if (mailingListName.Equals("Duesletter1"))
+                {
+                    skipEmail = true;
+                }
+
+                hoaRecList = await hoaDbCommon.GetHoaRecListDB(duesOwed, skipEmail, salesWelcome, currYearPaid, currYearUnpaid, testEmail);
+                
+                
             }
             catch (Exception ex)
             {
-                log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult("Error in update of Owner - check log");
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
 
-            return new OkObjectResult(ownerRec);
+            return new OkObjectResult(hoaRecList);
         }
 
-        [Function("UpdateAssessment")]
-        public async Task<IActionResult> UpdateAssessment(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
-        {
-            hoa_assessments assessmentRec = new hoa_assessments();
-            //string returnMessage = "";
-            try
-            {
-                string userName = "";
-                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
-                {
-                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                }
-                //log.LogInformation($">>> User is authorized - userName: {userName}");
 
-                // Get content from the Request BODY
-                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
-                var reader = new MultipartReader(boundary, req.Body);
-                var section = await reader.ReadNextSectionAsync();
+            /*
+                        $username = $userRec->userName;
+                        $reportName = getParamVal("reportName");
+                        $mailingListName = getParamVal("mailingListName");
+                        $logDuesLetterSend = paramBoolVal("logDuesLetterSend");
+                        $logWelcomeLetters = paramBoolVal("logWelcomeLetters");
 
-                var formFields = new Dictionary<string, string>();
-                var files = new List<(string fieldName, string fileName, byte[] content)>();
+                        $outputArray = array();
 
-                while (section != null)
-                {
-                    var contentDisposition = section.GetContentDispositionHeader();
-                    if (contentDisposition != null)
-                    {
-                        if (contentDisposition.IsFileDisposition())
-                        {
-                            using var memoryStream = new MemoryStream();
-                            await section.Body.CopyToAsync(memoryStream);
-                            files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
-                        }
-                        else if (contentDisposition.IsFormDisposition())
-                        {
-                            using var streamReader = new StreamReader(section.Body);
-                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
-                        }
+
+                        } else {
+                            // The general Reports query - creating a list of HoaRec records (with all data for the Property)
+                            // This PHP service is about getting the list of HOA records, then the javascript will display the
+                            // records and provide downloads for each particular report
+                            //$parcelId = "";
+                            $ownerId = "";
+                            $fy = 0;
+
+                            $duesOwed = false;
+                            $skipEmail = false;
+                            $salesWelcome = false;
+                            $currYearPaid = false;
+                            $currYearUnpaid = false;
+
+                            if ($reportName == "PaidDuesReport") {
+                                $currYearPaid = true;
+                            }
+                            if ($reportName == "UnpaidDuesReport") {
+                                $currYearUnpaid = true;
+                            }
+
+                            if ($mailingListName == 'WelcomeLetters') {
+                                $salesWelcome = true;
+                            }
+
+                            // If creating Dues Letters, skip properties that don't owe anything
+                            if (substr($mailingListName,0,10) == 'Duesletter') {
+                                $duesOwed = true;
+                            }
+                            // Skip postal mail for 1st Notices if Member has asked to use Email
+                            if ($mailingListName == 'Duesletter1') {
+                                $skipEmail = true;
+                            }
+
+                            $outputArray = getHoaRecList($conn,$duesOwed,$skipEmail,$salesWelcome,$currYearPaid,$currYearUnpaid);
+
+                            if ($userRec->userLevel > 1) {
+                                foreach ($outputArray as $hoaRec)  {
+
+                                    // If flag is set, mark the Welcome Letters as MAILED
+                                    if ($logWelcomeLetters) {
+                                        $stmt = $conn->prepare("UPDATE hoa_sales SET WelcomeSent='Y',LastChangedBy=?,LastChangedTs=CURRENT_TIMESTAMP WHERE PARID = ? AND WelcomeSent = 'S' ; ");
+                                        $stmt->bind_param("ss",$userRec->userName,$hoaRec->Parcel_ID);
+                                        $stmt->execute();
+                                        $stmt->close();
+                                    }
+
+                                    if ($logDuesLetterSend) {
+                                        $commType = 'Dues Notice';
+                                        $commDesc = "Postal mail notice sent";
+                                        $Email = false;
+                                        $SentStatus = 'Y';
+
+                                        if ($hoaRec->ownersList[0]->AlternateMailing) {
+                                            $Addr = $hoaRec->ownersList[0]->Alt_Address_Line1;
+                                        } else {
+                                            $Addr = $hoaRec->Parcel_Location;
+                                        }
+
+                                        insertCommRec($conn,$hoaRec->Parcel_ID,$hoaRec->ownersList[0]->OwnerID,$commType,$commDesc,
+                                            $hoaRec->ownersList[0]->Mailing_Name,$Email,
+                                            $Addr,$SentStatus,$userRec->userName);
+
+                                    } // if ($logDuesLetterSend) {
+
+                                } // Loop through hoa recs
+                            } // If admin
+
+                        } // End of } else if ($reportName == "DuesReport") {
+
+                        // Close db connection
+                        $conn->close();
+
+                        echo json_encode($outputArray);
+
+                    } catch(Exception $e) {
+                        error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
+                        echo json_encode(
+                            array(
+                                'error' => $e->getMessage(),
+                                'error_code' => $e->getCode()
+                            )
+                        );
                     }
 
-                    section = await reader.ReadNextSectionAsync();
+                    function getHoaRecList($conn,$duesOwed=false,$skipEmail=false,$salesWelcome=false,
+                        $currYearPaid=false,$currYearUnpaid=false,$testEmail=false) {
+
+
+                    //----------------------------------------------------------------------------------------------------------------
+                    //  Function to return an array of full hoaRec objects (with a couple of parameters to filter list)
+                    //----------------------------------------------------------------------------------------------------------------
+                    function getHoaRecList($conn,$duesOwed=false,$skipEmail=false,$salesWelcome=false,
+                        $currYearPaid=false,$currYearUnpaid=false,$testEmail=false) {
+
+                        $outputArray = array();
+
+                        if ($testEmail) {
+                            $testEmailParcel = getConfigValDB($conn,'duesEmailTestParcel');
+                            $sql = "SELECT * FROM hoa_properties p, hoa_owners o WHERE p.Parcel_ID = '$testEmailParcel' AND p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 ";
+                        } else {
+                            $fy = 0;
+                            if ($currYearPaid || $currYearUnpaid) {
+                                // *** just use the highest FY - the first assessment record ***
+                                $result = $conn->query("SELECT MAX(FY) AS maxFY FROM hoa_assessments; ");
+                                if ($result->num_rows > 0) {
+                                    while($row = $result->fetch_assoc()) {
+                                        $fy = $row["maxFY"];
+                                    }
+                                    $result->close();
+                                }
+                            }
+
+                            // try to get the parameters into the initial select query to limit the records it then tries to get from the getHoaRec
+                            if ($salesWelcome) {
+                                $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_sales s" .
+                                                " WHERE p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 AND p.Parcel_ID = s.PARID" .
+                                                " AND s.WelcomeSent = 'S' ORDER BY s.CreateTimestamp DESC; ";
+                            } else if ($currYearUnpaid) {
+                                $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_assessments a " .
+                                            "WHERE p.Parcel_ID = o.Parcel_ID AND a.OwnerID = o.OwnerID AND p.Parcel_ID = a.Parcel_ID " .
+                                            "AND a.FY = " . $fy . " AND a.Paid = 0 ORDER BY p.Parcel_ID; ";
+                                            // current owner?
+                            } else if ($currYearPaid) {
+                                $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_assessments a " .
+                                            "WHERE p.Parcel_ID = o.Parcel_ID AND a.OwnerID = o.OwnerID AND p.Parcel_ID = a.Parcel_ID " .
+                                            "AND a.FY = " . $fy . " AND a.Paid = 1 ORDER BY p.Parcel_ID; ";
+                                            // current owner?
+                            } else {
+                                // All properties and current owner
+                                $sql = "SELECT * FROM hoa_properties p, hoa_owners o WHERE p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 ".
+                                                "ORDER BY p.Parcel_ID; ";
+                            }
+                        }
+
+                        $stmt = $conn->prepare($sql);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        $stmt->close();
+
+                        $cnt = 0;
+                        if ($result->num_rows > 0) {
+                            // Loop through all the member properties
+                            while($row = $result->fetch_assoc()) {
+                                $cnt = $cnt + 1;
+
+                                $parcelId = $row["Parcel_ID"];
+                                $ownerId = $row["OwnerID"];
+
+                                // Don't include FY because you want all assessments to calculate Total Due
+                                //$hoaRec = getHoaRec($conn,$parcelId,$ownerId,$fy);
+                                $hoaRec = getHoaRec($conn,$parcelId,$ownerId);
+
+                                // If creating Dues Letters, skip properties that don't owe anything
+                                if ($duesOwed && $hoaRec->TotalDue < 0.01) {
+                                    continue;
+                                }
+                                // Skip postal mail for 1st Notices if Member has asked to use Email
+                                if ($skipEmail && $hoaRec->UseEmail) {
+                                    continue;
+                                }
+
+                                array_push($outputArray,$hoaRec);
+                            }
+                        }
+
+                        return $outputArray;
+                    }
+
+                    */
+
+            [Function("GetSalesList")]
+            public async Task<IActionResult> GetSalesList(
+                [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+            {
+                List<hoa_sales> hoaSalesList = new List<hoa_sales>();
+
+                try
+                {
+                    string userName = "";
+                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                    {
+                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                    }
+
+                    //log.LogInformation(">>> User is authorized ");
+
+                    // Get the content string from the HTTP request body
+                    /*
+                    string content = await new StreamReader(req.Body).ReadToEndAsync();
+                    // Deserialize the JSON string into a generic JSON object
+                    JObject jObject = JObject.Parse(content);
+
+                    // Construct the query from the query parameters
+                    string reportName = "";
+
+                    JToken? jToken;
+                    if (jObject.TryGetValue("reportName", out jToken))
+                    {
+                        reportName = jToken.ToString().Trim();
+                        if (reportName.Equals(""))
+                        {
+                            return new BadRequestObjectResult("Query failed because reportName was blank");
+                        }
+                    } else {
+                        return new BadRequestObjectResult("Query failed because reportName was NOT FOUND");
+                    }
+                    */
+                    hoaSalesList = await hoaDbCommon.GetSalesListDb();
+                }
+                catch (Exception ex)
+                {
+                    log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                    return new BadRequestObjectResult($"Exception, message = {ex.Message}");
                 }
 
-                assessmentRec = await hoaDbCommon.UpdateAssessmentDB(userName,formFields);
+                return new OkObjectResult(hoaSalesList);
             }
-            catch (Exception ex)
+
+
+            [Function("GetPaidDuesCountList")]
+            public async Task<IActionResult> GetPaidDuesCountList(
+                [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
             {
-                log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult("Error in update of Property - check log");
+                List<PaidDuesCount> duesCountList = new List<PaidDuesCount>();
+
+                try
+                {
+                    string userName = "";
+                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                    {
+                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                    }
+
+                    //log.LogInformation(">>> User is authorized ");
+
+                    duesCountList = await hoaDbCommon.GetPaidDuesCountListDb();
+                }
+                catch (Exception ex)
+                {
+                    log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                    return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+                }
+
+                return new OkObjectResult(duesCountList);
             }
-            
-            return new OkObjectResult(assessmentRec);
-        }
 
 
-    } // public static class WebApi
+            [Function("UpdateSales")]
+            public async Task<IActionResult> UpdateSales(
+                [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+            {
+                string returnMessage = "";
+                try
+                {
+                    string userName = "";
+                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                    {
+                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                    }
+
+                    // Get the content string from the HTTP request body
+                    string content = await new StreamReader(req.Body).ReadToEndAsync();
+                    // Deserialize the JSON string into a generic JSON object
+                    JObject jObject = JObject.Parse(content);
+
+                    // Construct the query from the query parameters
+                    string parid = "";
+                    string saledt = "";
+                    string processedFlag = "";
+                    string welcomeSent = "";
+
+                    JToken? jToken;
+                    if (jObject.TryGetValue("parid", out jToken))
+                    {
+                        parid = jToken.ToString().Trim();
+                        if (parid.Equals(""))
+                        {
+                            return new BadRequestObjectResult("Query failed because parid was blank");
+                        }
+                    } else {
+                        return new BadRequestObjectResult("Query failed because parid was NOT FOUND");
+                    }
+
+                    if (jObject.TryGetValue("saledt", out jToken))
+                    {
+                        saledt = jToken.ToString().Trim();
+                        if (saledt.Equals(""))
+                        {
+                            return new BadRequestObjectResult("Query failed because saledt was blank");
+                        }
+                    } else {
+                        return new BadRequestObjectResult("Query failed because saledt was NOT FOUND");
+                    }
+
+                    if (jObject.TryGetValue("processedFlag", out jToken))
+                    {
+                        processedFlag = jToken.ToString().Trim();
+                    }
+
+                    if (jObject.TryGetValue("welcomeSent", out jToken))
+                    {
+                        welcomeSent = jToken.ToString().Trim();
+                    }
+
+                    await hoaDbCommon.UpdateSalesDB(userName, parid, saledt, processedFlag, welcomeSent);
+                    returnMessage = "Sales record was updated";
+                }
+                catch (Exception ex)
+                {
+                    log.LogError($"Exception in UpdateSales, message: {ex.Message} {ex.StackTrace}");
+                    return new BadRequestObjectResult("Error in update of Sales record - check log");
+                }
+
+                return new OkObjectResult(returnMessage);
+            }
+
+
+            [Function("GetCommunications")]
+            public async Task<IActionResult> GetCommunications(
+                [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+            {
+                List<hoa_communications> hoaCommunicationsList = new List<hoa_communications>();
+
+                try
+                {
+                    string userName = "";
+                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                    {
+                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                    }
+
+                    //log.LogInformation(">>> User is authorized ");
+
+                    // Get the content string from the HTTP request body
+                    string content = await new StreamReader(req.Body).ReadToEndAsync();
+                    // Deserialize the JSON string into a generic JSON object
+                    JObject jObject = JObject.Parse(content);
+
+                    // Construct the query from the query parameters
+                    string parcelId = "";
+
+                    JToken? jToken;
+                    if (jObject.TryGetValue("parcelId", out jToken))
+                    {
+                        parcelId = jToken.ToString();
+                        if (parcelId.Equals(""))
+                        {
+                            return new BadRequestObjectResult("GetHoaRec failed because parcelId was blank");
+                        }
+                    } else {
+                        return new BadRequestObjectResult("GetHoaRec failed because parcelId was NOT FOUND");
+                    }
+
+                    hoaCommunicationsList = await hoaDbCommon.GetCommunications(parcelId);
+                }
+                catch (Exception ex)
+                {
+                    log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                    return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+                }
+
+                return new OkObjectResult(hoaCommunicationsList);
+            }
+
+
+            /*
+            using Newtonsoft.Json.Linq;
+            string json = "{\"Name\":\"John\",\"Age\":30}";
+            JObject obj = JObject.Parse(json);
+            Console.WriteLine($"Name: {obj["Name"]}, Age: {obj["Age"]}"); // Use index-based access
+            */
+
+            [Function("UpdateProperty")]
+            public async Task<IActionResult> UpdateProperty(
+                [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+            {
+                string returnMessage = "";
+                try
+                {
+                    string userName = "";
+                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                    {
+                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                    }
+                    //log.LogInformation($">>> User is authorized - userName: {userName}");
+
+                    // Get content from the Request BODY
+                    var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
+                    var reader = new MultipartReader(boundary, req.Body);
+                    var section = await reader.ReadNextSectionAsync();
+
+                    var formFields = new Dictionary<string, string>();
+                    var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                    while (section != null)
+                    {
+                        var contentDisposition = section.GetContentDispositionHeader();
+                        if (contentDisposition != null)
+                        {
+                            if (contentDisposition.IsFileDisposition())
+                            {
+                                using var memoryStream = new MemoryStream();
+                                await section.Body.CopyToAsync(memoryStream);
+                                files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
+                            }
+                            else if (contentDisposition.IsFormDisposition())
+                            {
+                                using var streamReader = new StreamReader(section.Body);
+                                formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                            }
+                        }
+
+                        section = await reader.ReadNextSectionAsync();
+                    }
+
+                    /*
+                    foreach (var field in formFields)
+                    {
+                        log.LogWarning($"Field {field.Key}: {field.Value}");
+                    }
+                    */
+                    await hoaDbCommon.UpdatePropertyDB(userName, formFields);
+
+                    returnMessage = "Property was updated";
+                }
+                catch (Exception ex)
+                {
+                    log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
+                    return new BadRequestObjectResult("Error in update of Property - check log");
+                }
+
+                return new OkObjectResult(returnMessage);
+            }
+
+
+            [Function("UpdateOwner")]
+            public async Task<IActionResult> UpdateOwner(
+                [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+            {
+                hoa_owners ownerRec = new hoa_owners();
+                //string returnMessage = "";
+                try
+                {
+                    string userName = "";
+                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                    {
+                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                    }
+                    //log.LogInformation($">>> User is authorized - userName: {userName}");
+
+                    // Get content from the Request BODY
+                    var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
+                    var reader = new MultipartReader(boundary, req.Body);
+                    var section = await reader.ReadNextSectionAsync();
+
+                    var formFields = new Dictionary<string, string>();
+                    var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                    while (section != null)
+                    {
+                        var contentDisposition = section.GetContentDispositionHeader();
+                        if (contentDisposition != null)
+                        {
+                            if (contentDisposition.IsFileDisposition())
+                            {
+                                using var memoryStream = new MemoryStream();
+                                await section.Body.CopyToAsync(memoryStream);
+                                files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
+                            }
+                            else if (contentDisposition.IsFormDisposition())
+                            {
+                                using var streamReader = new StreamReader(section.Body);
+                                formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                            }
+                        }
+
+                        section = await reader.ReadNextSectionAsync();
+                    }
+
+                    string ownerId = formFields["OwnerID"].Trim();
+                    if (ownerId.Equals("*** CREATE NEW OWNER (on Save) ***"))
+                    {
+                        ownerRec = await hoaDbCommon.NewOwnerDB(userName, formFields);
+                    }
+                    else
+                    {
+                        ownerRec = await hoaDbCommon.UpdateOwnerDB(userName, formFields);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
+                    return new BadRequestObjectResult("Error in update of Owner - check log");
+                }
+
+                return new OkObjectResult(ownerRec);
+            }
+
+            [Function("UpdateAssessment")]
+            public async Task<IActionResult> UpdateAssessment(
+                [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+            {
+                hoa_assessments assessmentRec = new hoa_assessments();
+                //string returnMessage = "";
+                try
+                {
+                    string userName = "";
+                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                    {
+                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                    }
+                    //log.LogInformation($">>> User is authorized - userName: {userName}");
+
+                    // Get content from the Request BODY
+                    var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
+                    var reader = new MultipartReader(boundary, req.Body);
+                    var section = await reader.ReadNextSectionAsync();
+
+                    var formFields = new Dictionary<string, string>();
+                    var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                    while (section != null)
+                    {
+                        var contentDisposition = section.GetContentDispositionHeader();
+                        if (contentDisposition != null)
+                        {
+                            if (contentDisposition.IsFileDisposition())
+                            {
+                                using var memoryStream = new MemoryStream();
+                                await section.Body.CopyToAsync(memoryStream);
+                                files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
+                            }
+                            else if (contentDisposition.IsFormDisposition())
+                            {
+                                using var streamReader = new StreamReader(section.Body);
+                                formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                            }
+                        }
+
+                        section = await reader.ReadNextSectionAsync();
+                    }
+
+                    assessmentRec = await hoaDbCommon.UpdateAssessmentDB(userName, formFields);
+                }
+                catch (Exception ex)
+                {
+                    log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
+                    return new BadRequestObjectResult("Error in update of Property - check log");
+                }
+
+                return new OkObjectResult(assessmentRec);
+            }
+
+
+        } // public static class WebApi
 }
 

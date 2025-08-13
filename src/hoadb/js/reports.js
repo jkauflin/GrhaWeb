@@ -48,6 +48,8 @@ var ReportListTbody
 var ReportsMessageDisplay
 var ReportHeader
 var ReportDownloadLinks
+var LogDuesLetterSend
+var LogWelcomeLetters
 
 document.addEventListener('DOMContentLoaded', () => {
     // Assign DOM elements after DOM is ready
@@ -55,6 +57,8 @@ document.addEventListener('DOMContentLoaded', () => {
 	ReportsMessageDisplay = document.getElementById("ReportsMessageDisplay")
 	ReportHeader = document.getElementById("ReportHeader")
 	ReportDownloadLinks = document.getElementById("ReportDownloadLinks")
+	LogDuesLetterSend = document.getElementById("LogDuesLetterSend")
+	LogWelcomeLetters = document.getElementById("LogWelcomeLetters")
 
 	document.getElementById("SalesReport").addEventListener("click", function (event) {
 		let reportTitle = event.target.getAttribute("data-reportTitle");
@@ -335,53 +339,116 @@ function formatDuesCountResults(duesCountList,reportTitle) {
 	ReportDownloadLinks.appendChild(button);
 }
 
-    function _downloadReportCSV(event) {
-        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        var pom = document.createElement('a');
-        var url = URL.createObjectURL(blob);
-        pom.href = url;
-        pom.setAttribute('download', event.target.dataset.reportName  + ".csv");
-        pom.click();
-    };
-	function _reportRequest(event) {
-		event.preventDefault();
-		var reportName = event.target.id;
-		var reportTitle = event.target.getAttribute("data-reportTitle");
-		_executeReport(reportName, reportTitle);
-	};
+function _downloadReportCSV(event) {
+    var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    var pom = document.createElement('a');
+    var url = URL.createObjectURL(blob);
+    pom.href = url;
+    pom.setAttribute('download', event.target.dataset.reportName  + ".csv");
+    pom.click();
+}
+
+async function _reportRequest(event) {
+	event.preventDefault();
+	var reportName = event.target.id;
+	var reportTitle = event.target.dataset.reportTitle
+  	const mailingListName = document.querySelector('input[name="MailingListName"]:checked');
+
+	// Compose request body
+	let paramData = {
+		reportName: reportName,
+		mailingListName: mailingListName.value,	
+		logDuesLetterSend: LogDuesLetterSend.checked,
+		logWelcomeLetters: LogWelcomeLetters.checked
+	}
+
+	try {
+		const response = await fetch("/api/GetHoaRecList", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(paramData)
+		});
+		await checkFetchResponse(response);
+		ReportsMessageDisplay.textContent = "Report retrieved.";
+		if (reportName == 'UnpaidDuesRankingReport') {
+			//_duesRank(reportList, reportName);
+		} else {
+			//_formatReportList(reportName, reportTitle, reportList, mailingListName);
+		}
+	} catch (err) {
+		console.error(err);
+		ReportsMessageDisplay.textContent = `Error updating sales flag: ${err.message}`;
+	}
+
+}
 
 	/*
-		$ReportHeader.html("Executing report query...");
-		$ReportListDisplay.html("");
-		$ReportRecCnt.html("");
-		$ReportDownloadLinks.html("");
+        // The general Reports query - creating a list of HoaRec records (with all data for the Property)
+        // This PHP service is about getting the list of HOA records, then the javascript will display the
+        // records and provide downloads for each particular report
+    	//$parcelId = "";
+    	$ownerId = "";
+    	$fy = 0;
 
-		// check user logged in
-			var mailingListName = '';
-			var logWelcomeLetters = '';
-			var logDuesLetterSend = '';
-			if (reportName == 'MailingListReport') {
-				mailingListName = $('input:radio[name=MailingListName]:checked').val();
-				logDuesLetterSend = $('#LogDuesLetterSend').is(":checked");
-				logWelcomeLetters = $('#LogWelcomeLetters').is(":checked");
-			} else {
-				$ReportFilter.empty();
-			}
+        $duesOwed = false;
+        $skipEmail = false;
+        $salesWelcome = false;
+        $currYearPaid = false;
+        $currYearUnpaid = false;
 
-			$.getJSON("getHoaReportData.php", "reportName=" + reportName + "&mailingListName="
-				  + mailingListName + "&logDuesLetterSend=" + logDuesLetterSend+"&logWelcomeLetters="+logWelcomeLetters, function (result) {
-				if (result.error) {
-					console.log("error = " + result.error);
-					$ajaxError.html("<b>" + result.error + "</b>");
-				} else {
-					var reportList = result;
-					if (reportName == 'UnpaidDuesRankingReport') {
-						_duesRank(reportList, reportName);
-					} else {
-						_formatReportList(reportName, reportTitle, reportList, mailingListName);
-					}
-				}
-			});
+        if ($reportName == "PaidDuesReport") {
+            $currYearPaid = true;
+        }
+        if ($reportName == "UnpaidDuesReport") {
+            $currYearUnpaid = true;
+        }
+
+        if ($mailingListName == 'WelcomeLetters') {
+            $salesWelcome = true;
+        }
+
+        // If creating Dues Letters, skip properties that don't owe anything
+        if (substr($mailingListName,0,10) == 'Duesletter') {
+            $duesOwed = true;
+        }
+        // Skip postal mail for 1st Notices if Member has asked to use Email
+        if ($mailingListName == 'Duesletter1') {
+            $skipEmail = true;
+        }
+
+        $outputArray = getHoaRecList($conn,$duesOwed,$skipEmail,$salesWelcome,$currYearPaid,$currYearUnpaid);
+
+            foreach ($outputArray as $hoaRec)  {
+
+                // If flag is set, mark the Welcome Letters as MAILED
+                if ($logWelcomeLetters) {
+                    $stmt = $conn->prepare("UPDATE hoa_sales SET WelcomeSent='Y',LastChangedBy=?,LastChangedTs=CURRENT_TIMESTAMP WHERE PARID = ? AND WelcomeSent = 'S' ; ");
+	                $stmt->bind_param("ss",$userRec->userName,$hoaRec->Parcel_ID);
+	                $stmt->execute();
+	                $stmt->close();
+                }
+
+                if ($logDuesLetterSend) {
+                    $commType = 'Dues Notice';
+                    $commDesc = "Postal mail notice sent";
+                    $Email = false;
+                    $SentStatus = 'Y';
+
+                    if ($hoaRec->ownersList[0]->AlternateMailing) {
+                        $Addr = $hoaRec->ownersList[0]->Alt_Address_Line1;
+                    } else {
+                        $Addr = $hoaRec->Parcel_Location;
+                    }
+
+                    insertCommRec($conn,$hoaRec->Parcel_ID,$hoaRec->ownersList[0]->OwnerID,$commType,$commDesc,
+                        $hoaRec->ownersList[0]->Mailing_Name,$Email,
+                        $Addr,$SentStatus,$userRec->userName);
+
+                } // if ($logDuesLetterSend) {
+
+            } // Loop through hoa recs
+
+
 	*/
 
 
