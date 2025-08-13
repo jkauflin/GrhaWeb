@@ -536,7 +536,6 @@ async function updateAssessment() {
 }
 
 
-
 // Handle the file upload backend server call
 async function updateProperty() {
     messageDisplay.textContent = "Updating Property..."
@@ -553,7 +552,6 @@ async function updateProperty() {
         messageDisplay.textContent = `Error in Fetch: ${err.message}`
     }
 }
-
 
 async function getCommunications(parcelId) {
     //console.log("getCommunications called with parcelId = "+parcelId)
@@ -635,7 +633,6 @@ function formatCommunicationsResults(communicationsList) {
 
         tbody.appendChild(tr)
     }
-
 }
 
 async function getHoaRec(parcelId) {
@@ -860,7 +857,6 @@ function displayDetailAssessments() {
         tbody.appendChild(tr)
     }
 }
-
 
 async function getDuesStatement(parcelId) {
     let paramData = {

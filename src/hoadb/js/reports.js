@@ -7,7 +7,7 @@
  * 2015-09-08 JJK   Added GetSalesReport to show sales to HOA properties
  * 2016-04-14 JJK   Adding Dues Report (working on csv and pdf downloads)
  * 2016-04-20 JJK   Completed test Dues Statement PDF
- * 2016-04-22 JJK	Finishing up reports (added util.formatDate and util.csvFilter)
+ * 2016-04-22 JJK	Finishing up reports (added util.formatDate and csvFilter)
  * 2016-06-10 JJK   Corrected reports query to remove current owner condition
  * 2017-06-10 JJK   Added unpaid dues ranking
  * 2016-07-07 JJK   Increased database field lengths for text fields and
@@ -41,15 +41,20 @@
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox,csvFilter} from './util.js';
 import {formatUpdateOwnerSale} from './detail.js';
 
+// Global variable to hold CSV content for downloading
+var csvContent;
+
 var ReportListTbody
 var ReportsMessageDisplay
 var ReportHeader
+var ReportDownloadLinks
 
 document.addEventListener('DOMContentLoaded', () => {
     // Assign DOM elements after DOM is ready
 	ReportListTbody = document.getElementById("ReportListTbody")
 	ReportsMessageDisplay = document.getElementById("ReportsMessageDisplay")
 	ReportHeader = document.getElementById("ReportHeader")
+	ReportDownloadLinks = document.getElementById("ReportDownloadLinks")
 
 	document.getElementById("SalesReport").addEventListener("click", function (event) {
 		let reportTitle = event.target.getAttribute("data-reportTitle");
@@ -57,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	})
 
 	document.getElementById("PaidDuesCountsReport").addEventListener("click", function (event) {
-	_reportRequest(event)
+		paidDuesCountReport("Paid Dues Count Report")
 	})
 	document.getElementById("UnpaidDuesRankingReport").addEventListener("click", function (event) {
 		_reportRequest(event)
@@ -77,6 +82,9 @@ document.body.addEventListener("click", async function (event) {
 	} else if (event.target.classList.contains("SalesFlagUpdate")) {
 		event.preventDefault();
 		await handleSalesFlagUpdate(event.target);
+	} else if (event.target.classList.contains("DownloadReportCSV")) {
+		event.preventDefault();
+		_downloadReportCSV(event);
 	}
 })
 
@@ -118,7 +126,6 @@ async function handleSalesFlagUpdate(button) {
 		ReportsMessageDisplay.textContent = `Error updating sales flag: ${err.message}`;
 	}
 }
-
 
 async function salesReport(reportTitle) {
 	showLoadingSpinner(ReportsMessageDisplay)
@@ -236,6 +243,112 @@ function formatSalesResults(salesList) {
 	});
 
 }
+
+async function paidDuesCountReport(reportTitle) {
+	showLoadingSpinner(ReportsMessageDisplay)
+
+	try {
+		const response = await fetch("/api/GetPaidDuesCountList", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" }
+		})
+		await checkFetchResponse(response)
+		ReportsMessageDisplay.textContent = ""
+		// Success
+		let duesCountList = await response.json();
+		formatDuesCountResults(duesCountList,reportTitle);
+	} catch (err) {
+		console.error(err)
+		ReportsMessageDisplay.textContent = `Error in Fetch: ${err.message}`
+	}
+}
+
+function formatDuesCountResults(duesCountList,reportTitle) {
+	let reportName = "PaidDuesCountsReport"
+	ReportHeader.textContent = reportTitle
+	csvContent = ''
+	let csvLine = ''
+	let tbody = ReportListTbody;
+	empty(tbody);
+	let tr, td, th, button, i;
+
+	if (!duesCountList || duesCountList.length === 0) {
+		td = document.createElement("td");
+		td.colSpan = 6;
+		td.textContent = "No paid dues count records found.";
+		tr = document.createElement("tr");
+		tr.appendChild(td);
+		tbody.appendChild(tr);
+		return;
+	}
+
+	// Table header
+	tr = document.createElement('tr');
+	tr.classList.add('small');
+	th = document.createElement("th"); th.textContent = "Fiscal Year"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "Paid Count"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "UnPaid Count"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "Non-collectible Count"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "Total UnPaid Dues"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "Total Non-collectible Dues"; tr.appendChild(th);
+	tbody.appendChild(tr);
+
+    csvLine = csvFilter("FiscalYear");
+    csvLine += ',' + csvFilter("PaidCount");
+    csvLine += ',' + csvFilter("UnPaidCount");
+    csvLine += ',' + csvFilter("NonCollCount");
+    csvLine += ',' + csvFilter("TotalUnPaidDues");
+    csvLine += ',' + csvFilter("TotalNonCollDues");
+    csvContent += csvLine + '\n';
+
+	// Table rows
+	duesCountList.forEach((cntsRec, index) => {
+		tr = document.createElement('tr');
+		tr.classList.add('small');
+		td = document.createElement("td"); td.textContent = cntsRec.fy ?? cntsRec.FY; tr.appendChild(td);
+		td = document.createElement("td"); td.textContent = cntsRec.paidCnt ?? cntsRec.PaidCnt; tr.appendChild(td);
+		td = document.createElement("td"); td.textContent = cntsRec.unpaidCnt ?? cntsRec.UnpaidCnt; tr.appendChild(td);
+		td = document.createElement("td"); td.textContent = cntsRec.nonCollCnt ?? cntsRec.NonCollCnt; tr.appendChild(td);
+		td = document.createElement("td"); td.textContent = formatMoney(cntsRec.totalDue ?? cntsRec.TotalDue); tr.appendChild(td);
+		td = document.createElement("td"); td.textContent = formatMoney(cntsRec.nonCollDue ?? cntsRec.NonCollDue); tr.appendChild(td);
+		tbody.appendChild(tr);
+
+        csvLine = csvFilter(cntsRec.fy);
+        csvLine += ',' + csvFilter(cntsRec.paidCnt);
+        csvLine += ',' + csvFilter(cntsRec.unpaidCnt);
+        csvLine += ',' + csvFilter(cntsRec.nonCollCnt);
+        csvLine += ',' + csvFilter(formatMoney(cntsRec.totalDue));
+        csvLine += ',' + csvFilter(formatMoney(cntsRec.nonCollDue));
+        csvContent += csvLine + '\n';
+	})
+
+	button = document.createElement("button")
+	button.setAttribute('type',"button")
+	button.setAttribute('role',"button")
+	//button.dataset.reportName = formatDate() + '-' + reportName
+	button.dataset.reportName = reportName
+	button.classList.add('btn','btn-info','btn-sm','mb-1','me-1','shadow-none','DownloadReportCSV')
+	i = document.createElement("i")
+	i.classList.add('fa','fa-download','me-1')
+	button.appendChild(i)
+	button.innerHTML = '<i class="fa fa-download me-1"></i> Download CSV'
+	ReportDownloadLinks.appendChild(button);
+}
+
+    function _downloadReportCSV(event) {
+        var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        var pom = document.createElement('a');
+        var url = URL.createObjectURL(blob);
+        pom.href = url;
+        pom.setAttribute('download', event.target.dataset.reportName  + ".csv");
+        pom.click();
+    };
+	function _reportRequest(event) {
+		event.preventDefault();
+		var reportName = event.target.id;
+		var reportTitle = event.target.getAttribute("data-reportTitle");
+		_executeReport(reportName, reportTitle);
+	};
 
 	/*
 		$ReportHeader.html("Executing report query...");

@@ -18,6 +18,7 @@ Modification History
 2025-06-27 JJK  Added Assessment update
 2025-08-03 JJK  Added GetSalesList and UpdateSales functions to get sales data
                 and update the sales record WelcomeSent flag
+2025-08-08 JJK  Added new owner update function
 ================================================================================*/
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
@@ -574,6 +575,109 @@ namespace GrhaWeb.Function
             return hoaSalesList;
         }
 
+        public async Task<List<PaidDuesCount>> GetPaidDuesCountListDb()
+        {
+            //------------------------------------------------------------------------------------------------------------------
+            // Query the NoSQL container to get values
+            //------------------------------------------------------------------------------------------------------------------
+            string containerId = "hoa_assessments";
+
+            List<PaidDuesCount> duesCountList = new List<PaidDuesCount>();
+
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
+            //$sql = "SELECT * FROM hoa_assessments WHERE FY > 2006 ORDER BY FY,Parcel_ID,OwnerID DESC; ";
+            string sql = "SELECT * FROM c WHERE c.FY > 2006 ORDER BY c.FY, c.Parcel_ID, c.OwnerID DESC";
+            var feed = container.GetItemQueryIterator<hoa_assessments>(sql);
+
+            int paidCnt = 0;
+            int unPaidCnt = 0;
+            int nonCollCnt = 0;
+            decimal totalDue = 0.0m;
+            decimal nonCollDue = 0.0m;
+            int cnt = 0;
+            int prevFY = 0;
+            bool first = true;
+
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    cnt++;
+                    int fy = item.FY;
+                    decimal duesAmt = 0.0m;
+                    decimal.TryParse(item.DuesAmt?.ToString() ?? "0", out duesAmt);
+                    int paid = item.Paid;
+                    int nonCollectible = item.NonCollectible;
+
+                    if (first)
+                    {
+                        prevFY = fy;
+                        first = false;
+                    }
+
+                    if (fy != prevFY)
+                    {
+                        // Add previous FY bucket
+                        PaidDuesCount rec = new PaidDuesCount
+                        {
+                            fy = prevFY,
+                            paidCnt = paidCnt,
+                            unpaidCnt = unPaidCnt,
+                            nonCollCnt = nonCollCnt,
+                            totalDue = totalDue,
+                            nonCollDue = nonCollDue
+                        };
+                        duesCountList.Add(rec);
+
+                        // Reset counters
+                        paidCnt = 0;
+                        unPaidCnt = 0;
+                        nonCollCnt = 0;
+                        totalDue = 0.0m;
+                        nonCollDue = 0.0m;
+                        prevFY = fy;
+                    }
+
+                    if (paid == 1)
+                    {
+                        paidCnt++;
+                    }
+                    else
+                    {
+                        if (nonCollectible == 1)
+                        {
+                            nonCollCnt++;
+                            nonCollDue += duesAmt;
+                        }
+                        else
+                        {
+                            unPaidCnt++;
+                            totalDue += duesAmt;
+                        }
+                    }
+                }
+            }
+
+            // Add last bucket
+            if (!first)
+            {
+                PaidDuesCount rec = new PaidDuesCount
+                {
+                    fy = prevFY,
+                    paidCnt = paidCnt,
+                    unpaidCnt = unPaidCnt,
+                    nonCollCnt = nonCollCnt,
+                    totalDue = totalDue,
+                    nonCollDue = nonCollDue
+                };
+                duesCountList.Add(rec);
+            }
+
+            return duesCountList;
+        }
 
         public async Task UpdateSalesDB(string userName, string parid, string saledt, string processedFlag, string welcomeSent)
         {
@@ -983,12 +1087,6 @@ namespace GrhaWeb.Function
                 PatchOperation.Replace("/LastChangedTs", LastChangedTs)
             };
 
-            /*
-            AddPatchFieldBool(patchOperations, formFields, "Rental");
-            AddPatchFieldBool(patchOperations, formFields, "Managed");
-            AddPatchFieldBool(patchOperations, formFields, "Foreclosure");
-            AddPatchFieldBool(patchOperations, formFields, "Bankruptcy");
-            */
             AddPatchField(patchOperations, formFields, "UseEmail", "Bool");
             AddPatchField(patchOperations, formFields, "Comments");
 
@@ -1087,7 +1185,6 @@ namespace GrhaWeb.Function
                 }
             }
 
-
             // if current owner, update the OWNER fields in the hoa_properties record
             if (ownerRec.CurrentOwner == 1)
             {
@@ -1104,14 +1201,6 @@ namespace GrhaWeb.Function
                 AddPatchField(patchOperations, formFields, "Mailing_Name");
                 AddPatchField(patchOperations, formFields, "Owner_Phone");
                 AddPatchField(patchOperations, formFields, "Alt_Address_Line1");
-                /*
-                item2.OwnerID = item.OwnerID;
-                item2.Owner_Name1 = item.Owner_Name1;
-                item2.Owner_Name2 = item.Owner_Name2;
-                item2.Mailing_Name = item.Mailing_Name;
-                item2.Owner_Phone = item.Owner_Phone;
-                item2.Alt_Address_Line1 = item.Alt_Address_Line1;
-                */
 
                 // Convert the list to an array
                 patchArray = patchOperations.ToArray();

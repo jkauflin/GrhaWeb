@@ -19,6 +19,7 @@ Modification History
 2024-11-19 JJK  Moved DB functions into a common DB class (just like the old web)
 2025-08-03 JJK  Added GetSalesList and UpdateSales functions to get sales data
                 and update the sales record WelcomeSent flag
+2025-08-08 JJK  Added new owner update function
 ================================================================================*/
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -72,30 +73,6 @@ namespace GrhaWeb.Function
 
                 // Get the content string from the HTTP request body
                 string searchStr = await new StreamReader(req.Body).ReadToEndAsync();
-
-                /*
-                // Get the content string from the HTTP request body
-                string content = await new StreamReader(req.Body).ReadToEndAsync();
-                // Deserialize the JSON string into a generic JSON object
-                JObject jObject = JObject.Parse(content);
-                JToken? jToken;
-
-                string searchStr = "";
-                if (jObject.TryGetValue("searchStr", out jToken)) {
-                    searchStr = jToken.ToString();
-                }
-                */
-
-                /*   >>>>>> think about searches on these specific params in the future (if needed)
-    let paramData = {
-        searchStr: searchStr.value,
-        parcelId: parcelId.value,
-        lotNo: lotNo.value,
-        address: address.value,
-        ownerName: ownerName.value,
-        phoneNo: phoneNo.value,
-        altAddress: altAddress.value
-                */
                 hoaPropertyList = await hoaDbCommon.GetPropertyList(searchStr);
             }
             catch (Exception ex)
@@ -226,6 +203,34 @@ namespace GrhaWeb.Function
         }
 
 
+        [Function("GetPaidDuesCountList")]
+        public async Task<IActionResult> GetPaidDuesCountList(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            List<PaidDuesCount> duesCountList = new List<PaidDuesCount>();
+
+            try
+            {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+
+                //log.LogInformation(">>> User is authorized ");
+
+                duesCountList = await hoaDbCommon.GetPaidDuesCountListDb();
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+            }
+
+            return new OkObjectResult(duesCountList);
+        }
+
+
         [Function("UpdateSales")]
         public async Task<IActionResult> UpdateSales(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
@@ -304,112 +309,7 @@ namespace GrhaWeb.Function
                     $logWelcomeLetters = paramBoolVal("logWelcomeLetters");
 
                     $outputArray = array();
-                    $conn = getConn($host, $dbadmin, $password, $dbname);
 
-                    if ($reportName == "SalesReport" || $reportName == "SalesNewOwnerReport") {
-                        $sql = "";
-                            }
-                            $result->close();
-                        }
-                        // End of if ($reportName == "SalesReport" || $reportName == "SalesNewOwnerReport") {
-
-
-                    } else if ($reportName == "PaidDuesCountsReport") {
-
-                        // get the data for the counts summary by FY
-                        $parcelId = "";
-                        $ownerId = "";
-                        $fy = 0;
-                        $duesAmt = "";
-                        $paid = FALSE;
-                        $nonCollectible = FALSE;
-
-                        //$sql = "SELECT * FROM hoa_assessments WHERE FY > 2006 ORDER BY FY DESC; ";
-                        $sql = "SELECT * FROM hoa_assessments WHERE FY > 2006 ORDER BY FY,Parcel_ID,OwnerID DESC; ";
-
-                    //  a.FY
-                    //	a.Paid
-
-                        $stmt = $conn->prepare($sql);
-                        $stmt->execute();
-                        $result = $stmt->get_result();
-                        $stmt->close();
-
-                        $paidCnt = 0;
-                        $unPaidCnt = 0;
-                        $nonCollCnt = 0;
-                        $totalDue = 0.0;
-                        $nonCollDue = 0.0;
-                        $cnt = 0;
-                        $prevFY = "";
-                        $prevParcelId = "";
-                        $prevOwnerId = "";
-                        if ($result->num_rows > 0) {
-                            // Loop through all the member properties
-                            while($row = $result->fetch_assoc()) {
-                                $cnt = $cnt + 1;
-
-                                //$parcelId = $row["Parcel_ID"];
-                                //$ownerId = $row["OwnerID"];
-
-                                $fy = $row["FY"];
-                                $duesAmt = $row["DuesAmt"];
-                                $paid = $row["Paid"];
-                                $nonCollectible = $row["NonCollectible"];
-
-                                if ($cnt == 1) {
-                                    $prevFY = $fy;
-                                }
-
-
-                                if ($fy != $prevFY) {
-                                    $paidDuesCountsRec = new PaidDuesCountsRec();
-                                    $paidDuesCountsRec->fy = $prevFY;
-                                    $paidDuesCountsRec->paidCnt = $paidCnt;
-                                    $paidDuesCountsRec->unpaidCnt = $unPaidCnt;
-                                    $paidDuesCountsRec->nonCollCnt = $nonCollCnt;
-                                    $paidDuesCountsRec->totalDue = $totalDue;
-                                    $paidDuesCountsRec->nonCollDue = $nonCollDue;
-                                    array_push($outputArray,$paidDuesCountsRec);
-
-                                    // reset counts
-                                    $paidCnt = 0;
-                                    $unPaidCnt = 0;
-                                    $nonCollCnt = 0;
-                                    $totalDue = 0.0;
-                                    $nonCollDue = 0.0;
-                                    $prevFY = $fy;
-                                    $prevParcelId = $parcelId;
-                                    $prevOwnerId = $ownerId;
-                                }
-
-                                // Find duplicate assessments for the same parcel
-
-                                if ($paid) {
-                                    $paidCnt++;
-                                } else {
-                                    if ($nonCollectible) {
-                                        $nonCollCnt++;
-                                        $nonCollDue += stringToMoney($duesAmt);
-                                    } else {
-                                        $unPaidCnt++;
-                                        $totalDue += stringToMoney($duesAmt);
-                                    }
-                                }
-
-                            }
-
-                            // Get the last bucket
-                            $paidDuesCountsRec = new PaidDuesCountsRec();
-                            $paidDuesCountsRec->fy = $prevFY;
-                            $paidDuesCountsRec->paidCnt = $paidCnt;
-                            $paidDuesCountsRec->unpaidCnt = $unPaidCnt;
-                            $paidDuesCountsRec->nonCollCnt = $nonCollCnt;
-                            $paidDuesCountsRec->totalDue = $totalDue;
-                            $paidDuesCountsRec->nonCollDue = $nonCollDue;
-                            array_push($outputArray,$paidDuesCountsRec);
-
-                        }
 
                     } else {
                         // The general Reports query - creating a list of HoaRec records (with all data for the Property)
@@ -632,11 +532,8 @@ namespace GrhaWeb.Function
 
         /*
         using Newtonsoft.Json.Linq;
-
         string json = "{\"Name\":\"John\",\"Age\":30}";
-
         JObject obj = JObject.Parse(json);
-
         Console.WriteLine($"Name: {obj["Name"]}, Age: {obj["Age"]}"); // Use index-based access
         */
 
