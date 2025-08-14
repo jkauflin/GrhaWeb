@@ -370,6 +370,8 @@ async function _reportRequest(event) {
 			body: JSON.stringify(paramData)
 		});
 		await checkFetchResponse(response);
+		// Success
+		let hoaRecList = await response.json();
 		ReportsMessageDisplay.textContent = "Report retrieved.";
 		if (reportName == 'UnpaidDuesRankingReport') {
 			//_duesRank(reportList, reportName);
