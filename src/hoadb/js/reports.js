@@ -349,6 +349,7 @@ function _downloadReportCSV(event) {
 }
 
 async function _reportRequest(event) {
+	showLoadingSpinner(ReportsMessageDisplay)
 	event.preventDefault();
 	var reportName = event.target.id;
 	var reportTitle = event.target.dataset.reportTitle
@@ -379,7 +380,6 @@ async function _reportRequest(event) {
 		console.error(err);
 		ReportsMessageDisplay.textContent = `Error updating sales flag: ${err.message}`;
 	}
-
 }
 
 	/*

@@ -513,11 +513,9 @@ namespace GrhaWeb.Function
         }
 
 
-
         //==============================================================================================================
         //  Function to return an array of full hoaRec objects (with a couple of parameters to filter list)
         //==============================================================================================================
-        // Function to return a list of full HoaRec objects with filtering options
         public async Task<List<HoaRec>> GetHoaRecListDB(
             bool duesOwed = false,
             bool skipEmail = false,
@@ -532,7 +530,7 @@ namespace GrhaWeb.Function
             Container propertiesContainer = db.GetContainer("hoa_properties");
             Container ownersContainer = db.GetContainer("hoa_owners");
             Container assessmentsContainer = db.GetContainer("hoa_assessments");
-            Container salesContainer = db.GetContainer("hoa_sales");
+            //Container salesContainer = db.GetContainer("hoa_sales");
             Container configContainer = db.GetContainer("hoa_config");
 
             string sql = "";
@@ -543,157 +541,92 @@ namespace GrhaWeb.Function
             {
                 // Get the test parcel from config
                 testEmailParcel = await getConfigVal(configContainer, "duesEmailTestParcel");
-                sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{testEmailParcel}' ORDER BY c.Parcel_ID";
-            }
-            else
-            {
-                // Get max FY if needed
-                if (currYearPaid || currYearUnpaid)
-                {
-                    var maxFyQuery = new QueryDefinition("SELECT VALUE MAX(c.FY) FROM c");
-                    var maxFyFeed = assessmentsContainer.GetItemQueryIterator<int>(maxFyQuery);
-                    while (fy == 0 && maxFyFeed.HasMoreResults)
-                    {
-                        var response = await maxFyFeed.ReadNextAsync();
-                        foreach (var item in response)
-                        {
-                            fy = item;
-                        }
-                    }
-                }
-
-                if (salesWelcome)
-                {
-                    // Properties with sales where WelcomeSent = 'S'
-                    sql = "SELECT p.Parcel_ID, o.OwnerID FROM hoa_properties p JOIN o IN hoa_owners o ON p.Parcel_ID = o.Parcel_ID " +
-                          "JOIN s IN hoa_sales s ON p.Parcel_ID = s.PARID WHERE o.CurrentOwner = 1 AND s.WelcomeSent = 'S' ORDER BY s.CreateTimestamp DESC";
-                }
-                else if (currYearUnpaid)
-                {
-                    // Properties with unpaid assessments for current FY
-                    sql = $"SELECT p.Parcel_ID, o.OwnerID FROM hoa_properties p JOIN o IN hoa_owners o ON p.Parcel_ID = o.Parcel_ID " +
-                          "JOIN a IN hoa_assessments a ON p.Parcel_ID = a.Parcel_ID AND o.OwnerID = a.OwnerID " +
-                          $"WHERE a.FY = {fy} AND a.Paid = 0 ORDER BY p.Parcel_ID";
-                }
-                else if (currYearPaid)
-                {
-                    // Properties with paid assessments for current FY
-                    sql = $"SELECT p.Parcel_ID, o.OwnerID FROM hoa_properties p JOIN o IN hoa_owners o ON p.Parcel_ID = o.Parcel_ID " +
-                          "JOIN a IN hoa_assessments a ON p.Parcel_ID = a.Parcel_ID AND o.OwnerID = a.OwnerID " +
-                          $"WHERE a.FY = {fy} AND a.Paid = 1 ORDER BY p.Parcel_ID";
-                }
-                else
-                {
-                    // All properties and current owner
-                    sql = "SELECT p.Parcel_ID, o.OwnerID FROM hoa_properties p JOIN o IN hoa_owners o ON p.Parcel_ID = o.Parcel_ID " +
-                          "WHERE o.CurrentOwner = 1 ORDER BY p.Parcel_ID";
-                }
+                //sql = $"SELECT * FROM c WHERE c.Parcel_ID = '{testEmailParcel}' ORDER BY c.Parcel_ID";
             }
 
-            // Cosmos DB SQL API does not support cross-container joins, so we need to do this in code
-            // We'll fetch all current owners and properties, then filter as needed
-            List<(string Parcel_ID, int OwnerID)> parcelOwnerPairs = new List<(string, int)>();
-
-            if (testEmail)
+            // Get max FY if needed
+            if (currYearPaid || currYearUnpaid)
             {
-                // Only one parcel, get current owner
-                var ownersQuery = new QueryDefinition("SELECT * FROM c WHERE c.Parcel_ID = @parcelId AND c.CurrentOwner = 1")
-                    .WithParameter("@parcelId", testEmailParcel);
-                var ownersFeed = ownersContainer.GetItemQueryIterator<hoa_owners>(ownersQuery);
-                while (ownersFeed.HasMoreResults)
+                var maxFyQuery = new QueryDefinition("SELECT VALUE MAX(c.FY) FROM c");
+                var maxFyFeed = assessmentsContainer.GetItemQueryIterator<int>(maxFyQuery);
+                while (fy == 0 && maxFyFeed.HasMoreResults)
                 {
-                    var response = await ownersFeed.ReadNextAsync();
-                    foreach (var owner in response)
+                    var response = await maxFyFeed.ReadNextAsync();
+                    foreach (var item in response)
                     {
-                        parcelOwnerPairs.Add((testEmailParcel!, owner.OwnerID));
-                    }
-                }
-            }
-            else
-            {
-                // Get all current owners
-                var ownersQuery = new QueryDefinition("SELECT * FROM c WHERE c.CurrentOwner = 1");
-                var ownersFeed = ownersContainer.GetItemQueryIterator<hoa_owners>(ownersQuery);
-                var allOwners = new List<hoa_owners>();
-                while (ownersFeed.HasMoreResults)
-                {
-                    var response = await ownersFeed.ReadNextAsync();
-                    allOwners.AddRange(response);
-                }
-
-                // Get all properties
-                var propertiesFeed = propertiesContainer.GetItemQueryIterator<hoa_properties>("SELECT * FROM c");
-                var allProperties = new List<hoa_properties>();
-                while (propertiesFeed.HasMoreResults)
-                {
-                    var response = await propertiesFeed.ReadNextAsync();
-                    allProperties.AddRange(response);
-                }
-
-                // Join in code
-                foreach (var owner in allOwners)
-                {
-                    var prop = allProperties.FirstOrDefault(p => p.Parcel_ID == owner.Parcel_ID);
-                    if (prop != null)
-                    {
-                        // Apply additional filters for salesWelcome, currYearPaid, currYearUnpaid
-                        if (salesWelcome)
-                        {
-                            // Check for sales with WelcomeSent = 'S'
-                            var salesQuery = new QueryDefinition("SELECT * FROM c WHERE c.PARID = @parcelId AND c.WelcomeSent = 'S'")
-                                .WithParameter("@parcelId", owner.Parcel_ID);
-                            var salesFeed = salesContainer.GetItemQueryIterator<hoa_sales>(salesQuery);
-                            bool found = false;
-                            while (salesFeed.HasMoreResults && !found)
-                            {
-                                var salesResp = await salesFeed.ReadNextAsync();
-                                if (salesResp.Any()) found = true;
-                            }
-                            if (!found) continue;
-                        }
-                        if (currYearUnpaid || currYearPaid)
-                        {
-                            var assessQuery = new QueryDefinition("SELECT * FROM c WHERE c.Parcel_ID = @parcelId AND c.OwnerID = @ownerId AND c.FY = @fy")
-                                .WithParameter("@parcelId", owner.Parcel_ID)
-                                .WithParameter("@ownerId", owner.OwnerID)
-                                .WithParameter("@fy", fy);
-                            var assessFeed = assessmentsContainer.GetItemQueryIterator<hoa_assessments>(assessQuery);
-                            bool found = false;
-                            while (assessFeed.HasMoreResults && !found)
-                            {
-                                var assessResp = await assessFeed.ReadNextAsync();
-                                foreach (var a in assessResp)
-                                {
-                                    if ((currYearUnpaid && a.Paid == 0) || (currYearPaid && a.Paid == 1))
-                                    {
-                                        found = true;
-                                        break;
-                                    }
-                                }
-                            }
-                            if (!found) continue;
-                        }
-                        parcelOwnerPairs.Add((owner.Parcel_ID!, owner.OwnerID));
+                        fy = item;
                     }
                 }
             }
 
-            // For each parcel/owner, get the full HoaRec and apply additional filters
-            foreach (var (parcelId, ownerId) in parcelOwnerPairs)
+            // Get all properties
+            // get all current owners
+            // get all NON-PAID assessments
+            // *** re-do the GetHoaRec function to take advantage of the fact that you already have the full list of properties
+
+            // Get all properties
+            List<hoa_properties> propList = new List<hoa_properties>();
+            var allPropQuery = new QueryDefinition("SELECT * FROM c ORDER BY c.Parcel_ID");
+            var allPropFeed = propertiesContainer.GetItemQueryIterator<hoa_properties>(allPropQuery);
+            while (allPropFeed.HasMoreResults)
             {
-                var hoaRec = await GetHoaRec(parcelId, ownerId.ToString());
-                if (duesOwed && hoaRec.totalDue < 0.01m)
+                var response = await allPropFeed.ReadNextAsync();
+                foreach (var item in response)
                 {
-                    continue;
+                    propList.Add(item);
                 }
-                if (skipEmail && hoaRec.property != null && hoaRec.property.UseEmail == 1)
+            }
+
+            // Get all current owners
+            List<hoa_owners> ownerList = new List<hoa_owners>();
+            var allOwnerQuery = new QueryDefinition("SELECT * FROM c WHERE c.CurrentOwner = 1");
+            var allOwnerFeed = ownersContainer.GetItemQueryIterator<hoa_owners>(allOwnerQuery);
+            while (allOwnerFeed.HasMoreResults)
+            {
+                var response = await allOwnerFeed.ReadNextAsync();
+                foreach (var item in response)
                 {
-                    continue;
+                    ownerList.Add(item);
                 }
+            }
+
+            // Get all non-paid, collectible assessments
+            List<hoa_assessments> assessmentList = new List<hoa_assessments>();
+            var allAssessmentQuery = new QueryDefinition("SELECT * FROM c WHERE c.Paid = 0 AND (IS_NULL(c.NonCollectible) OR c.NonCollectible != 1)");
+            var allAssessmentFeed = assessmentsContainer.GetItemQueryIterator<hoa_assessments>(allAssessmentQuery);
+            while (allAssessmentFeed.HasMoreResults)
+            {
+                var response = await allAssessmentFeed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    assessmentList.Add(item);
+                }
+            }
+
+            // Example: Build HoaRec for each property using the in-memory lists
+            foreach (var prop in propList)
+            {
+                var hoaRec = BuildHoaRecFromLists(prop, ownerList, assessmentList);
                 outputList.Add(hoaRec);
             }
 
             return outputList;
+        }
+
+        // Build an HoaRec using in-memory lists of owners and assessments
+        public HoaRec BuildHoaRecFromLists(
+            hoa_properties property,
+            List<hoa_owners> ownerList,
+            List<hoa_assessments> assessmentList)
+        {
+            HoaRec hoaRec = new HoaRec();
+            hoaRec.property = property;
+            hoaRec.ownersList = ownerList.Where(o => o.Parcel_ID == property.Parcel_ID).ToList();
+            hoaRec.assessmentsList = assessmentList.Where(a => a.Parcel_ID == property.Parcel_ID).ToList();
+            hoaRec.totalDuesCalcList = util.CalcTotalDues(hoaRec.assessmentsList, out bool onlyCurrYearDue, out decimal totalDueOut);
+            hoaRec.totalDue = totalDueOut;
+            // Add any other calculations or fields as needed
+            return hoaRec;
         }
 
         /*

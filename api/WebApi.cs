@@ -240,8 +240,6 @@ namespace GrhaWeb.Function
                 }
 
                 hoaRecList = await hoaDbCommon.GetHoaRecListDB(duesOwed, skipEmail, salesWelcome, currYearPaid, currYearUnpaid, testEmail);
-                
-                
             }
             catch (Exception ex)
             {
