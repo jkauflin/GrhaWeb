@@ -397,6 +397,9 @@ function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
         if (hoaRec.property.parcel_ID == parcelId && hoaRec.ownersList[index].ownerID == ownerId) {
             ownerRec = hoaRec.ownersList[index]
         }
+
+        // Save a list of all owners for the owner select list
+
     }
     if (ownerRec == null) {
         console.error("Owner ID not found in current hoaRec, id = "+ownerId)

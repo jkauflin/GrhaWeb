@@ -541,18 +541,18 @@ function _formatReportList(hoaRecList, reportName, reportTitle) {
 		tr.classList.add('small');
 		td = document.createElement("td"); td.textContent = recCnt; tr.appendChild(td);
 		td = document.createElement("td"); td.textContent = hoaRec.property.parcel_ID; tr.appendChild(td);
-		td = document.createElement("td"); td.textContent = hoaRec.property.mailing_name; tr.appendChild(td);
+		td = document.createElement("td"); td.textContent = hoaRec.property.mailing_Name; tr.appendChild(td);
 
-		if (hoaRec.ownersList[0].alternatemailing == 1) {
-			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_address_line1 + ' ' + hoaRec.ownersList[0].alt_address_line2; tr.appendChild(td);
-			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_city; tr.appendChild(td);
-			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_state; tr.appendChild(td);
-			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_zip; tr.appendChild(td);
+		if (hoaRec.ownersList[0].alternateMailing == 1) {
+			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_Address_Line1 + ' ' + hoaRec.ownersList[0].alt_Address_Line2; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_City; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_State; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_Zip; tr.appendChild(td);
 		} else {
-			td = document.createElement("td"); td.textContent = hoaRec.parcel_location; tr.appendChild(td);
-			td = document.createElement("td"); td.textContent = hoaRec.property_city; tr.appendChild(td);
-			td = document.createElement("td"); td.textContent = hoaRec.property_state; tr.appendChild(td);
-			td = document.createElement("td"); td.textContent = hoaRec.property_zip; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.property.parcel_Location; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.property.property_City; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.property.property_State; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.property.property_Zip; tr.appendChild(td);
 		}
 
 		td = document.createElement("td"); td.textContent = hoaRec.totalDue; tr.appendChild(td);

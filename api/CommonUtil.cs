@@ -10,6 +10,7 @@ Modification History
                 calculation of total dues (& fees) based on Assessments
 ================================================================================*/
 
+using System.Globalization;
 using Microsoft.Extensions.Logging;
 
 using GrhaWeb.Function.Model;
@@ -24,39 +25,56 @@ namespace GrhaWeb.Function
             log = logger;
         }
 
-        public decimal stringToMoney(string moneyString) {
+        public decimal stringToMoney(string moneyString)
+        {
+            /*
             // Remove the dollar sign and parse the string to a decimal
             decimal moneyValue = decimal.Parse(moneyString.TrimStart('$'));
             // Round down to 2 decimal places
             moneyValue = Math.Floor(moneyValue * 100) / 100;
             return moneyValue;
+            */
+
+            // Allow currency symbols, thousands separators, and decimal points
+            var style = NumberStyles.Currency;
+            var culture = CultureInfo.GetCultureInfo("en-US");
+
+            if (Decimal.TryParse(moneyString, style, culture, out decimal result))
+            {
+                Console.WriteLine($"Parsed value: {result}"); // Output: 1234.56
+            }
+            else
+            {
+                throw new FormatException("Invalid money format, moneyString: " + moneyString);
+            }
+            return result;
         }
 
+        /*
+                decimal amount = 1234.56m;
+                string formattedAmount = amount.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"));
+        */
 
-/*
-        decimal amount = 1234.56m;
-        string formattedAmount = amount.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"));
-*/
-
-/*
-    //Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
-    var nonMoneyCharsStr = "[\x01-\x2D\x2F\x3A-\x7F]";
-    //"g" global so it does more than 1 substitution
-    var regexNonMoneyChars = new RegExp(nonMoneyCharsStr, "g");
-    function formatMoney(inAmount) {
-        var inAmountStr = '' + inAmount;
-        inAmountStr = inAmountStr.replace(regexNonMoneyChars, '');
-        return parseFloat(inAmountStr).toFixed(2);
-    }
-*/
+        /*
+            //Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
+            var nonMoneyCharsStr = "[\x01-\x2D\x2F\x3A-\x7F]";
+            //"g" global so it does more than 1 substitution
+            var regexNonMoneyChars = new RegExp(nonMoneyCharsStr, "g");
+            function formatMoney(inAmount) {
+                var inAmountStr = '' + inAmount;
+                inAmountStr = inAmountStr.replace(regexNonMoneyChars, '');
+                return parseFloat(inAmountStr).toFixed(2);
+            }
+        */
 
         //---------------------------------------------------------------------------------------------------
         // Calculate the total dues amount from the property assessments information and pass back a list
         // of the individual charge amounts and description
         //---------------------------------------------------------------------------------------------------
-        public List<TotalDuesCalcRec> CalcTotalDues(List<hoa_assessments> assessmentsList, 
-                                                    out bool onlyCurrYearDue, 
-                                                    out decimal totalDue) {
+        public List<TotalDuesCalcRec> CalcTotalDues(List<hoa_assessments> assessmentsList,
+                                                    out bool onlyCurrYearDue,
+                                                    out decimal totalDue)
+        {
 
             List<TotalDuesCalcRec> totalDuesCalcList = new List<TotalDuesCalcRec>();
             onlyCurrYearDue = false;
@@ -66,7 +84,7 @@ namespace GrhaWeb.Function
             DateTime dateDue;
             string duesAmtStr;
             bool duesDue;
-			decimal duesAmt = 0.0m;
+            decimal duesAmt = 0.0m;
             decimal totalLateFees;
             int monthsApart;
             int prevFY;
@@ -83,21 +101,26 @@ namespace GrhaWeb.Function
                 duesDue = false;
 
                 // If NOT PAID (and still able to be collected)
-                if (assessmentRec.Paid != 1 && assessmentRec.NonCollectible != 1) {
-                    if (cnt == 1) {
+                if (assessmentRec.Paid != 1 && assessmentRec.NonCollectible != 1)
+                {
+                    if (cnt == 1)
+                    {
                         onlyCurrYearDue = true;
-                    } else { 
+                    }
+                    else
+                    {
                         onlyCurrYearDue = false;
                     }
 
                     // check dates (if NOT PAID)
-                    if (currDate > dateDue) {
+                    if (currDate > dateDue)
+                    {
                         duesDue = true;
-                    } 
+                    }
 
                     duesAmtStr = assessmentRec.DuesAmt ?? "";
                     duesAmt = stringToMoney(duesAmtStr);
-                            
+
                     totalDue += duesAmt;
 
                     totalDuesCalcRec = new TotalDuesCalcRec();
@@ -115,11 +138,13 @@ namespace GrhaWeb.Function
                     //          if months > 10, use 10 ($100) - show a LATE FEE for every unpaid assessment
                     //================================================================================================================================
                     //if ($hoaAssessmentRec->Lien && $hoaAssessmentRec->Disposition == 'Open') {
-                    if (duesDue) {
+                    if (duesDue)
+                    {
                         // Assume that if past due, there will be interest and fees (so can't just pay the curr year due)
                         onlyCurrYearDue = false;
                         // If still calculating interest dynamically calculate the compound interest (else just use the value from the assessment record)
-                        if (assessmentRec.StopInterestCalc != 1) {
+                        if (assessmentRec.StopInterestCalc != 1)
+                        {
                             assessmentRec.AssessmentInterest = CalcCompoundInterest(duesAmt, dateDue);
                         }
 
@@ -131,19 +156,21 @@ namespace GrhaWeb.Function
                         totalDuesCalcList.Add(totalDuesCalcRec);
 
                         // Calculate monthly late fees (starting in November 2024 for the FY 2025)
-                        if (assessmentRec.FY > 2024) {
+                        if (assessmentRec.FY > 2024)
+                        {
                             // number of months between the due date and current date
                             monthsApart = ((currDate.Year - dateDue.Year) * 12) + currDate.Month - dateDue.Month;
                             // Ensure the number of months is non-negative
                             monthsApart = Math.Abs(monthsApart);
-                            if (monthsApart > 10) {
+                            if (monthsApart > 10)
+                            {
                                 monthsApart = 10;
                             }
 
                             totalLateFees = 10.00m * monthsApart;
                             totalDue += totalLateFees;
 
-                            prevFY = assessmentRec.FY-1;
+                            prevFY = assessmentRec.FY - 1;
                             totalDuesCalcRec = new TotalDuesCalcRec();
                             totalDuesCalcRec.calcDesc = "$10 a Month late fee on FY " + assessmentRec.FY.ToString() + " Assessment (since " + prevFY.ToString() + "-10-31)";
                             totalDuesCalcRec.calcValue = totalLateFees.ToString();
@@ -155,11 +182,13 @@ namespace GrhaWeb.Function
                 } // if (assessmentRec.Paid != 1 && assessmentRec.NonCollectible != 1) {
 
                 // If the Assessment was Paid but the interest was not, then add the interest to the total
-                if (assessmentRec.Paid == 1 && assessmentRec.InterestNotPaid == 1) {
+                if (assessmentRec.Paid == 1 && assessmentRec.InterestNotPaid == 1)
+                {
                     onlyCurrYearDue = false;
 
                     // If still calculating interest dynamically calculate the compound interest
-                    if (assessmentRec.StopInterestCalc != 1) {
+                    if (assessmentRec.StopInterestCalc != 1)
+                    {
                         assessmentRec.AssessmentInterest = CalcCompoundInterest(duesAmt, dateDue);
                     }
 
@@ -171,14 +200,16 @@ namespace GrhaWeb.Function
                     totalDuesCalcList.Add(totalDuesCalcRec);
                 } //  if (assessmentRec.Paid == 1 && assessmentRec.InterestNotPaid == 1) {
 
-				// If there is an Open Lien (not Paid, Released, or Closed)
+                // If there is an Open Lien (not Paid, Released, or Closed)
                 dispositionStr = assessmentRec.Disposition ?? "";
-                if (assessmentRec.Lien == 1 && dispositionStr.Equals("Open") && assessmentRec.NonCollectible != 1) {
-					// calc interest - start date   WHEN TO CALC INTEREST
-					// unpaid fee amount and interest since the Filing Date
+                if (assessmentRec.Lien == 1 && dispositionStr.Equals("Open") && assessmentRec.NonCollectible != 1)
+                {
+                    // calc interest - start date   WHEN TO CALC INTEREST
+                    // unpaid fee amount and interest since the Filing Date
 
-					// if there is a Filing Fee (on an Open Lien), then check to calc interest (or use stored value)
-                    if (assessmentRec.FilingFee > 0.0m) {
+                    // if there is a Filing Fee (on an Open Lien), then check to calc interest (or use stored value)
+                    if (assessmentRec.FilingFee > 0.0m)
+                    {
                         totalDue += assessmentRec.FilingFee;
                         totalDuesCalcRec = new TotalDuesCalcRec();
                         totalDuesCalcRec.calcDesc = "FY " + assessmentRec.FY.ToString() + " Assessment Lien Filing Fee";
@@ -186,7 +217,8 @@ namespace GrhaWeb.Function
                         totalDuesCalcList.Add(totalDuesCalcRec);
 
                         // If still calculating interest dynamically calculate the compound interest
-                        if (assessmentRec.StopInterestCalc != 1) {
+                        if (assessmentRec.StopInterestCalc != 1)
+                        {
                             assessmentRec.FilingFeeInterest = CalcCompoundInterest(assessmentRec.FilingFee, assessmentRec.DateFiled);
                         }
 
@@ -197,7 +229,8 @@ namespace GrhaWeb.Function
                         totalDuesCalcList.Add(totalDuesCalcRec);
                     }
 
-                    if (assessmentRec.ReleaseFee > 0.0m) {
+                    if (assessmentRec.ReleaseFee > 0.0m)
+                    {
                         totalDue += assessmentRec.ReleaseFee;
                         totalDuesCalcRec = new TotalDuesCalcRec();
                         totalDuesCalcRec.calcDesc = "FY " + assessmentRec.FY.ToString() + " Assessment Lien Release Fee";
@@ -205,7 +238,8 @@ namespace GrhaWeb.Function
                         totalDuesCalcList.Add(totalDuesCalcRec);
                     }
 
-                    if (assessmentRec.BankFee > 0.0m) {
+                    if (assessmentRec.BankFee > 0.0m)
+                    {
                         totalDue += assessmentRec.BankFee;
                         totalDuesCalcRec = new TotalDuesCalcRec();
                         totalDuesCalcRec.calcDesc = "FY " + assessmentRec.FY.ToString() + " Assessment Bank Fee";

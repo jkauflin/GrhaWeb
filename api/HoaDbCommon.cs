@@ -19,6 +19,7 @@ Modification History
 2025-08-03 JJK  Added GetSalesList and UpdateSales functions to get sales data
                 and update the sales record WelcomeSent flag
 2025-08-08 JJK  Added new owner update function
+2025-08-17 JJK  Added functions for reports
 ================================================================================*/
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
@@ -586,18 +587,7 @@ namespace GrhaWeb.Function
 
             // Get all assessments
             List<hoa_assessments> assessmentList = new List<hoa_assessments>();
-
-            var allAssessmentQuery = new QueryDefinition("SELECT * FROM c ORDER BY c.Parcel_ID ");
-        /*
-		if (empty($fy) || $fy == "LATEST") {
-			$stmt = $conn->prepare("SELECT * FROM hoa_assessments WHERE Parcel_ID = ? ORDER BY FY DESC ; ");
-			$stmt->bind_param("s", $parcelId);
-		} else {
-			$stmt = $conn->prepare("SELECT * FROM hoa_assessments WHERE Parcel_ID = ? AND FY = ? ORDER BY FY DESC ; ");
-			$stmt->bind_param("ss", $parcelId,$fy);
-		}
-        */
-
+            var allAssessmentQuery = new QueryDefinition("SELECT * FROM c ORDER BY c.FY DESC ");
             if (currYearPaid)
             {
                 allAssessmentQuery = new QueryDefinition("SELECT * FROM c WHERE c.FY = @fy AND c.Paid = 1")
@@ -733,8 +723,7 @@ namespace GrhaWeb.Function
             CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
-            //$sql = "SELECT * FROM hoa_assessments WHERE FY > 2006 ORDER BY FY,Parcel_ID,OwnerID DESC; ";
-            string sql = "SELECT * FROM c WHERE c.FY > 2006 ORDER BY c.FY, c.Parcel_ID, c.OwnerID DESC";
+            string sql = "SELECT * FROM c WHERE c.FY > 2006 ORDER BY c.FY ";
             var feed = container.GetItemQueryIterator<hoa_assessments>(sql);
 
             int paidCnt = 0;
@@ -752,11 +741,10 @@ namespace GrhaWeb.Function
                 foreach (var item in response)
                 {
                     cnt++;
+                    //log.LogWarning($"{cnt} FY: {item.FY}, Parcel_ID: {item.Parcel_ID}, DuesAmt: {item.DuesAmt}, Paid: {item.Paid}");
+                    
                     int fy = item.FY;
-                    decimal duesAmt = 0.0m;
-                    decimal.TryParse(item.DuesAmt?.ToString() ?? "0", out duesAmt);
-                    int paid = item.Paid;
-                    int nonCollectible = item.NonCollectible;
+                    decimal duesAmt = util.stringToMoney(item.DuesAmt);
 
                     if (first)
                     {
@@ -787,13 +775,13 @@ namespace GrhaWeb.Function
                         prevFY = fy;
                     }
 
-                    if (paid == 1)
+                    if (item.Paid == 1)
                     {
                         paidCnt++;
                     }
                     else
                     {
-                        if (nonCollectible == 1)
+                        if (item.NonCollectible == 1)
                         {
                             nonCollCnt++;
                             nonCollDue += duesAmt;
