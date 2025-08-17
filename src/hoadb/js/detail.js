@@ -390,66 +390,70 @@ export function formatUpdateOwner(parcelId,ownerId,saleDate="") {
     OwnerUpdateModal.show()
 }
 
-function formatUpdateAssessment(parcelId,ownerId,assessmentId,fy) {
-    // Find the correct owner rec
-    let ownerRec = null
-    for (let index in hoaRec.ownersList) {
-        if (hoaRec.property.parcel_ID == parcelId && hoaRec.ownersList[index].ownerID == ownerId) {
-            ownerRec = hoaRec.ownersList[index]
+function formatUpdateAssessment(parcelId, ownerId, assessmentId, fy) {
+    // Populate the Owner dropdown with all owners for this parcel
+    assOwnerID.innerHTML = "";
+    let ownerRec = null;
+    hoaRec.ownersList.forEach(owner => {
+        if (hoaRec.property.parcel_ID == parcelId && owner.ownerID == ownerId) {
+            ownerRec = owner;
         }
-
-        // Save a list of all owners for the owner select list
-
-    }
+        let option = document.createElement("option");
+        option.value = owner.ownerID;
+        option.textContent = owner.ownerID + " - " + (owner.owner_Name1 || "") + " " + (owner.owner_Name2 || "");
+        if (owner.ownerID == ownerId) {
+            option.selected = true;
+        }
+        assOwnerID.appendChild(option);
+    });
     if (ownerRec == null) {
-        console.error("Owner ID not found in current hoaRec, id = "+ownerId)
-        return        
+        console.error("Owner ID not found in current hoaRec, id = " + ownerId);
+        return;
     }
 
     // Find the correct assessment rec
-    let assessmentRec = null
+    let assessmentRec = null;
     for (let index in hoaRec.assessmentsList) {
         if (hoaRec.property.parcel_ID == parcelId && hoaRec.assessmentsList[index].ownerID == ownerId && hoaRec.assessmentsList[index].id == assessmentId) {
-            assessmentRec = hoaRec.assessmentsList[index]
+            assessmentRec = hoaRec.assessmentsList[index];
         }
     }
     if (assessmentRec == null) {
-        console.error("Assessment ID not found in current hoaRec, id = "+assessmentId)
-        return        
+        console.error("Assessment ID not found in current hoaRec, id = " + assessmentId);
+        return;
     }
-    
-    assParcel_ID.value = parcelId
-    assParcelLocation.textContent = hoaRec.property.parcel_Location
-    assOwnerID.value = ownerId + " - " + ownerRec.owner_Name1 + " " + ownerRec.owner_Name2
-    assId.value = assessmentId
-    assFY.value = fy
-    
-    assDuesAmt.value = formatMoney(assessmentRec.duesAmt)
-    assDateDue.value = standardizeDate(assessmentRec.dateDue)
-    assPaid.checked = assessmentRec.paid
-    assNonCollectible.checked = assessmentRec.nonCollectible
-    assDatePaid.value = standardizeDate(assessmentRec.datePaid)
-    assPaymentMethod.value = assessmentRec.paymentMethod
-    assLien.checked = assessmentRec.lien
-    assLienRefNo.value = assessmentRec.lienRefNo
-    assDateFiled.value = standardizeDate(assessmentRec.dateFiled)
-    assDisposition.value = assessmentRec.disposition
-    assFilingFee.value = formatMoney(assessmentRec.filingFee)
-    assReleaseFee.value = formatMoney(assessmentRec.releaseFee)
-    assDateReleased.value = standardizeDate(assessmentRec.dateReleased)
-    assLienDatePaid.value = standardizeDate(assessmentRec.lienDatePaid)
-    assAmountPaid.value = formatMoney(assessmentRec.amountPaid)
-    assStopInterestCalc.checked = assessmentRec.stopInterestCalc
-    assFilingFeeInterest.value = formatMoney(assessmentRec.filingFeeInterest)
-    assAssessmentInterest.value = formatMoney(assessmentRec.assessmentInterest)
-    assInterestNotPaid.checked = assessmentRec.interestNotPaid
-    assBankFee.value = formatMoney(assessmentRec.bankFee)
-    assLienComment.value = assessmentRec.lienComment
-    assComments.value = assessmentRec.comments
-    assLastChangedBy.value = assessmentRec.lastChangedBy
-    assLastChangedTs.value = assessmentRec.lastChangedTs
 
-    AssessmentUpdateModal.show()
+    assParcel_ID.value = parcelId;
+    assParcelLocation.textContent = hoaRec.property.parcel_Location;
+    assId.value = assessmentId;
+    assFY.value = fy;
+
+    assDuesAmt.value = formatMoney(assessmentRec.duesAmt);
+    assDateDue.value = standardizeDate(assessmentRec.dateDue);
+    assPaid.checked = assessmentRec.paid;
+    assNonCollectible.checked = assessmentRec.nonCollectible;
+    assDatePaid.value = standardizeDate(assessmentRec.datePaid);
+    assPaymentMethod.value = assessmentRec.paymentMethod;
+    assLien.checked = assessmentRec.lien;
+    assLienRefNo.value = assessmentRec.lienRefNo;
+    assDateFiled.value = standardizeDate(assessmentRec.dateFiled);
+    assDisposition.value = assessmentRec.disposition;
+    assFilingFee.value = formatMoney(assessmentRec.filingFee);
+    assReleaseFee.value = formatMoney(assessmentRec.releaseFee);
+    assDateReleased.value = standardizeDate(assessmentRec.dateReleased);
+    assLienDatePaid.value = standardizeDate(assessmentRec.lienDatePaid);
+    assAmountPaid.value = formatMoney(assessmentRec.amountPaid);
+    assStopInterestCalc.checked = assessmentRec.stopInterestCalc;
+    assFilingFeeInterest.value = formatMoney(assessmentRec.filingFeeInterest);
+    assAssessmentInterest.value = formatMoney(assessmentRec.assessmentInterest);
+    assInterestNotPaid.checked = assessmentRec.interestNotPaid;
+    assBankFee.value = formatMoney(assessmentRec.bankFee);
+    assLienComment.value = assessmentRec.lienComment;
+    assComments.value = assessmentRec.comments;
+    assLastChangedBy.value = assessmentRec.lastChangedBy;
+    assLastChangedTs.value = assessmentRec.lastChangedTs;
+
+    AssessmentUpdateModal.show();
 }
 
 var UpdateOwnerMessageDisplay = document.getElementById("UpdateOwnerMessageDisplay")

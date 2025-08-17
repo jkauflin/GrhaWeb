@@ -8,6 +8,8 @@ Modification History
 2024-11-04 JJK  Finished stringToMoney and CalcCompoundInterest
 2024-11-20 JJK  Added CalcTotalDues as a common function for doing the 
                 calculation of total dues (& fees) based on Assessments
+2025-08-17 JJK  Added a better version of stringToMoney that allows for currency symbols, 
+                thousands separators, and decimal points
 ================================================================================*/
 
 using System.Globalization;

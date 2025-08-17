@@ -19,7 +19,10 @@ Modification History
 2025-08-03 JJK  Added GetSalesList and UpdateSales functions to get sales data
                 and update the sales record WelcomeSent flag
 2025-08-08 JJK  Added new owner update function
-2025-08-17 JJK  Added functions for reports
+2025-08-17 JJK  Added functions for reports, and corrected problem with dues
+                paid counts because of duplicate assessments from the sql to
+                cosmosdb migration (load program has been corrected).
+                Modified the assessments update to choose new owners
 ================================================================================*/
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
@@ -1496,6 +1499,7 @@ namespace GrhaWeb.Function
 
             assessmentRec = await container.ReadItemAsync<hoa_assessments>(assessmentId, new PartitionKey(parcelId));
 
+            assessmentRec.OwnerID = GetFieldValue<int>(formFields, "OwnerID", assessmentRec.OwnerID);
             assessmentRec.DuesAmt = GetFieldValueMoney(formFields, "DuesAmt").ToString("");
             //assessmentRec.DateDue = GetFieldValue<string>(formFields, "DateDue");  // Can't change this in update
             assessmentRec.Paid = GetFieldValueBool(formFields, "Paid");
