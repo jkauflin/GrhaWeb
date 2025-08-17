@@ -519,7 +519,6 @@ namespace GrhaWeb.Function
         public async Task<List<HoaRec>> GetHoaRecListDB(
             bool duesOwed = false,
             bool skipEmail = false,
-            bool salesWelcome = false,
             bool currYearPaid = false,
             bool currYearUnpaid = false,
             bool testEmail = false)
@@ -560,11 +559,6 @@ namespace GrhaWeb.Function
             }
 
             // Get all properties
-            // get all current owners
-            // get all NON-PAID assessments
-            // *** re-do the GetHoaRec function to take advantage of the fact that you already have the full list of properties
-
-            // Get all properties
             List<hoa_properties> propList = new List<hoa_properties>();
             var allPropQuery = new QueryDefinition("SELECT * FROM c ORDER BY c.Parcel_ID");
             var allPropFeed = propertiesContainer.GetItemQueryIterator<hoa_properties>(allPropQuery);
@@ -590,9 +584,31 @@ namespace GrhaWeb.Function
                 }
             }
 
-            // Get all non-paid, collectible assessments
+            // Get all assessments
             List<hoa_assessments> assessmentList = new List<hoa_assessments>();
-            var allAssessmentQuery = new QueryDefinition("SELECT * FROM c WHERE c.Paid = 0 AND (IS_NULL(c.NonCollectible) OR c.NonCollectible != 1)");
+
+            var allAssessmentQuery = new QueryDefinition("SELECT * FROM c ORDER BY c.Parcel_ID ");
+        /*
+		if (empty($fy) || $fy == "LATEST") {
+			$stmt = $conn->prepare("SELECT * FROM hoa_assessments WHERE Parcel_ID = ? ORDER BY FY DESC ; ");
+			$stmt->bind_param("s", $parcelId);
+		} else {
+			$stmt = $conn->prepare("SELECT * FROM hoa_assessments WHERE Parcel_ID = ? AND FY = ? ORDER BY FY DESC ; ");
+			$stmt->bind_param("ss", $parcelId,$fy);
+		}
+        */
+
+            if (currYearPaid)
+            {
+                allAssessmentQuery = new QueryDefinition("SELECT * FROM c WHERE c.FY = @fy AND c.Paid = 1")
+                    .WithParameter("@fy", fy);
+            }
+            if (currYearUnpaid)
+            {
+                allAssessmentQuery = new QueryDefinition(
+                    "SELECT * FROM c WHERE c.FY = @fy AND c.Paid = 0 AND (IS_NULL(c.NonCollectible) OR c.NonCollectible != 1)")
+                    .WithParameter("@fy", fy);
+            }
             var allAssessmentFeed = assessmentsContainer.GetItemQueryIterator<hoa_assessments>(allAssessmentQuery);
             while (allAssessmentFeed.HasMoreResults)
             {
@@ -607,6 +623,19 @@ namespace GrhaWeb.Function
             foreach (var prop in propList)
             {
                 var hoaRec = BuildHoaRecFromLists(prop, ownerList, assessmentList);
+
+                if ((duesOwed || currYearUnpaid) && hoaRec.totalDue < 0.01m)
+                {
+                    // If creating Dues Letters, or Unpaid rank report, skip properties that don't owe anything
+                    continue;
+                }
+
+                if (skipEmail && (hoaRec.property.UseEmail == 1))
+                {
+                    // Skip postal mail for 1st Notices if Member has asked to use Email
+                    continue;
+                }
+
                 outputList.Add(hoaRec);
             }
 
@@ -629,88 +658,6 @@ namespace GrhaWeb.Function
             return hoaRec;
         }
 
-        /*
-        //----------------------------------------------------------------------------------------------------------------
-        //  Function to return an array of full hoaRec objects (with a couple of parameters to filter list)
-        //----------------------------------------------------------------------------------------------------------------
-        function getHoaRecList($conn,$duesOwed=false,$skipEmail=false,$salesWelcome=false,
-            $currYearPaid=false,$currYearUnpaid=false,$testEmail=false) {
-
-            $outputArray = array();
-
-            if ($testEmail) {
-                $testEmailParcel = getConfigValDB($conn,'duesEmailTestParcel');
-                $sql = "SELECT * FROM hoa_properties p, hoa_owners o WHERE p.Parcel_ID = '$testEmailParcel' AND p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 ";
-            } else {
-                $fy = 0;
-                if ($currYearPaid || $currYearUnpaid) {
-                    // *** just use the highest FY - the first assessment record ***
-                    $result = $conn->query("SELECT MAX(FY) AS maxFY FROM hoa_assessments; ");
-                    if ($result->num_rows > 0) {
-                        while($row = $result->fetch_assoc()) {
-                            $fy = $row["maxFY"];
-                        }
-                        $result->close();
-                    }
-                }
-
-                // try to get the parameters into the initial select query to limit the records it then tries to get from the getHoaRec
-                if ($salesWelcome) {
-                    $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_sales s" .
-                                    " WHERE p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 AND p.Parcel_ID = s.PARID" .
-                                    " AND s.WelcomeSent = 'S' ORDER BY s.CreateTimestamp DESC; ";
-                } else if ($currYearUnpaid) {
-                    $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_assessments a " .
-                                "WHERE p.Parcel_ID = o.Parcel_ID AND a.OwnerID = o.OwnerID AND p.Parcel_ID = a.Parcel_ID " .
-                                "AND a.FY = " . $fy . " AND a.Paid = 0 ORDER BY p.Parcel_ID; ";
-                                // current owner?
-                } else if ($currYearPaid) {
-                    $sql = "SELECT p.Parcel_ID,o.OwnerID FROM hoa_properties p, hoa_owners o, hoa_assessments a " .
-                                "WHERE p.Parcel_ID = o.Parcel_ID AND a.OwnerID = o.OwnerID AND p.Parcel_ID = a.Parcel_ID " .
-                                "AND a.FY = " . $fy . " AND a.Paid = 1 ORDER BY p.Parcel_ID; ";
-                                // current owner?
-                } else {
-                    // All properties and current owner
-                    $sql = "SELECT * FROM hoa_properties p, hoa_owners o WHERE p.Parcel_ID = o.Parcel_ID AND o.CurrentOwner = 1 ".
-                                    "ORDER BY p.Parcel_ID; ";
-                }
-            }
-
-            $stmt = $conn->prepare($sql);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $stmt->close();
-
-            $cnt = 0;
-            if ($result->num_rows > 0) {
-                // Loop through all the member properties
-                while($row = $result->fetch_assoc()) {
-                    $cnt = $cnt + 1;
-
-                    $parcelId = $row["Parcel_ID"];
-                    $ownerId = $row["OwnerID"];
-
-                    // Don't include FY because you want all assessments to calculate Total Due
-                    //$hoaRec = getHoaRec($conn,$parcelId,$ownerId,$fy);
-                    $hoaRec = getHoaRec($conn,$parcelId,$ownerId);
-
-                    // If creating Dues Letters, skip properties that don't owe anything
-                    if ($duesOwed && $hoaRec->TotalDue < 0.01) {
-                        continue;
-                    }
-                    // Skip postal mail for 1st Notices if Member has asked to use Email
-                    if ($skipEmail && $hoaRec->UseEmail) {
-                        continue;
-                    }
-
-                    array_push($outputArray,$hoaRec);
-                }
-            }
-
-            return $outputArray;
-        }
-
-        */
 
         public async Task<List<hoa_communications>> GetCommunications(string parcelId)
         {

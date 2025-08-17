@@ -78,7 +78,8 @@ namespace GrhaWeb.Function
             foreach (var assessmentRec in assessmentsList)
             {
                 cnt++;
-                dateDue = DateTime.Parse(assessmentRec.DateDue!);
+                string tempDateDue = assessmentRec.DateDue.Split(' ')[0];
+                dateDue = DateTime.Parse(tempDateDue);
                 duesDue = false;
 
                 // If NOT PAID (and still able to be collected)
@@ -100,7 +101,7 @@ namespace GrhaWeb.Function
                     totalDue += duesAmt;
 
                     totalDuesCalcRec = new TotalDuesCalcRec();
-                    totalDuesCalcRec.calcDesc = "FY " + assessmentRec.FY.ToString() + " Assessment (due " + assessmentRec.DateDue + ")";
+                    totalDuesCalcRec.calcDesc = "FY " + assessmentRec.FY.ToString() + " Assessment (due " + tempDateDue + ")";
                     totalDuesCalcRec.calcValue = duesAmt.ToString();
                     totalDuesCalcList.Add(totalDuesCalcRec);
 
@@ -125,7 +126,7 @@ namespace GrhaWeb.Function
                         totalDue += assessmentRec.AssessmentInterest;
 
                         totalDuesCalcRec = new TotalDuesCalcRec();
-                        totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + assessmentRec.DateDue + ")";
+                        totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + tempDateDue + ")";
                         totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
                         totalDuesCalcList.Add(totalDuesCalcRec);
 
@@ -165,7 +166,7 @@ namespace GrhaWeb.Function
                     totalDue += assessmentRec.AssessmentInterest;
 
                     totalDuesCalcRec = new TotalDuesCalcRec();
-                    totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + assessmentRec.DateDue + ")";
+                    totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + tempDateDue + ")";
                     totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
                     totalDuesCalcList.Add(totalDuesCalcRec);
                 } //  if (assessmentRec.Paid == 1 && assessmentRec.InterestNotPaid == 1) {

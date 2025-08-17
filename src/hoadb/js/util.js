@@ -246,13 +246,13 @@ export function csvFilter(inVal) {
         return tempDate.getFullYear() + '-' + tempMonth + '-' + tempDay;
     }
 
-    var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
-    function formatDateMonth(inDate) {
-        var tempDate = inDate;
-        if (tempDate == null) {
-            tempDate = new Date();
-        }
-        return months[tempDate.getMonth()] + ' ' + tempDate.getDate() + ', ' + tempDate.getFullYear();
+var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+export function formatDateMonth(inDate) {
+    var tempDate = inDate;
+    if (tempDate == null) {
+        tempDate = new Date();
     }
+    return months[tempDate.getMonth()] + ' ' + tempDate.getDate() + ', ' + tempDate.getFullYear();
+}
 
 

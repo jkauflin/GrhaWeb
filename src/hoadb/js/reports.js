@@ -36,9 +36,10 @@
  * 2025-08-08 JJK   Added logic to call new owner function in detail.js
  * 					(which looks up sales record values and puts them
  * 					into the Owner Update modal)
+ * 2025-08-16 JJK   Working on Reports for Sales, Dues Counts, and Dues letters
  *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox,csvFilter} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatDateMonth,formatMoney,setTD,setCheckbox,csvFilter} from './util.js';
 import {formatUpdateOwnerSale} from './detail.js';
 
 // Global variable to hold CSV content for downloading
@@ -48,8 +49,8 @@ var ReportListTbody
 var ReportsMessageDisplay
 var ReportHeader
 var ReportDownloadLinks
-var LogDuesLetterSend
-var LogWelcomeLetters
+//var LogDuesLetterSend
+//var LogWelcomeLetters
 
 document.addEventListener('DOMContentLoaded', () => {
     // Assign DOM elements after DOM is ready
@@ -57,24 +58,25 @@ document.addEventListener('DOMContentLoaded', () => {
 	ReportsMessageDisplay = document.getElementById("ReportsMessageDisplay")
 	ReportHeader = document.getElementById("ReportHeader")
 	ReportDownloadLinks = document.getElementById("ReportDownloadLinks")
-	LogDuesLetterSend = document.getElementById("LogDuesLetterSend")
-	LogWelcomeLetters = document.getElementById("LogWelcomeLetters")
+	//LogDuesLetterSend = document.getElementById("LogDuesLetterSend")
+	//LogWelcomeLetters = document.getElementById("LogWelcomeLetters")
 
 	document.getElementById("SalesReport").addEventListener("click", function (event) {
 		let reportTitle = event.target.getAttribute("data-reportTitle");
 		salesReport(reportTitle)
 	})
-
 	document.getElementById("PaidDuesCountsReport").addEventListener("click", function (event) {
 		paidDuesCountReport("Paid Dues Count Report")
 	})
 	document.getElementById("UnpaidDuesRankingReport").addEventListener("click", function (event) {
 		_reportRequest(event)
 	})
-	document.getElementById("MailingListReport").addEventListener("click", function (event) {
+	document.getElementById("Duesletter1Report").addEventListener("click", function (event) {
 		_reportRequest(event)
 	})
-
+	document.getElementById("Duesletter2Report").addEventListener("click", function (event) {
+		_reportRequest(event)
+	})
 })
 
 document.body.addEventListener("click", async function (event) {
@@ -274,6 +276,7 @@ function formatDuesCountResults(duesCountList,reportTitle) {
 	let csvLine = ''
 	let tbody = ReportListTbody;
 	empty(tbody);
+	empty(ReportDownloadLinks);
 	let tr, td, th, button, i;
 
 	if (!duesCountList || duesCountList.length === 0) {
@@ -352,16 +355,16 @@ async function _reportRequest(event) {
 	showLoadingSpinner(ReportsMessageDisplay)
 	event.preventDefault();
 	var reportName = event.target.id;
-	var reportTitle = event.target.dataset.reportTitle
-  	const mailingListName = document.querySelector('input[name="MailingListName"]:checked');
+	var reportTitle = event.target.dataset.reporttitle
+  	//const mailingListName = document.querySelector('input[name="MailingListName"]:checked');
 
 	// Compose request body
 	let paramData = {
-		reportName: reportName,
-		mailingListName: mailingListName.value,	
-		logDuesLetterSend: LogDuesLetterSend.checked,
-		logWelcomeLetters: LogWelcomeLetters.checked
+		reportName: reportName
 	}
+		//mailingListName: mailingListName.value,	
+		//logDuesLetterSend: LogDuesLetterSend.checked,
+		//logWelcomeLetters: LogWelcomeLetters.checked
 
 	try {
 		const response = await fetch("/api/GetHoaRecList", {
@@ -372,11 +375,11 @@ async function _reportRequest(event) {
 		await checkFetchResponse(response);
 		// Success
 		let hoaRecList = await response.json();
-		ReportsMessageDisplay.textContent = "Report retrieved.";
+		ReportsMessageDisplay.textContent = "Report created";
 		if (reportName == 'UnpaidDuesRankingReport') {
-			//_duesRank(reportList, reportName);
+			_duesRank(hoaRecList, reportName, reportTitle);
 		} else {
-			//_formatReportList(reportName, reportTitle, reportList, mailingListName);
+			_formatReportList(hoaRecList, reportName, reportTitle);
 		}
 	} catch (err) {
 		console.error(err);
@@ -384,73 +387,240 @@ async function _reportRequest(event) {
 	}
 }
 
-	/*
-        // The general Reports query - creating a list of HoaRec records (with all data for the Property)
-        // This PHP service is about getting the list of HOA records, then the javascript will display the
-        // records and provide downloads for each particular report
-    	//$parcelId = "";
-    	$ownerId = "";
-    	$fy = 0;
+function _duesRank(hoaRecList, reportName, reportTitle) {
+    var unpaidDuesCnt = 0;
+    var csvLine = "";
+    csvContent = "";
 
-        $duesOwed = false;
-        $skipEmail = false;
-        $salesWelcome = false;
-        $currYearPaid = false;
-        $currYearUnpaid = false;
+    // Sort the array by the TotalDue for the property
+    hoaRecList.sort(function (a, b) {
+        // Sort descending
+        return b.totalDue - a.totalDue;
+    })
 
-        if ($reportName == "PaidDuesReport") {
-            $currYearPaid = true;
+	ReportHeader.textContent = reportTitle
+	let tbody = ReportListTbody;
+	empty(tbody);
+	empty(ReportDownloadLinks);
+	let tr, td, th, button, i;
+
+	if (!hoaRecList || hoaRecList.length === 0) {
+		td = document.createElement("td");
+		td.colSpan = 6;
+		td.textContent = "No records found.";
+		tr = document.createElement("tr");
+		tr.appendChild(td);
+		tbody.appendChild(tr);
+		return;
+	}
+
+	// Table header
+	tr = document.createElement('tr');
+	tr.classList.add('small');
+	th = document.createElement("th"); th.textContent = "Parcel"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "Location"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "Total Due"; tr.appendChild(th);
+	tbody.appendChild(tr);
+
+    // Create the CSV header/column name line
+    csvLine = "ParcelId";
+    csvLine += ',' + "ParcelLocation";
+    csvLine += ',' + "TotalDue";
+    csvContent += csvLine + '\n';
+
+	// Table rows
+	hoaRecList.forEach((hoaRec, index) => {
+		if (hoaRec.totalDue > 0) {
+            unpaidDuesCnt++;
+
+			tr = document.createElement('tr');
+			tr.classList.add('small');
+			td = document.createElement("td"); td.textContent = hoaRec.property.parcel_ID; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.property.parcel_Location; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.totalDue; tr.appendChild(td);
+			tbody.appendChild(tr);
+
+            csvLine = csvFilter(hoaRec.property.parcel_ID);
+            csvLine += ',' + csvFilter(hoaRec.property.parcel_Location);
+            csvLine += ',' + csvFilter(hoaRec.totalDue);
+            csvContent += csvLine + '\n';
         }
-        if ($reportName == "UnpaidDuesReport") {
-            $currYearUnpaid = true;
-        }
+	})
 
-        if ($mailingListName == 'WelcomeLetters') {
-            $salesWelcome = true;
-        }
+	button = document.createElement("button")
+	button.setAttribute('type',"button")
+	button.setAttribute('role',"button")
+	//button.dataset.reportName = formatDate() + '-' + reportName
+	button.dataset.reportName = reportName
+	button.classList.add('btn','btn-info','btn-sm','mb-1','me-1','shadow-none','DownloadReportCSV')
+	i = document.createElement("i")
+	i.classList.add('fa','fa-download','me-1')
+	button.appendChild(i)
+	button.innerHTML = '<i class="fa fa-download me-1"></i> Download CSV'
+	ReportDownloadLinks.appendChild(button);
 
-        // If creating Dues Letters, skip properties that don't owe anything
-        if (substr($mailingListName,0,10) == 'Duesletter') {
-            $duesOwed = true;
-        }
-        // Skip postal mail for 1st Notices if Member has asked to use Email
-        if ($mailingListName == 'Duesletter1') {
-            $skipEmail = true;
-        }
+    //$ReportRecCnt.html("Unpaid Dues Ranking, total = " + unpaidDuesCnt);
+}
 
-        $outputArray = getHoaRecList($conn,$duesOwed,$skipEmail,$salesWelcome,$currYearPaid,$currYearUnpaid);
+function _formatReportList(hoaRecList, reportName, reportTitle) {
+    var csvLine = "";
+    csvContent = "";
+ 
+	ReportHeader.textContent = reportTitle
+	let tbody = ReportListTbody;
+	empty(tbody);
+	empty(ReportDownloadLinks);
+	let tr, td, th, button, i;
 
-            foreach ($outputArray as $hoaRec)  {
+	if (!hoaRecList || hoaRecList.length === 0) {
+		td = document.createElement("td");
+		td.colSpan = 6;
+		td.textContent = "No records found.";
+		tr = document.createElement("tr");
+		tr.appendChild(td);
+		tbody.appendChild(tr);
+		return;
+	}
 
-                // If flag is set, mark the Welcome Letters as MAILED
-                if ($logWelcomeLetters) {
-                    $stmt = $conn->prepare("UPDATE hoa_sales SET WelcomeSent='Y',LastChangedBy=?,LastChangedTs=CURRENT_TIMESTAMP WHERE PARID = ? AND WelcomeSent = 'S' ; ");
-	                $stmt->bind_param("ss",$userRec->userName,$hoaRec->Parcel_ID);
-	                $stmt->execute();
-	                $stmt->close();
+	// Table header
+	tr = document.createElement('tr');
+	tr.classList.add('small');
+	th = document.createElement("th"); th.textContent = "Rec"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "Parcel"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "Name"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "Address"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "City"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "State"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "Zip"; tr.appendChild(th);
+	th = document.createElement("th"); th.textContent = "Total Due"; tr.appendChild(th);
+	tbody.appendChild(tr);
+
+    // Create the CSV header/column name line
+    csvLine = "RecId"
+    csvLine += ',' + "ParcelID"
+    csvLine += ',' + "ParcelLocation"
+    csvLine += ',' + "MailingName"
+    csvLine += ',' + "MailingAddressLine1"
+    csvLine += ',' + "MailingAddressLine2"
+    csvLine += ',' + "MailingCity"
+    csvLine += ',' + "MailingState"
+    csvLine += ',' + "MailingZip"
+    csvLine += ',' + "OwnerPhone"
+    csvLine += ',' + "FiscalYear"
+    csvLine += ',' + "DuesAmt"
+    csvLine += ',' + "TotalDue"
+    csvLine += ',' + "Paid"
+    csvLine += ',' + "NonCollectible"
+    csvLine += ',' + "DateDue"
+    csvLine += ',' + "UseEmail"
+    csvLine += ',' + "FiscalYearPrev"
+    csvLine += ',' + "DateDue2"
+    csvLine += ',' + "NoticeDate"
+    csvLine += ',' + "Email"
+    csvLine += ',' + "Email2"
+    csvContent += csvLine + '\n';
+
+
+	let currSysDate = new Date();
+    let reportYear = '';
+    //$ReportRecCnt.html("");
+    //$ReportDownloadLinks.empty();
+    let rowId = 0;
+    let recCnt = 0;
+    //let DateDue2 = config.getVal('dueDate2');  // Due date for 2nd Notices
+    let noticeDate = formatDateMonth()
+
+	hoaRecList.forEach((hoaRec, index) => {
+    	recCnt = recCnt + 1;
+        rowId = recCnt;
+
+		// if rec 1
+    	// reportYear = hoaRec.assessmentsList[0].FY;
+
+		tr = document.createElement('tr');
+		tr.classList.add('small');
+		td = document.createElement("td"); td.textContent = recCnt; tr.appendChild(td);
+		td = document.createElement("td"); td.textContent = hoaRec.property.parcel_ID; tr.appendChild(td);
+		td = document.createElement("td"); td.textContent = hoaRec.property.mailing_name; tr.appendChild(td);
+
+		if (hoaRec.ownersList[0].alternatemailing == 1) {
+			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_address_line1 + ' ' + hoaRec.ownersList[0].alt_address_line2; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_city; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_state; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.ownersList[0].alt_zip; tr.appendChild(td);
+		} else {
+			td = document.createElement("td"); td.textContent = hoaRec.parcel_location; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.property_city; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.property_state; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = hoaRec.property_zip; tr.appendChild(td);
+		}
+
+		td = document.createElement("td"); td.textContent = hoaRec.totalDue; tr.appendChild(td);
+		tbody.appendChild(tr);
+
+
+
+        //csvLine = csvFilter(hoaRec.property.parcel_ID);
+        //csvLine += ',' + csvFilter(hoaRec.property.parcel_Location);
+        //csvLine += ',' + csvFilter(hoaRec.totalDue);
+
+		// *** do I still need the assessments to be by FY DESC ?  so [0] is the current year
+/*
+                csvLine = csvFilter(recCnt);
+                csvLine += ',' + csvFilter(hoaRec.Parcel_ID);
+                csvLine += ',' + csvFilter(hoaRec.Parcel_Location);
+                csvLine += ',' + csvFilter(hoaRec.ownersList[0].Mailing_Name);
+
+                if (mailingListName.startsWith('Duesletter') && hoaRec.ownersList[0].AlternateMailing) {
+                    csvLine += ',' + csvFilter(hoaRec.ownersList[0].Alt_Address_Line1);
+                    csvLine += ',' + csvFilter(hoaRec.ownersList[0].Alt_Address_Line2);
+                    csvLine += ',' + csvFilter(hoaRec.ownersList[0].Alt_City);
+                    csvLine += ',' + csvFilter(hoaRec.ownersList[0].Alt_State);
+                    csvLine += ',' + csvFilter(hoaRec.ownersList[0].Alt_Zip);
+                } else {
+                    csvLine += ',' + csvFilter(hoaRec.Parcel_Location);
+                    csvLine += ',' + csvFilter("");
+                    csvLine += ',' + csvFilter(hoaRec.Property_City);
+                    csvLine += ',' + csvFilter(hoaRec.Property_State);
+                    csvLine += ',' + csvFilter(hoaRec.Property_Zip);
                 }
 
-                if ($logDuesLetterSend) {
-                    $commType = 'Dues Notice';
-                    $commDesc = "Postal mail notice sent";
-                    $Email = false;
-                    $SentStatus = 'Y';
+                csvLine += ',' + csvFilter(hoaRec.ownersList[0].Owner_Phone);
+                csvLine += ',' + csvFilter(reportYear);
+                if (hoaRec.assessmentsList[0].Paid) {
+                    csvLine += ',$0';
+                } else {
+                    csvLine += ',' + csvFilter(hoaRec.assessmentsList[0].DuesAmt);
+                }
+                csvLine += ',' + csvFilter(totalDue);
+                csvLine += ',' + csvFilter(util.setBoolText(hoaRec.assessmentsList[0].Paid));
+                csvLine += ',' + csvFilter(util.setBoolText(hoaRec.assessmentsList[0].NonCollectible));
+                csvLine += ',' + csvFilter(hoaRec.assessmentsList[0].DateDue);
+                csvLine += ',' + csvFilter(hoaRec.UseEmail);
+                csvLine += ',' + csvFilter(reportYear-1);
+                //var tempDate = new Date(hoaRec.assessmentsList[0].DateDue);
+                //var DateDue2 = util.formatDate2(tempDate);
+                csvLine += ',' + csvFilter(DateDue2);
+                csvLine += ',' + csvFilter(noticeDate);
+                csvLine += ',' + csvFilter(hoaRec.DuesEmailAddr);
+                csvLine += ',' + csvFilter(hoaRec.ownersList[0].EmailAddr2);
 
-                    if ($hoaRec->ownersList[0]->AlternateMailing) {
-                        $Addr = $hoaRec->ownersList[0]->Alt_Address_Line1;
-                    } else {
-                        $Addr = $hoaRec->Parcel_Location;
-                    }
+*/
 
-                    insertCommRec($conn,$hoaRec->Parcel_ID,$hoaRec->ownersList[0]->OwnerID,$commType,$commDesc,
-                        $hoaRec->ownersList[0]->Mailing_Name,$Email,
-                        $Addr,$SentStatus,$userRec->userName);
+        csvContent += csvLine + '\n';
+	})
 
-                } // if ($logDuesLetterSend) {
+	button = document.createElement("button")
+	button.setAttribute('type',"button")
+	button.setAttribute('role',"button")
+	//button.dataset.reportName = formatDate() + '-' + reportName
+	button.dataset.reportName = reportName
+	button.classList.add('btn','btn-info','btn-sm','mb-1','me-1','shadow-none','DownloadReportCSV')
+	i = document.createElement("i")
+	i.classList.add('fa','fa-download','me-1')
+	button.appendChild(i)
+	button.innerHTML = '<i class="fa fa-download me-1"></i> Download CSV'
+	ReportDownloadLinks.appendChild(button);
 
-            } // Loop through hoa recs
 
-
-	*/
-
-
+} // function formatReportList(reportName,reportList){
