@@ -20,12 +20,8 @@ namespace GrhaWeb.Function.Model
 	    public decimal totalDue { get; set; }       // amount = 1234.56m;
 	    public decimal paymentFee { get; set; }     // amount = 1234.56m;
         public string? paymentInstructions { get; set; }   
-        public string? duesStatementNotes { get; set; }   
-        public string? hoaNameShort { get; set; }   
-
-	    //public $adminLevel;               // No longer needed - now using role-based security
-        //public $paymentButton;            // No longer used
-        //public $userName;                 // Needed for updates but don't think I need it in the hoa_rec class
+        //public string? duesStatementNotes { get; set; }   
+        //public string? hoaNameShort { get; set; }   
 
         public override string ToString()
         {

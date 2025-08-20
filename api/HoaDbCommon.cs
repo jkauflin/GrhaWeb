@@ -399,11 +399,6 @@ namespace GrhaWeb.Function
                 } // Sales loop
             }
 
-
-            // Get fields needed for Dues Statement PDF
-            hoaRec.duesStatementNotes = await getConfigVal(configContainer, "duesStatementNotes");
-            hoaRec.hoaNameShort = await getConfigVal(configContainer, "hoaNameShort");
-
             return hoaRec;
         }
 
@@ -613,6 +608,7 @@ namespace GrhaWeb.Function
             }
 
             // Get all config values into a dictionary
+            /*
             Dictionary<string, string> configDict = new Dictionary<string, string>();
             var configQuery = new QueryDefinition("SELECT * FROM c");
             var configFeed = configContainer.GetItemQueryIterator<hoa_config>(configQuery);
@@ -625,11 +621,13 @@ namespace GrhaWeb.Function
                         configDict[item.ConfigName] = item.ConfigValue ?? string.Empty;
                 }
             }
+            */
 
             // Build HoaRec for each property using the in-memory lists and config
             foreach (var prop in propList)
             {
-                var hoaRec = BuildHoaRecFromLists(prop, ownerList, assessmentList, configDict);
+                //var hoaRec = BuildHoaRecFromLists(prop, ownerList, assessmentList, configDict);
+                var hoaRec = BuildHoaRecFromLists(prop, ownerList, assessmentList);
 
                 if ((duesOwed || currYearUnpaid) && hoaRec.totalDue < 0.01m)
                 {
@@ -649,8 +647,8 @@ namespace GrhaWeb.Function
         public HoaRec BuildHoaRecFromLists(
             hoa_properties property,
             List<hoa_owners> ownerList,
-            List<hoa_assessments> assessmentList,
-            Dictionary<string, string> configDict)
+            List<hoa_assessments> assessmentList)
+//            Dictionary<string, string> configDict)
         {
             HoaRec hoaRec = new HoaRec();
             hoaRec.property = property;
@@ -659,19 +657,21 @@ namespace GrhaWeb.Function
             hoaRec.totalDuesCalcList = util.CalcTotalDues(hoaRec.assessmentsList, out bool onlyCurrYearDue, out decimal totalDueOut);
             hoaRec.totalDue = totalDueOut;
             // Set config-based fields if present
+            /*
             if (configDict != null)
             {
-                if (configDict.TryGetValue("OfflinePaymentInstructions", out var offlinePay))
-                    hoaRec.paymentInstructions = offlinePay;
-                if (configDict.TryGetValue("paymentFee", out var payFee) && decimal.TryParse(payFee, out var feeVal))
-                    hoaRec.paymentFee = feeVal;
-                if (configDict.TryGetValue("OnlinePaymentInstructions", out var onlinePay) && onlyCurrYearDue)
-                    hoaRec.paymentInstructions = onlinePay;
+                //if (configDict.TryGetValue("OfflinePaymentInstructions", out var offlinePay))
+                //    hoaRec.paymentInstructions = offlinePay;
+                //if (configDict.TryGetValue("OnlinePaymentInstructions", out var onlinePay) && onlyCurrYearDue)
+                //    hoaRec.paymentInstructions = onlinePay;
+                //if (configDict.TryGetValue("paymentFee", out var payFee) && decimal.TryParse(payFee, out var feeVal))
+                //    hoaRec.paymentFee = feeVal;
                 if (configDict.TryGetValue("duesStatementNotes", out var notes))
                     hoaRec.duesStatementNotes = notes;
                 if (configDict.TryGetValue("hoaNameShort", out var hoaName))
                     hoaRec.hoaNameShort = hoaName;
             }
+            */
             return hoaRec;
         }
 

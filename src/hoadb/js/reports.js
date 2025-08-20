@@ -520,15 +520,12 @@ function _formatReportList(hoaRecList, reportName, reportTitle) {
     csvLine += ',' + "Email2"
     csvContent += csvLine + '\n';
 
-
 	let currSysDate = new Date();
     let reportYear = '' + currSysDate.getFullYear(); 
     //$ReportRecCnt.html("");
-    //$ReportDownloadLinks.empty();
     let rowId = 0;
     let recCnt = 0;
-    //let DateDue2 = config.getVal('dueDate2');  // Due date for 2nd Notices
-	let DateDue2 = '' // just use empty string for now (until we figure out how to get the 2nd notice date)
+	let DateDue2 = 'April 1' 	// Confirm if this will still be used in dues letter2 for 2nd Notice
     let noticeDate = formatDateMonth()
 
 	hoaRecList.forEach((hoaRec, index) => {
@@ -561,54 +558,41 @@ function _formatReportList(hoaRecList, reportName, reportTitle) {
 		td = document.createElement("td"); td.textContent = hoaRec.totalDue; tr.appendChild(td);
 		tbody.appendChild(tr);
 
-                csvLine = csvFilter(recCnt);
-                csvLine += ',' + csvFilter(hoaRec.property.parcel_ID);
-                csvLine += ',' + csvFilter(hoaRec.property.parcel_Location);
-                csvLine += ',' + csvFilter(hoaRec.property.mailing_Name);
+        csvLine = csvFilter(recCnt);
+        csvLine += ',' + csvFilter(hoaRec.property.parcel_ID);
+        csvLine += ',' + csvFilter(hoaRec.property.parcel_Location);
+        csvLine += ',' + csvFilter(hoaRec.property.mailing_Name);
+        if (hoaRec.ownersList[0].alternateMailing) {
+            csvLine += ',' + csvFilter(hoaRec.ownersList[0].alt_Address_Line1);
+            csvLine += ',' + csvFilter(hoaRec.ownersList[0].alt_Address_Line2);
+            csvLine += ',' + csvFilter(hoaRec.ownersList[0].alt_City);
+            csvLine += ',' + csvFilter(hoaRec.ownersList[0].alt_State);
+            csvLine += ',' + csvFilter(hoaRec.ownersList[0].alt_Zip);
+        } else {
+            csvLine += ',' + csvFilter(hoaRec.property.parcel_Location);
+            csvLine += ',' + csvFilter("");
+            csvLine += ',' + csvFilter(hoaRec.property.property_City);
+            csvLine += ',' + csvFilter(hoaRec.property.property_State);
+            csvLine += ',' + csvFilter(hoaRec.property.property_Zip);
+        }
 
-                if (hoaRec.ownersList[0].alternateMailing) {
-                    csvLine += ',' + csvFilter(hoaRec.ownersList[0].alt_Address_Line1);
-                    csvLine += ',' + csvFilter(hoaRec.ownersList[0].alt_Address_Line2);
-                    csvLine += ',' + csvFilter(hoaRec.ownersList[0].alt_City);
-                    csvLine += ',' + csvFilter(hoaRec.ownersList[0].alt_State);
-                    csvLine += ',' + csvFilter(hoaRec.ownersList[0].alt_Zip);
-                } else {
-                    csvLine += ',' + csvFilter(hoaRec.property.parcel_Location);
-                    csvLine += ',' + csvFilter("");
-                    csvLine += ',' + csvFilter(hoaRec.property.property_City);
-                    csvLine += ',' + csvFilter(hoaRec.property.property_State);
-                    csvLine += ',' + csvFilter(hoaRec.property.property_Zip);
-                }
-
-                csvLine += ',' + csvFilter(hoaRec.ownersList[0].owner_Phone);
-                csvLine += ',' + csvFilter(reportYear);
-                if (hoaRec.assessmentsList[0].paid) {
-                    csvLine += ',$0';
-                } else {
-                    csvLine += ',' + csvFilter(hoaRec.assessmentsList[0].duesAmt);
-                }
-                csvLine += ',' + csvFilter(hoaRec.totalDue);
-                csvLine += ',' + csvFilter(setBoolText(hoaRec.assessmentsList[0].Paid));
-                csvLine += ',' + csvFilter(setBoolText(hoaRec.assessmentsList[0].NonCollectible));
-                csvLine += ',' + csvFilter(hoaRec.assessmentsList[0].dateDue);
-                csvLine += ',' + csvFilter(hoaRec.property.useEmail);
-                csvLine += ',' + csvFilter(reportYear-1);
-                //csvLine += ',' + csvFilter(DateDue2);
-                csvLine += ',' + csvFilter(standardizeDate(hoaRec.assessmentsList[0].dateDue));
-                csvLine += ',' + csvFilter(noticeDate);
-/*
->>>>> check original code for setting these
-commList: null
-duesEmailAddr: null
-duesStatementNotes: null
-emailAddrList: null
-hoaNameShort: null
-*/
-                //csvLine += ',' + csvFilter(hoaRec.duesEmailAddr);
-                csvLine += ',hoaRec.duesEmailAddr'
-                csvLine += ',' + csvFilter(hoaRec.ownersList[0].emailAddr2);
-
-
+        csvLine += ',' + csvFilter(hoaRec.ownersList[0].owner_Phone);
+        csvLine += ',' + csvFilter(reportYear);
+        if (hoaRec.assessmentsList[0].paid) {
+            csvLine += ',$0';
+        } else {
+            csvLine += ',' + csvFilter(hoaRec.assessmentsList[0].duesAmt);
+        }
+        csvLine += ',' + csvFilter(hoaRec.totalDue);
+        csvLine += ',' + csvFilter(setBoolText(hoaRec.assessmentsList[0].Paid));
+        csvLine += ',' + csvFilter(setBoolText(hoaRec.assessmentsList[0].NonCollectible));
+        csvLine += ',' + csvFilter(hoaRec.assessmentsList[0].dateDue);
+        csvLine += ',' + csvFilter(hoaRec.property.useEmail);
+        csvLine += ',' + csvFilter(reportYear-1);
+        csvLine += ',' + csvFilter(DateDue2);
+        csvLine += ',' + csvFilter(noticeDate);
+    	csvLine += ',' + csvFilter(hoaRec.ownersList[0].emailAddr);
+        csvLine += ',' + csvFilter(hoaRec.ownersList[0].emailAddr2);
         csvContent += csvLine + '\n';
 	})
 
