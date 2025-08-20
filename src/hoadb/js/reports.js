@@ -561,13 +561,6 @@ function _formatReportList(hoaRecList, reportName, reportTitle) {
 		td = document.createElement("td"); td.textContent = hoaRec.totalDue; tr.appendChild(td);
 		tbody.appendChild(tr);
 
-
-
-        //csvLine = csvFilter(hoaRec.property.parcel_ID);
-        //csvLine += ',' + csvFilter(hoaRec.property.parcel_Location);
-        //csvLine += ',' + csvFilter(hoaRec.totalDue);
-
-		// *** do I still need the assessments to be by FY DESC ?  so [0] is the current year
                 csvLine = csvFilter(recCnt);
                 csvLine += ',' + csvFilter(hoaRec.property.parcel_ID);
                 csvLine += ',' + csvFilter(hoaRec.property.parcel_Location);
@@ -611,7 +604,8 @@ duesStatementNotes: null
 emailAddrList: null
 hoaNameShort: null
 */
-                csvLine += ',' + csvFilter(hoaRec.duesEmailAddr);
+                //csvLine += ',' + csvFilter(hoaRec.duesEmailAddr);
+                csvLine += ',hoaRec.duesEmailAddr'
                 csvLine += ',' + csvFilter(hoaRec.ownersList[0].emailAddr2);
 
 

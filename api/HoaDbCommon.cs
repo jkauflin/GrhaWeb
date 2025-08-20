@@ -612,23 +612,33 @@ namespace GrhaWeb.Function
                 }
             }
 
-            // Example: Build HoaRec for each property using the in-memory lists
+            // Get all config values into a dictionary
+            Dictionary<string, string> configDict = new Dictionary<string, string>();
+            var configQuery = new QueryDefinition("SELECT * FROM c");
+            var configFeed = configContainer.GetItemQueryIterator<hoa_config>(configQuery);
+            while (configFeed.HasMoreResults)
+            {
+                var response = await configFeed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    if (!string.IsNullOrEmpty(item.ConfigName))
+                        configDict[item.ConfigName] = item.ConfigValue ?? string.Empty;
+                }
+            }
+
+            // Build HoaRec for each property using the in-memory lists and config
             foreach (var prop in propList)
             {
-                var hoaRec = BuildHoaRecFromLists(prop, ownerList, assessmentList);
+                var hoaRec = BuildHoaRecFromLists(prop, ownerList, assessmentList, configDict);
 
                 if ((duesOwed || currYearUnpaid) && hoaRec.totalDue < 0.01m)
                 {
-                    // If creating Dues Letters, or Unpaid rank report, skip properties that don't owe anything
                     continue;
                 }
-
                 if (skipEmail && (hoaRec.property.UseEmail == 1))
                 {
-                    // Skip postal mail for 1st Notices if Member has asked to use Email
                     continue;
                 }
-
                 outputList.Add(hoaRec);
             }
 
@@ -639,7 +649,8 @@ namespace GrhaWeb.Function
         public HoaRec BuildHoaRecFromLists(
             hoa_properties property,
             List<hoa_owners> ownerList,
-            List<hoa_assessments> assessmentList)
+            List<hoa_assessments> assessmentList,
+            Dictionary<string, string> configDict)
         {
             HoaRec hoaRec = new HoaRec();
             hoaRec.property = property;
@@ -647,7 +658,20 @@ namespace GrhaWeb.Function
             hoaRec.assessmentsList = assessmentList.Where(a => a.Parcel_ID == property.Parcel_ID).ToList();
             hoaRec.totalDuesCalcList = util.CalcTotalDues(hoaRec.assessmentsList, out bool onlyCurrYearDue, out decimal totalDueOut);
             hoaRec.totalDue = totalDueOut;
-            // Add any other calculations or fields as needed
+            // Set config-based fields if present
+            if (configDict != null)
+            {
+                if (configDict.TryGetValue("OfflinePaymentInstructions", out var offlinePay))
+                    hoaRec.paymentInstructions = offlinePay;
+                if (configDict.TryGetValue("paymentFee", out var payFee) && decimal.TryParse(payFee, out var feeVal))
+                    hoaRec.paymentFee = feeVal;
+                if (configDict.TryGetValue("OnlinePaymentInstructions", out var onlinePay) && onlyCurrYearDue)
+                    hoaRec.paymentInstructions = onlinePay;
+                if (configDict.TryGetValue("duesStatementNotes", out var notes))
+                    hoaRec.duesStatementNotes = notes;
+                if (configDict.TryGetValue("hoaNameShort", out var hoaName))
+                    hoaRec.hoaNameShort = hoaName;
+            }
             return hoaRec;
         }
 
