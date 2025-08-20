@@ -222,6 +222,14 @@ export function csvFilter(inVal) {
     return inVal.toString().replace(regexCommaHexStr, '');
 }
 
+export function setBoolText(inBool) {
+    let tempStr = "NO";
+    if (inBool) {
+        tempStr = "YES";
+    }
+    return tempStr;
+}
+
     // Non-Printable characters - Hex 01 to 1F, and 7F
     var nonPrintableCharsStr = "[\x01-\x1F\x7F]";
     // "g" global so it does more than 1 substitution
