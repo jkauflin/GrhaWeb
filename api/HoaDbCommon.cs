@@ -23,6 +23,7 @@ Modification History
                 paid counts because of duplicate assessments from the sql to
                 cosmosdb migration (load program has been corrected).
                 Modified the assessments update to choose new owners
+2025-08-21 JJK  Added function to get and update hoa_config values
 ================================================================================*/
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
@@ -35,7 +36,8 @@ using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 using GrhaWeb.Function.Model;
-using Microsoft.Extensions.WebEncoders.Testing;
+
+//using Microsoft.Extensions.WebEncoders.Testing;
 
 namespace GrhaWeb.Function
 {
@@ -738,6 +740,75 @@ namespace GrhaWeb.Function
             return hoaSalesList;
         }
 
+
+
+        // Place config methods here, after the constructor
+
+        // Get all config values from hoa_config container
+        public async Task<List<hoa_config>> GetConfigListDB()
+        {
+            List<hoa_config> configList = new List<hoa_config>();
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container configContainer = db.GetContainer("hoa_config");
+            var query = new QueryDefinition("SELECT * FROM c ORDER BY c.ConfigName");
+            var feed = configContainer.GetItemQueryIterator<hoa_config>(query);
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    configList.Add(item);
+                }
+            }
+            return configList;
+        }
+
+        // Update or insert a config value in hoa_config container
+        public async Task<hoa_config> UpdateConfigDB(string userName, string configName, string configDesc, string configValue)
+        {
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container configContainer = db.GetContainer("hoa_config");
+            hoa_config configRec = null;
+            // Try to get existing config by ConfigName
+            var query = new QueryDefinition("SELECT * FROM c WHERE c.ConfigName = @configName")
+                .WithParameter("@configName", configName);
+            var feed = configContainer.GetItemQueryIterator<hoa_config>(query);
+            string id = null;
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    configRec = item;
+                    id = item.id;
+                }
+            }
+            if (configRec == null)
+            {
+                // Insert new config
+                configRec = new hoa_config
+                {
+                    id = Guid.NewGuid().ToString(),
+                    ConfigName = configName,
+                    ConfigDesc = configDesc,
+                    ConfigValue = configValue
+                };
+                await configContainer.CreateItemAsync(configRec, new PartitionKey(configRec.id));
+            }
+            else
+            {
+                // Update existing config
+                configRec.ConfigDesc = configDesc;
+                configRec.ConfigValue = configValue;
+                await configContainer.ReplaceItemAsync(configRec, configRec.id, new PartitionKey(configRec.id));
+            }
+            return configRec;
+        }
+
+
+
         public async Task<List<PaidDuesCount>> GetPaidDuesCountListDb()
         {
             //------------------------------------------------------------------------------------------------------------------
@@ -769,7 +840,7 @@ namespace GrhaWeb.Function
                 {
                     cnt++;
                     //log.LogWarning($"{cnt} FY: {item.FY}, Parcel_ID: {item.Parcel_ID}, DuesAmt: {item.DuesAmt}, Paid: {item.Paid}");
-                    
+
                     int fy = item.FY;
                     decimal duesAmt = util.stringToMoney(item.DuesAmt);
 

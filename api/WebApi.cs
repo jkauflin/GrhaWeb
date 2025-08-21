@@ -252,390 +252,425 @@ namespace GrhaWeb.Function
         }
 
 
-            [Function("GetSalesList")]
-            public async Task<IActionResult> GetSalesList(
+        [Function("GetSalesList")]
+        public async Task<IActionResult> GetSalesList(
                 [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            List<hoa_sales> hoaSalesList = new List<hoa_sales>();
+
+            try
             {
-                List<hoa_sales> hoaSalesList = new List<hoa_sales>();
-
-                try
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
                 {
-                    string userName = "";
-                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
-                    {
-                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                    }
-
-                    //log.LogInformation(">>> User is authorized ");
-
-                    // Get the content string from the HTTP request body
-                    /*
-                    string content = await new StreamReader(req.Body).ReadToEndAsync();
-                    // Deserialize the JSON string into a generic JSON object
-                    JObject jObject = JObject.Parse(content);
-
-                    // Construct the query from the query parameters
-                    string reportName = "";
-
-                    JToken? jToken;
-                    if (jObject.TryGetValue("reportName", out jToken))
-                    {
-                        reportName = jToken.ToString().Trim();
-                        if (reportName.Equals(""))
-                        {
-                            return new BadRequestObjectResult("Query failed because reportName was blank");
-                        }
-                    } else {
-                        return new BadRequestObjectResult("Query failed because reportName was NOT FOUND");
-                    }
-                    */
-                    hoaSalesList = await hoaDbCommon.GetSalesListDb();
-                }
-                catch (Exception ex)
-                {
-                    log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
-                    return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
 
-                return new OkObjectResult(hoaSalesList);
+                //log.LogInformation(">>> User is authorized ");
+
+                // Get the content string from the HTTP request body
+                /*
+                string content = await new StreamReader(req.Body).ReadToEndAsync();
+                // Deserialize the JSON string into a generic JSON object
+                JObject jObject = JObject.Parse(content);
+
+                // Construct the query from the query parameters
+                string reportName = "";
+
+                JToken? jToken;
+                if (jObject.TryGetValue("reportName", out jToken))
+                {
+                    reportName = jToken.ToString().Trim();
+                    if (reportName.Equals(""))
+                    {
+                        return new BadRequestObjectResult("Query failed because reportName was blank");
+                    }
+                } else {
+                    return new BadRequestObjectResult("Query failed because reportName was NOT FOUND");
+                }
+                */
+                hoaSalesList = await hoaDbCommon.GetSalesListDb();
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
 
+            return new OkObjectResult(hoaSalesList);
+        }
 
-            [Function("GetPaidDuesCountList")]
-            public async Task<IActionResult> GetPaidDuesCountList(
+
+        [Function("GetConfigList")]
+        public async Task<IActionResult> GetConfigList(
                 [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            List<hoa_config> hoaConfigList = new List<hoa_config>();
+
+            try
             {
-                List<PaidDuesCount> duesCountList = new List<PaidDuesCount>();
-
-                try
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
                 {
-                    string userName = "";
-                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
-                    {
-                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                    }
-
-                    //log.LogInformation(">>> User is authorized ");
-
-                    duesCountList = await hoaDbCommon.GetPaidDuesCountListDb();
-                }
-                catch (Exception ex)
-                {
-                    log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
-                    return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
 
-                return new OkObjectResult(duesCountList);
+                //log.LogInformation(">>> User is authorized ");
+
+                hoaConfigList = await hoaDbCommon.GetConfigListDB();
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
 
+            return new OkObjectResult(hoaConfigList);
+        }
 
-            [Function("UpdateSales")]
-            public async Task<IActionResult> UpdateSales(
+        [Function("GetPaidDuesCountList")]
+        public async Task<IActionResult> GetPaidDuesCountList(
                 [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            List<PaidDuesCount> duesCountList = new List<PaidDuesCount>();
+
+            try
             {
-                string returnMessage = "";
-                try
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
                 {
-                    string userName = "";
-                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
-                    {
-                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                    }
-
-                    // Get the content string from the HTTP request body
-                    string content = await new StreamReader(req.Body).ReadToEndAsync();
-                    // Deserialize the JSON string into a generic JSON object
-                    JObject jObject = JObject.Parse(content);
-
-                    // Construct the query from the query parameters
-                    string parid = "";
-                    string saledt = "";
-                    string processedFlag = "";
-                    string welcomeSent = "";
-
-                    JToken? jToken;
-                    if (jObject.TryGetValue("parid", out jToken))
-                    {
-                        parid = jToken.ToString().Trim();
-                        if (parid.Equals(""))
-                        {
-                            return new BadRequestObjectResult("Query failed because parid was blank");
-                        }
-                    } else {
-                        return new BadRequestObjectResult("Query failed because parid was NOT FOUND");
-                    }
-
-                    if (jObject.TryGetValue("saledt", out jToken))
-                    {
-                        saledt = jToken.ToString().Trim();
-                        if (saledt.Equals(""))
-                        {
-                            return new BadRequestObjectResult("Query failed because saledt was blank");
-                        }
-                    } else {
-                        return new BadRequestObjectResult("Query failed because saledt was NOT FOUND");
-                    }
-
-                    if (jObject.TryGetValue("processedFlag", out jToken))
-                    {
-                        processedFlag = jToken.ToString().Trim();
-                    }
-
-                    if (jObject.TryGetValue("welcomeSent", out jToken))
-                    {
-                        welcomeSent = jToken.ToString().Trim();
-                    }
-
-                    await hoaDbCommon.UpdateSalesDB(userName, parid, saledt, processedFlag, welcomeSent);
-                    returnMessage = "Sales record was updated";
-                }
-                catch (Exception ex)
-                {
-                    log.LogError($"Exception in UpdateSales, message: {ex.Message} {ex.StackTrace}");
-                    return new BadRequestObjectResult("Error in update of Sales record - check log");
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
 
-                return new OkObjectResult(returnMessage);
+                //log.LogInformation(">>> User is authorized ");
+
+                duesCountList = await hoaDbCommon.GetPaidDuesCountListDb();
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
 
+            return new OkObjectResult(duesCountList);
+        }
 
-            [Function("GetCommunications")]
-            public async Task<IActionResult> GetCommunications(
+
+        [Function("UpdateSales")]
+        public async Task<IActionResult> UpdateSales(
                 [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            string returnMessage = "";
+            try
             {
-                List<hoa_communications> hoaCommunicationsList = new List<hoa_communications>();
-
-                try
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
                 {
-                    string userName = "";
-                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
-                    {
-                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                    }
-
-                    //log.LogInformation(">>> User is authorized ");
-
-                    // Get the content string from the HTTP request body
-                    string content = await new StreamReader(req.Body).ReadToEndAsync();
-                    // Deserialize the JSON string into a generic JSON object
-                    JObject jObject = JObject.Parse(content);
-
-                    // Construct the query from the query parameters
-                    string parcelId = "";
-
-                    JToken? jToken;
-                    if (jObject.TryGetValue("parcelId", out jToken))
-                    {
-                        parcelId = jToken.ToString();
-                        if (parcelId.Equals(""))
-                        {
-                            return new BadRequestObjectResult("GetHoaRec failed because parcelId was blank");
-                        }
-                    } else {
-                        return new BadRequestObjectResult("GetHoaRec failed because parcelId was NOT FOUND");
-                    }
-
-                    hoaCommunicationsList = await hoaDbCommon.GetCommunications(parcelId);
-                }
-                catch (Exception ex)
-                {
-                    log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
-                    return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
 
-                return new OkObjectResult(hoaCommunicationsList);
+                // Get the content string from the HTTP request body
+                string content = await new StreamReader(req.Body).ReadToEndAsync();
+                // Deserialize the JSON string into a generic JSON object
+                JObject jObject = JObject.Parse(content);
+
+                // Construct the query from the query parameters
+                string parid = "";
+                string saledt = "";
+                string processedFlag = "";
+                string welcomeSent = "";
+
+                JToken? jToken;
+                if (jObject.TryGetValue("parid", out jToken))
+                {
+                    parid = jToken.ToString().Trim();
+                    if (parid.Equals(""))
+                    {
+                        return new BadRequestObjectResult("Query failed because parid was blank");
+                    }
+                }
+                else
+                {
+                    return new BadRequestObjectResult("Query failed because parid was NOT FOUND");
+                }
+
+                if (jObject.TryGetValue("saledt", out jToken))
+                {
+                    saledt = jToken.ToString().Trim();
+                    if (saledt.Equals(""))
+                    {
+                        return new BadRequestObjectResult("Query failed because saledt was blank");
+                    }
+                }
+                else
+                {
+                    return new BadRequestObjectResult("Query failed because saledt was NOT FOUND");
+                }
+
+                if (jObject.TryGetValue("processedFlag", out jToken))
+                {
+                    processedFlag = jToken.ToString().Trim();
+                }
+
+                if (jObject.TryGetValue("welcomeSent", out jToken))
+                {
+                    welcomeSent = jToken.ToString().Trim();
+                }
+
+                await hoaDbCommon.UpdateSalesDB(userName, parid, saledt, processedFlag, welcomeSent);
+                returnMessage = "Sales record was updated";
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception in UpdateSales, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult("Error in update of Sales record - check log");
             }
 
+            return new OkObjectResult(returnMessage);
+        }
 
-            /*
-            using Newtonsoft.Json.Linq;
-            string json = "{\"Name\":\"John\",\"Age\":30}";
-            JObject obj = JObject.Parse(json);
-            Console.WriteLine($"Name: {obj["Name"]}, Age: {obj["Age"]}"); // Use index-based access
-            */
 
-            [Function("UpdateProperty")]
-            public async Task<IActionResult> UpdateProperty(
+        [Function("GetCommunications")]
+        public async Task<IActionResult> GetCommunications(
                 [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            List<hoa_communications> hoaCommunicationsList = new List<hoa_communications>();
+
+            try
             {
-                string returnMessage = "";
-                try
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
                 {
-                    string userName = "";
-                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
-                    {
-                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                    }
-                    //log.LogInformation($">>> User is authorized - userName: {userName}");
-
-                    // Get content from the Request BODY
-                    var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
-                    var reader = new MultipartReader(boundary, req.Body);
-                    var section = await reader.ReadNextSectionAsync();
-
-                    var formFields = new Dictionary<string, string>();
-                    var files = new List<(string fieldName, string fileName, byte[] content)>();
-
-                    while (section != null)
-                    {
-                        var contentDisposition = section.GetContentDispositionHeader();
-                        if (contentDisposition != null)
-                        {
-                            if (contentDisposition.IsFileDisposition())
-                            {
-                                using var memoryStream = new MemoryStream();
-                                await section.Body.CopyToAsync(memoryStream);
-                                files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
-                            }
-                            else if (contentDisposition.IsFormDisposition())
-                            {
-                                using var streamReader = new StreamReader(section.Body);
-                                formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
-                            }
-                        }
-
-                        section = await reader.ReadNextSectionAsync();
-                    }
-
-                    /*
-                    foreach (var field in formFields)
-                    {
-                        log.LogWarning($"Field {field.Key}: {field.Value}");
-                    }
-                    */
-                    await hoaDbCommon.UpdatePropertyDB(userName, formFields);
-
-                    returnMessage = "Property was updated";
-                }
-                catch (Exception ex)
-                {
-                    log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
-                    return new BadRequestObjectResult("Error in update of Property - check log");
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
                 }
 
-                return new OkObjectResult(returnMessage);
+                //log.LogInformation(">>> User is authorized ");
+
+                // Get the content string from the HTTP request body
+                string content = await new StreamReader(req.Body).ReadToEndAsync();
+                // Deserialize the JSON string into a generic JSON object
+                JObject jObject = JObject.Parse(content);
+
+                // Construct the query from the query parameters
+                string parcelId = "";
+
+                JToken? jToken;
+                if (jObject.TryGetValue("parcelId", out jToken))
+                {
+                    parcelId = jToken.ToString();
+                    if (parcelId.Equals(""))
+                    {
+                        return new BadRequestObjectResult("GetHoaRec failed because parcelId was blank");
+                    }
+                }
+                else
+                {
+                    return new BadRequestObjectResult("GetHoaRec failed because parcelId was NOT FOUND");
+                }
+
+                hoaCommunicationsList = await hoaDbCommon.GetCommunications(parcelId);
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
 
+            return new OkObjectResult(hoaCommunicationsList);
+        }
 
-            [Function("UpdateOwner")]
-            public async Task<IActionResult> UpdateOwner(
-                [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+
+        /*
+        using Newtonsoft.Json.Linq;
+        string json = "{\"Name\":\"John\",\"Age\":30}";
+        JObject obj = JObject.Parse(json);
+        Console.WriteLine($"Name: {obj["Name"]}, Age: {obj["Age"]}"); // Use index-based access
+        */
+
+        [Function("UpdateProperty")]
+        public async Task<IActionResult> UpdateProperty(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            string returnMessage = "";
+            try
             {
-                hoa_owners ownerRec = new hoa_owners();
-                //string returnMessage = "";
-                try
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
                 {
-                    string userName = "";
-                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+                //log.LogInformation($">>> User is authorized - userName: {userName}");
+
+                // Get content from the Request BODY
+                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
+                var reader = new MultipartReader(boundary, req.Body);
+                var section = await reader.ReadNextSectionAsync();
+
+                var formFields = new Dictionary<string, string>();
+                var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                while (section != null)
+                {
+                    var contentDisposition = section.GetContentDispositionHeader();
+                    if (contentDisposition != null)
                     {
-                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                    }
-                    //log.LogInformation($">>> User is authorized - userName: {userName}");
-
-                    // Get content from the Request BODY
-                    var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
-                    var reader = new MultipartReader(boundary, req.Body);
-                    var section = await reader.ReadNextSectionAsync();
-
-                    var formFields = new Dictionary<string, string>();
-                    var files = new List<(string fieldName, string fileName, byte[] content)>();
-
-                    while (section != null)
-                    {
-                        var contentDisposition = section.GetContentDispositionHeader();
-                        if (contentDisposition != null)
+                        if (contentDisposition.IsFileDisposition())
                         {
-                            if (contentDisposition.IsFileDisposition())
-                            {
-                                using var memoryStream = new MemoryStream();
-                                await section.Body.CopyToAsync(memoryStream);
-                                files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
-                            }
-                            else if (contentDisposition.IsFormDisposition())
-                            {
-                                using var streamReader = new StreamReader(section.Body);
-                                formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
-                            }
+                            using var memoryStream = new MemoryStream();
+                            await section.Body.CopyToAsync(memoryStream);
+                            files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
                         }
-
-                        section = await reader.ReadNextSectionAsync();
+                        else if (contentDisposition.IsFormDisposition())
+                        {
+                            using var streamReader = new StreamReader(section.Body);
+                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                        }
                     }
 
-                    string ownerId = formFields["OwnerID"].Trim();
-                    if (ownerId.Equals("*** CREATE NEW OWNER (on Save) ***"))
-                    {
-                        ownerRec = await hoaDbCommon.NewOwnerDB(userName, formFields);
-                    }
-                    else
-                    {
-                        ownerRec = await hoaDbCommon.UpdateOwnerDB(userName, formFields);
-                    }
+                    section = await reader.ReadNextSectionAsync();
                 }
-                catch (Exception ex)
+
+                /*
+                foreach (var field in formFields)
                 {
-                    log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
-                    return new BadRequestObjectResult("Error in update of Owner - check log");
+                    log.LogWarning($"Field {field.Key}: {field.Value}");
                 }
+                */
+                await hoaDbCommon.UpdatePropertyDB(userName, formFields);
 
-                return new OkObjectResult(ownerRec);
+                returnMessage = "Property was updated";
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult("Error in update of Property - check log");
             }
 
-            [Function("UpdateAssessment")]
-            public async Task<IActionResult> UpdateAssessment(
-                [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+            return new OkObjectResult(returnMessage);
+        }
+
+
+        [Function("UpdateOwner")]
+        public async Task<IActionResult> UpdateOwner(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            hoa_owners ownerRec = new hoa_owners();
+            //string returnMessage = "";
+            try
             {
-                hoa_assessments assessmentRec = new hoa_assessments();
-                //string returnMessage = "";
-                try
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
                 {
-                    string userName = "";
-                    if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+                //log.LogInformation($">>> User is authorized - userName: {userName}");
+
+                // Get content from the Request BODY
+                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
+                var reader = new MultipartReader(boundary, req.Body);
+                var section = await reader.ReadNextSectionAsync();
+
+                var formFields = new Dictionary<string, string>();
+                var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                while (section != null)
+                {
+                    var contentDisposition = section.GetContentDispositionHeader();
+                    if (contentDisposition != null)
                     {
-                        return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
-                    }
-                    //log.LogInformation($">>> User is authorized - userName: {userName}");
-
-                    // Get content from the Request BODY
-                    var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
-                    var reader = new MultipartReader(boundary, req.Body);
-                    var section = await reader.ReadNextSectionAsync();
-
-                    var formFields = new Dictionary<string, string>();
-                    var files = new List<(string fieldName, string fileName, byte[] content)>();
-
-                    while (section != null)
-                    {
-                        var contentDisposition = section.GetContentDispositionHeader();
-                        if (contentDisposition != null)
+                        if (contentDisposition.IsFileDisposition())
                         {
-                            if (contentDisposition.IsFileDisposition())
-                            {
-                                using var memoryStream = new MemoryStream();
-                                await section.Body.CopyToAsync(memoryStream);
-                                files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
-                            }
-                            else if (contentDisposition.IsFormDisposition())
-                            {
-                                using var streamReader = new StreamReader(section.Body);
-                                formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
-                            }
+                            using var memoryStream = new MemoryStream();
+                            await section.Body.CopyToAsync(memoryStream);
+                            files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
                         }
-
-                        section = await reader.ReadNextSectionAsync();
+                        else if (contentDisposition.IsFormDisposition())
+                        {
+                            using var streamReader = new StreamReader(section.Body);
+                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                        }
                     }
 
-                    assessmentRec = await hoaDbCommon.UpdateAssessmentDB(userName, formFields);
-                }
-                catch (Exception ex)
-                {
-                    log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
-                    return new BadRequestObjectResult("Error in update of Property - check log");
+                    section = await reader.ReadNextSectionAsync();
                 }
 
-                return new OkObjectResult(assessmentRec);
+                string ownerId = formFields["OwnerID"].Trim();
+                if (ownerId.Equals("*** CREATE NEW OWNER (on Save) ***"))
+                {
+                    ownerRec = await hoaDbCommon.NewOwnerDB(userName, formFields);
+                }
+                else
+                {
+                    ownerRec = await hoaDbCommon.UpdateOwnerDB(userName, formFields);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult("Error in update of Owner - check log");
             }
 
+            return new OkObjectResult(ownerRec);
+        }
 
-        } // public static class WebApi
+        [Function("UpdateAssessment")]
+        public async Task<IActionResult> UpdateAssessment(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            hoa_assessments assessmentRec = new hoa_assessments();
+            //string returnMessage = "";
+            try
+            {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+                //log.LogInformation($">>> User is authorized - userName: {userName}");
+
+                // Get content from the Request BODY
+                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
+                var reader = new MultipartReader(boundary, req.Body);
+                var section = await reader.ReadNextSectionAsync();
+
+                var formFields = new Dictionary<string, string>();
+                var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                while (section != null)
+                {
+                    var contentDisposition = section.GetContentDispositionHeader();
+                    if (contentDisposition != null)
+                    {
+                        if (contentDisposition.IsFileDisposition())
+                        {
+                            using var memoryStream = new MemoryStream();
+                            await section.Body.CopyToAsync(memoryStream);
+                            files.Add((contentDisposition.Name.Value, contentDisposition.FileName.Value, memoryStream.ToArray()));
+                        }
+                        else if (contentDisposition.IsFormDisposition())
+                        {
+                            using var streamReader = new StreamReader(section.Body);
+                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                        }
+                    }
+
+                    section = await reader.ReadNextSectionAsync();
+                }
+
+                assessmentRec = await hoaDbCommon.UpdateAssessmentDB(userName, formFields);
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception in UpdateProperty, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult("Error in update of Property - check log");
+            }
+
+            return new OkObjectResult(assessmentRec);
+        }
+
+
+
+
+    } // public static class WebApi
 }
 

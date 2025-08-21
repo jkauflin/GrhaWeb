@@ -16,177 +16,144 @@
  * 2020-12-22 JJK   Modified for changes to jjklogin - added event
  *                  handling to call the config load functions when a user
  *                  is authenticated (using the new jjklogin event)
+ * 2025-08-20 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
+ *                  js module, and move from PHP/MySQL to Azure SWA
  *============================================================================*/
-var config = (function(){
-    'use strict';
 
-    //=================================================================================================================
-    // Private variables for the Module
-    var configVal = new Map();
-    var pdfLogoImgData;
+import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
 
-    //=================================================================================================================
-    // Variables cached from the DOM
-    var $document = $(document);
-    var $moduleDiv = $('#ConfigPage');
-    var $ajaxError = $moduleDiv.find(".ajaxError");
-    var $ConfigListDisplay = $moduleDiv.find("tbody");
-    var $EditPage = $("#EditPage");
-    var $EditTable = $("#EditTable");
-    var $EditTableBody = $("#EditTable").find("tbody");
-    var $editValidationError = $(".editValidationError");
-    var $EditPageHeader = $("#EditPageHeader");
-    var $EditPageButton = $("#EditPageButton");
-    var $jjkloginEventElement = $document.find('#jjkloginEventElement')
+//=================================================================================================================
+// Variables cached from the DOM
+var ConfigListTbody;
+var ConfigUpdateModal;
+var UpdateConfigForm;
+var UpdateConfigMessageDisplay;
+var updConfigName;
+var updConfigDesc;
+var updConfigValue;
+var configList = [];
 
-    //=================================================================================================================
-    // Bind events
-    $moduleDiv.on("click", ".NewConfig", editConfig);
-    $EditPage.on("click", ".SaveConfigEdit", _saveConfigEdit);
+//=================================================================================================================
+// Bind events
 
-    // Respond to user authentication event from jjklogin
-    $jjkloginEventElement.on('userJJKLoginAuth', function (event) {
-        //console.log('in config, after login, username = '+event.originalEvent.detail.userName);
-        // When user is authenticated load the configuration values
-        // (need something like this because load is asynchronous - AJAX calls, can't do it on 1st request)
-        _loadConfigValues();
-        _loadConfigLogoImg();
-    });
+document.addEventListener('DOMContentLoaded', () => {
+	ConfigListTbody = document.getElementById('ConfigListTbody');
+	ConfigUpdateModal = new bootstrap.Modal(document.getElementById('ConfigUpdateModal'));
+	UpdateConfigForm = document.getElementById('UpdateConfigForm');
+	UpdateConfigMessageDisplay = document.getElementById('UpdateConfigMessageDisplay');
+	updConfigName = document.getElementById('updConfigName');
+	updConfigDesc = document.getElementById('updConfigDesc');
+	updConfigValue = document.getElementById('updConfigValue');
 
-    //=================================================================================================================
-    // Module methods
+	document.querySelector('.NewConfig').addEventListener('click', function (event) {
+		event.preventDefault();
+		formatUpdateConfig('NEW');
+	});
 
-    function _loadConfigValues() {
-        $.getJSON("getHoaConfigList.php", "", function (result) {
-            if (result.error) {
-                console.log("error = " + result.error);
-                $ajaxError.html("<b>" + result.error + "</b>");
-            } else {
-                _render(result);
-            }
-        });
-    }
+	UpdateConfigForm.addEventListener('submit', async (event) => {
+		event.preventDefault();
+		event.stopPropagation();
+		UpdateConfigMessageDisplay.textContent = '';
+		if (!UpdateConfigForm.checkValidity()) {
+			UpdateConfigMessageDisplay.textContent = 'Form inputs are NOT valid';
+			UpdateConfigForm.classList.add('was-validated');
+			return;
+		}
+		await updateConfig();
+	});
 
-    function _render(hoaConfigRecList) {
-        var tr = '';
-        // Clear out the Map before loading with data
-        configVal.clear();
-        $.each(hoaConfigRecList, function (index, hoaConfigRec) {
-            // Load into Map for lookup
-            configVal.set(hoaConfigRec.ConfigName, hoaConfigRec.ConfigValue);
+	getConfigList();
+});
 
-            if (index == 0) {
-                tr = '';
-                tr += '<tr>';
-                tr += '<th>Name</th>';
-                tr += '<th>Description</th>';
-                tr += '<th>Value</th>';
-                tr += '</tr>';
-            }
-            tr += '<tr>';
-            tr += '<td><a data-ConfigName="' + hoaConfigRec.ConfigName + '" class="NewConfig" href="#">' + hoaConfigRec.ConfigName + '</a></td>';
-            tr += '<td>' + hoaConfigRec.ConfigDesc + '</td>';
-            tr += '<td>' + hoaConfigRec.ConfigValue.substring(0, 80) + '</td>';
-            tr += '</tr>';
-        });
+async function getConfigList() {
+	showLoadingSpinner(ConfigListTbody);
+	try {
+		const response = await fetch('/api/GetConfigList', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' }
+		});
+		await checkFetchResponse(response);
+		configList = await response.json();
+		formatConfigList(configList);
+	} catch (err) {
+		ConfigListTbody.textContent = 'Error loading config values: ' + err.message;
+	}
+}
 
-        $ConfigListDisplay.html(tr);
-    }
+function formatConfigList(list) {
+	empty(ConfigListTbody);
+	if (!list || list.length === 0) {
+		let tr = document.createElement('tr');
+		let td = document.createElement('td');
+		td.colSpan = 3;
+		td.textContent = 'No config values found.';
+		tr.appendChild(td);
+		ConfigListTbody.appendChild(tr);
+		return;
+	}
+	let tr = document.createElement('tr');
+	let th = document.createElement('th'); th.textContent = 'Name'; tr.appendChild(th);
+	th = document.createElement('th'); th.textContent = 'Description'; tr.appendChild(th);
+	th = document.createElement('th'); th.textContent = 'Value'; tr.appendChild(th);
+	th = document.createElement('th'); th.textContent = 'Edit'; tr.appendChild(th);
+	ConfigListTbody.appendChild(tr);
+	list.forEach(cfg => {
+		tr = document.createElement('tr');
+		let td = document.createElement('td'); td.textContent = cfg.configName; tr.appendChild(td);
+		td = document.createElement('td'); td.textContent = cfg.configDesc; tr.appendChild(td);
+		td = document.createElement('td'); td.textContent = cfg.configValue; tr.appendChild(td);
+		td = document.createElement('td');
+		let btn = document.createElement('button');
+		btn.classList.add('btn', 'btn-sm', 'btn-primary', 'EditConfig');
+		btn.textContent = 'Edit';
+		btn.dataset.configname = cfg.configName;
+		btn.addEventListener('click', function (event) {
+			event.preventDefault();
+			formatUpdateConfig(cfg.configName);
+		});
+		td.appendChild(btn);
+		tr.appendChild(td);
+		ConfigListTbody.appendChild(tr);
+	});
+}
 
-    function _loadConfigLogoImg() {
-        $.get("getLogoImgData.php", function (result) {
-            if (result.error) {
-                console.log("error = " + result.error);
-                $ajaxError.html("<b>" + result.error + "</b>");
-            } else {
-                pdfLogoImgData = result;
-            }
-        });
-    }
+function formatUpdateConfig(configName) {
+	UpdateConfigMessageDisplay.textContent = '';
+	UpdateConfigForm.classList.remove('was-validated');
+	if (configName === 'NEW') {
+		updConfigName.value = '';
+		updConfigName.readOnly = false;
+		updConfigDesc.value = '';
+		updConfigValue.value = '';
+	} else {
+		let cfg = configList.find(c => c.configName === configName);
+		if (!cfg) return;
+		updConfigName.value = cfg.configName;
+		updConfigName.readOnly = true;
+		updConfigDesc.value = cfg.configDesc || '';
+		updConfigValue.value = cfg.configValue || '';
+	}
+	ConfigUpdateModal.show();
+}
 
-    function getLogoImgData() {
-        return pdfLogoImgData;
-    }
+async function updateConfig() {
+	UpdateConfigMessageDisplay.textContent = 'Saving...';
+	let paramData = {
+		configName: updConfigName.value,
+		configDesc: updConfigDesc.value,
+		configValue: updConfigValue.value
+	};
+	try {
+		const response = await fetch('/api/UpdateConfig', {
+			method: 'POST',
+			headers: { 'Content-Type': 'application/json' },
+			body: JSON.stringify(paramData)
+		});
+		await checkFetchResponse(response);
+		ConfigUpdateModal.hide();
+		getConfigList();
+	} catch (err) {
+		UpdateConfigMessageDisplay.textContent = 'Error saving config: ' + err.message;
+	}
+}
 
-    // Return the value for a given name
-    function getVal(name) {
-        return configVal.get(name);
-    }
-
-    function editConfig(value) {
-        // check user logged in
-            // If a string was passed in then use value as the name, else get it from the attribute of the click event object
-            var configName = (typeof value === "string") ? value : value.target.getAttribute("data-ConfigName");
-            $.getJSON("getHoaConfigList.php", "ConfigName=" + configName, function (hoaConfigRec) {
-                _formatConfigEdit(hoaConfigRec[0]);
-                $EditPage.modal();
-            });
-    };
-
-    function _formatConfigEdit(hoaConfigRec) {
-        // Clear the field where we report validation errors
-        $editValidationError.empty();
-        $EditPageHeader.text("Edit Configuration");
-
-        var tr = '';
-        tr = '<div class="form-group">';
-        if (hoaConfigRec === undefined) {
-            tr += '<tr><th>Name:</th><td>' + util.setInputText("ConfigName", "", "80") + '</td></tr>';
-            tr += '<tr><th>Description:</th><td>' + util.setInputText("ConfigDesc", "", "100") + '</td></tr>';
-            tr += '<tr><th>Value:</th><td>' + util.setTextArea("ConfigValue", "", "15") + '</td></tr>';
-
-        } else {
-            tr += '<tr><th>Name:</th><td>' + util.setInputText("ConfigName", hoaConfigRec.ConfigName, "80") + '</td></tr>';
-            tr += '<tr><th>Description:</th><td>' + util.setInputText("ConfigDesc", hoaConfigRec.ConfigDesc, "100") + '</td></tr>';
-            tr += '<tr><th>Value:</th><td>' + util.setTextArea("ConfigValue", hoaConfigRec.ConfigValue, "15") + '</td></tr>';
-        }
-
-        tr += '</div>';
-        $EditTableBody.html(tr);
-
-        tr = '<form class="form-inline" role="form">';
-        tr += '<a data-ConfigAction="Edit" href="#" class="btn btn-sm btn-primary m-1 SaveConfigEdit" role="button">Save</a>';
-        tr += '<a data-ConfigAction="Delete" href="#" class="btn btn-sm btn-primary m-1 SaveConfigEdit" role="button">Delete</a>';
-        tr += '<button type="button" class="btn btn-sm m-1 btn-info" data-dismiss="modal">Close</button></form>';
-        $EditPageButton.html(tr);
-
-    } // End of function _formatConfigEdit(hoaConfigRec){
-
-    function _saveConfigEdit(event) {
-        //console.log("in saveConfigEdit, data-ConfigAction = " + event.target.getAttribute("data-ConfigAction"));
-        var paramMap = new Map();
-        paramMap.set('action', event.target.getAttribute("data-ConfigAction"));
-        //console.log("util.getJSONfromInputs($EditTable,paramMap) = " + util.getJSONfromInputs($EditTable, paramMap));
-        var url = 'updHoaConfig.php';
-        $.ajax("updHoaConfig.php", {
-            type: "POST",
-            contentType: "application/json",
-            data: util.getJSONfromInputs($EditTable, paramMap),
-            dataType: "json",
-            //dataType: "html",
-            success: function (result) {
-                //console.log("result = " + result);
-                if (result.error) {
-                    console.log("error = " + result.error);
-                    $ajaxError.html("<b>" + result.error + "</b>");
-                } else {
-                    _render(result);
-                    $EditPage.modal("hide");
-                }
-            },
-            error: function (xhr, status, error) {
-                //console.log('Error in AJAX request to ' + url + ', status = ' + status + ', error = ' + error)
-                $editValidationError.html("An error occurred in the update - see log");
-            }
-        });
-    };
-
-    //=================================================================================================================
-    // This is what is exposed from this Module
-    return {
-        getLogoImgData,
-        getVal,
-        editConfig
-    };
-
-})(); // var util = (function(){
