@@ -328,6 +328,75 @@ namespace GrhaWeb.Function
             return new OkObjectResult(hoaConfigList);
         }
 
+        [Function("UpdateConfig")]
+        public async Task<IActionResult> UpdateConfig(
+                [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            hoa_config hoaConfig;
+
+            try
+            {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+
+                //log.LogInformation(">>> User is authorized ");
+
+                // Get the content string from the HTTP request body
+                string content = await new StreamReader(req.Body).ReadToEndAsync();
+                // Deserialize the JSON string into a generic JSON object
+                JObject jObject = JObject.Parse(content);
+
+                // Construct the query from the query parameters
+                string configName = "";
+                string configDesc = "";
+                string configValue = "";
+
+                JToken? jToken;
+                if (jObject.TryGetValue("configName", out jToken))
+                {
+                    configName = jToken.ToString().Trim();
+                    if (configName.Equals(""))
+                    {
+                        return new BadRequestObjectResult("Query failed because configName was blank");
+                    }
+                }
+                else
+                {
+                    return new BadRequestObjectResult("Query failed because configName was NOT FOUND");
+                }
+
+                if (jObject.TryGetValue("configDesc", out jToken))
+                {
+                    configDesc = jToken.ToString().Trim();
+                    if (configDesc.Equals(""))
+                    {
+                        return new BadRequestObjectResult("Query failed because configDesc was blank");
+                    }
+                }
+                else
+                {
+                    return new BadRequestObjectResult("Query failed because configDesc was NOT FOUND");
+                }
+
+                if (jObject.TryGetValue("configValue", out jToken))
+                {
+                    configValue = jToken.ToString().Trim();
+                }
+
+                hoaConfig = await hoaDbCommon.UpdateConfigDB(userName, configName, configDesc, configValue);
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+            }
+
+            return new OkObjectResult(hoaConfig);
+        }
+
         [Function("GetPaidDuesCountList")]
         public async Task<IActionResult> GetPaidDuesCountList(
                 [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)

@@ -740,10 +740,6 @@ namespace GrhaWeb.Function
             return hoaSalesList;
         }
 
-
-
-        // Place config methods here, after the constructor
-
         // Get all config values from hoa_config container
         public async Task<List<hoa_config>> GetConfigListDB()
         {
@@ -790,7 +786,7 @@ namespace GrhaWeb.Function
                 // Insert new config
                 configRec = new hoa_config
                 {
-                    id = Guid.NewGuid().ToString(),
+                    id = configName,
                     ConfigName = configName,
                     ConfigDesc = configDesc,
                     ConfigValue = configValue
@@ -806,7 +802,6 @@ namespace GrhaWeb.Function
             }
             return configRec;
         }
-
 
 
         public async Task<List<PaidDuesCount>> GetPaidDuesCountListDb()

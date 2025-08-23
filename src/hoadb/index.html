@@ -255,8 +255,6 @@
 			            	<tbody>
 			               	</tbody>
 						</table>
-
-
 				  </div>
 			</div><!-- row -->
 
@@ -264,22 +262,23 @@
 
 	    <div class="tab-pane" role="tabpanel" id="ConfigPage">
 			<h5>Config</h5>
-            <a data-ConfigName="NEW-VALUE" href="#" class="btn btn-sm btn-primary NewConfig" role="button">New Config Value</a>
-
+			<button id="NewConfigButton" class="btn btn-sm btn-primary me-1 mb-1 " type="button" role="button">
+				<i class="fa fa-gear me-1"></i> New Config Value
+			</button>
 			<table class="table table-striped">
+				<colgroup>
+					<col style="width: 20%;">
+					<col style="width: 30%;">
+					<col style="width: 50%;">
+				</colgroup>
 				<tbody id="ConfigListTbody">
 				</tbody>
 			</table>
-
 	 	</div><!-- end of Config -->
 
 	</div><!-- end of main tab content -->
 
-		<!--
-		<div id="MessageDisplay" class="m-2"></div>
-		-->
-
-
+	<!-- <div id="MessageDisplay" class="m-2"></div> -->
 
 </div><!-- end of main container -->
 
@@ -306,7 +305,6 @@
 	    </div>
 	</div>
 </div>
-
 
 <div id="OwnerUpdateModal" class="modal fade" role="dialog" tabindex="-1">
     <div class="modal-dialog modal-xl">
@@ -440,7 +438,6 @@
         </div>
     </div>
 </div>
-
 
 <div id="AssessmentUpdateModal" class="modal fade" role="dialog" tabindex="-1">
     <div class="modal-dialog modal-xl">
@@ -596,7 +593,7 @@
 
 <!-- Config Update Modal -->
 <div id="ConfigUpdateModal" class="modal fade" role="dialog" tabindex="-1">
-	<div class="modal-dialog modal-lg">
+	<div class="modal-dialog modal-xl">
 		<div class="modal-content">
 			<div class="modal-header">
 				<h5 class="modal-title">
@@ -616,7 +613,7 @@
 						<label for="updConfigDesc">Description</label>
 					</div>
 					<div class="mb-2 form-floating">
-						<input id="updConfigValue" name="ConfigValue" type="text" class="form-control shadow-none" maxlength="200" />
+						<textarea id="updConfigValue" name="ConfigValue" class="form-control shadow-none" style="height: 200px"></textarea>
 						<label for="updConfigValue">Value</label>
 					</div>
 					<button type="submit" class="btn btn-success shadow-none">

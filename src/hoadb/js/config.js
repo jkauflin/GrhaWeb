@@ -45,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	updConfigDesc = document.getElementById('updConfigDesc');
 	updConfigValue = document.getElementById('updConfigValue');
 
-	document.querySelector('.NewConfig').addEventListener('click', function (event) {
+	document.getElementById('NewConfigButton').addEventListener('click', function (event) {
 		event.preventDefault();
 		formatUpdateConfig('NEW');
 	});
@@ -62,8 +62,22 @@ document.addEventListener('DOMContentLoaded', () => {
 		await updateConfig();
 	});
 
-	getConfigList();
-});
+	// Load config list only when ConfigPage tab is activated
+	const configTabLink = document.querySelector('a.nav-link[href="#ConfigPage"]');
+	if (configTabLink) {
+		configTabLink.addEventListener('shown.bs.tab', function (event) {
+			getConfigList();
+		});
+	}
+})
+
+document.body.addEventListener("click", async function (event) {
+	if (event.target.classList.contains("EditConfig")) {
+		event.preventDefault()
+		const configName = event.target.dataset.configname
+		formatUpdateConfig(configName)
+	}
+})
 
 async function getConfigList() {
 	showLoadingSpinner(ConfigListTbody);
@@ -82,37 +96,33 @@ async function getConfigList() {
 
 function formatConfigList(list) {
 	empty(ConfigListTbody);
+	let tr, td, th, a;
 	if (!list || list.length === 0) {
-		let tr = document.createElement('tr');
-		let td = document.createElement('td');
+		tr = document.createElement('tr');
+		td = document.createElement('td');
 		td.colSpan = 3;
 		td.textContent = 'No config values found.';
 		tr.appendChild(td);
 		ConfigListTbody.appendChild(tr);
 		return;
 	}
-	let tr = document.createElement('tr');
-	let th = document.createElement('th'); th.textContent = 'Name'; tr.appendChild(th);
+
+	tr = document.createElement('tr');
+	th = document.createElement('th'); th.textContent = 'Name'; tr.appendChild(th);
 	th = document.createElement('th'); th.textContent = 'Description'; tr.appendChild(th);
 	th = document.createElement('th'); th.textContent = 'Value'; tr.appendChild(th);
-	th = document.createElement('th'); th.textContent = 'Edit'; tr.appendChild(th);
 	ConfigListTbody.appendChild(tr);
 	list.forEach(cfg => {
 		tr = document.createElement('tr');
-		let td = document.createElement('td'); td.textContent = cfg.configName; tr.appendChild(td);
+    	a = document.createElement("a")
+        a.classList.add("EditConfig")
+        a.dataset.configname = cfg.configName;
+        a.textContent = cfg.configName;
+        td = document.createElement("td"); 
+        td.appendChild(a);
+        tr.appendChild(td)
 		td = document.createElement('td'); td.textContent = cfg.configDesc; tr.appendChild(td);
 		td = document.createElement('td'); td.textContent = cfg.configValue; tr.appendChild(td);
-		td = document.createElement('td');
-		let btn = document.createElement('button');
-		btn.classList.add('btn', 'btn-sm', 'btn-primary', 'EditConfig');
-		btn.textContent = 'Edit';
-		btn.dataset.configname = cfg.configName;
-		btn.addEventListener('click', function (event) {
-			event.preventDefault();
-			formatUpdateConfig(cfg.configName);
-		});
-		td.appendChild(btn);
-		tr.appendChild(td);
 		ConfigListTbody.appendChild(tr);
 	});
 }
@@ -137,20 +147,22 @@ function formatUpdateConfig(configName) {
 }
 
 async function updateConfig() {
-	UpdateConfigMessageDisplay.textContent = 'Saving...';
+	UpdateConfigMessageDisplay.textContent = 'Saving...'
 	let paramData = {
 		configName: updConfigName.value,
 		configDesc: updConfigDesc.value,
 		configValue: updConfigValue.value
-	};
+	}
 	try {
 		const response = await fetch('/api/UpdateConfig', {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(paramData)
-		});
-		await checkFetchResponse(response);
-		ConfigUpdateModal.hide();
+		})
+		await checkFetchResponse(response)
+		// let hoaConfig = await response.json();
+		// If the display needs to be faster, just update the table row instead of reloading the whole list
+		ConfigUpdateModal.hide()
 		getConfigList();
 	} catch (err) {
 		UpdateConfigMessageDisplay.textContent = 'Error saving config: ' + err.message;
