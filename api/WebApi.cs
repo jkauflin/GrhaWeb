@@ -738,8 +738,54 @@ namespace GrhaWeb.Function
         }
 
 
+        // Bulk add assessments for all properties for a given FiscalYear and DuesAmt
+        [Function("AddAssessments")]
+        public async Task<IActionResult> AddAssessments(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            string resultMessage = "";
+            try
+            {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+
+                string content = await new StreamReader(req.Body).ReadToEndAsync();
+                JObject jObject = JObject.Parse(content);
+
+                string fiscalYear = "";
+                string duesAmt = "";
+                JToken? jToken;
+                if (jObject.TryGetValue("FiscalYear", out jToken))
+                {
+                    fiscalYear = jToken.ToString().Trim();
+                }
+                if (jObject.TryGetValue("DuesAmt", out jToken))
+                {
+                    duesAmt = jToken.ToString().Trim();
+                }
+                if (string.IsNullOrEmpty(fiscalYear) || string.IsNullOrEmpty(duesAmt))
+                {
+                    return new BadRequestObjectResult("FiscalYear and DuesAmt are required");
+                }
+
+                int fy = int.Parse(fiscalYear);
+                decimal amt = decimal.Parse(duesAmt);
+                int count = await hoaDbCommon.AddAssessmentsBulk(userName, fy, amt);
+                resultMessage = $"Added {count} assessments for Fiscal Year {fy} with DuesAmt {amt:C}";
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception in AddAssessments, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Error in AddAssessments - {ex.Message}");
+            }
+            return new OkObjectResult(resultMessage);
+        }
 
 
     } // public static class WebApi
 }
+
 

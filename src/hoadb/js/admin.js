@@ -1,7 +1,7 @@
 /*==============================================================================
- * (C) Copyright 2015,2020,2024 John J Kauflin, All rights reserved.
+ * (C) Copyright 2015,2020 John J Kauflin, All rights reserved.
  *----------------------------------------------------------------------------
- * DESCRIPTION:     Javascript code for hoadb web
+ * DESCRIPTION:
  *----------------------------------------------------------------------------
  * Modification History
  * 2015-03-06 JJK 	Initial version
@@ -62,41 +62,88 @@
  * 2020-10-28 JJK   Re-did Dues Email logic using Communication records
  * 2020-12-24 JJK   Added SalesDownload to get file from County site
  * 2021-04-24 JJK   Modified sales file upload from ajax to fetch
- * --------------------------------------------------------------------------
- * 2024-08-30 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
+ * 2025-08-23 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
  *                  js module, and move from PHP/MySQL to Azure SWA
- *                  and C# API's
- * 2025-05-14 JJK   Added checkFetchResponse from util
 *============================================================================*/
 
-import {empty,checkFetchResponse} from './util.js';
-import {} from './search.js';
-import {} from './detail.js';
-import {} from './reports.js';
-import {} from './config.js';
-import {} from './admin.js';
+import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
 
-// Keep track of the state of the navbar collapse (shown or hidden)
-var navbarCollapseShown = false;
-var collapsibleNavbar = document.getElementsByClassName("navbar-collapse")[0];
-collapsibleNavbar.addEventListener('hidden.bs.collapse', function () {
-    navbarCollapseShown = false;
+//=================================================================================================================
+// Variables cached from the DOM
+
+//=================================================================================================================
+// Bind events
+
+document.addEventListener('DOMContentLoaded', () => {
+	// Dynamically populate FiscalYear select with current year and next 4 years
+	const fiscalYearSelect = document.getElementById('FiscalYear');
+	if (fiscalYearSelect) {
+		const currentYear = new Date().getFullYear();
+		fiscalYearSelect.innerHTML = '';
+		for (let i = 1; i < 5; i++) {
+			const year = currentYear + i;
+			const option = document.createElement('option');
+			option.value = year;
+			option.textContent = year;
+			fiscalYearSelect.appendChild(option);
+		}
+	}
+
+	// AddAssessmentsButton handler
+	const addBtn = document.getElementById('AddAssessmentsButton');
+	if (addBtn) {
+		addBtn.addEventListener('click', function() {
+			const duesAmt = document.getElementById('DuesAmt').value;
+			const fiscalYear = document.getElementById('FiscalYear').value;
+			document.getElementById('ConfirmDuesAmt').textContent = duesAmt;
+			document.getElementById('ConfirmFiscalYear').textContent = fiscalYear;
+			document.getElementById('AddAssessmentsError').textContent = '';
+			const modal = new bootstrap.Modal(document.getElementById('AddAssessmentsConfirmModal'));
+			modal.show();
+		});
+	}
+
+	// ConfirmAddAssessmentsBtn handler
+	const confirmBtn = document.getElementById('ConfirmAddAssessmentsBtn');
+	if (confirmBtn) {
+		confirmBtn.addEventListener('click', async function() {
+			const duesAmt = document.getElementById('DuesAmt').value;
+			const fiscalYear = document.getElementById('FiscalYear').value;
+			const errorDiv = document.getElementById('AddAssessmentsError');
+			errorDiv.textContent = '';
+			if (!duesAmt || !fiscalYear) {
+				errorDiv.textContent = 'Both Dues Amount and Fiscal Year are required.';
+				return;
+			}
+			confirmBtn.disabled = true;
+			try {
+				const resp = await fetch('/api/AddAssessments', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify({ DuesAmt: duesAmt, FiscalYear: fiscalYear })
+				});
+				const data = await resp.json();
+				if (!resp.ok) {
+					errorDiv.textContent = data || 'Error adding assessments.';
+				} else {
+					// Hide modal and show result
+					bootstrap.Modal.getInstance(document.getElementById('AddAssessmentsConfirmModal')).hide();
+					document.getElementById('ResultMessage').textContent = data;
+				}
+			} catch (err) {
+				errorDiv.textContent = 'Network or server error.';
+			} finally {
+				confirmBtn.disabled = false;
+			}
+		});
+	}
 })
-collapsibleNavbar.addEventListener('shown.bs.collapse', function () {
-    navbarCollapseShown = true;
+
+document.body.addEventListener("click", async function (event) {
+	if (event.target.classList.contains("x")) {
+		event.preventDefault()
+		//const configName = event.target.dataset.configname
+		//formatUpdateConfig(configName)
+	}
 })
-     
-// Listen for nav-link clicks
-document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click", function (event) {
-    // Automatically hide the navbar collapse when an item link is clicked (and the collapse is currently shown)
-    if (navbarCollapseShown) {
-        new bootstrap.Collapse(document.getElementsByClassName("navbar-collapse")[0]).hide()
-    }
-}))
-    
-// 8/9/2020 Focus on the first non-readonly input field when a modal pops up
-/* >>>>> find out if we still need this
-$document.on('shown.bs.modal', function (e) {
-    $('input:visible:enabled:not([readonly]):first', e.target).focus(); 
-});
-*/
+

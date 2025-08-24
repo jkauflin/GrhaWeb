@@ -650,7 +650,7 @@ namespace GrhaWeb.Function
             hoa_properties property,
             List<hoa_owners> ownerList,
             List<hoa_assessments> assessmentList)
-//            Dictionary<string, string> configDict)
+        //            Dictionary<string, string> configDict)
         {
             HoaRec hoaRec = new HoaRec();
             hoaRec.property = property;
@@ -939,7 +939,7 @@ namespace GrhaWeb.Function
             PatchOperation[] patchArray = patchOperations.ToArray();
 
             // Compose id for sales record: usually composite key, but here use saledt as id
-            string itemId = parid; 
+            string itemId = parid;
             PartitionKey pk = new PartitionKey(saledt);
 
             ItemResponse<dynamic> response = await container.PatchItemAsync<dynamic>(
@@ -1618,6 +1618,68 @@ namespace GrhaWeb.Function
             await container.ReplaceItemAsync(assessmentRec, assessmentRec.id, new PartitionKey(assessmentRec.Parcel_ID));
 
             return assessmentRec;
+        }
+
+        // Bulk add assessments for all properties for a given FiscalYear and DuesAmt
+        public async Task<int> AddAssessmentsBulk(string userName, int fiscalYear, decimal duesAmt)
+        {
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container propContainer = db.GetContainer("hoa_properties");
+            Container assessContainer = db.GetContainer("hoa_assessments");
+
+            // Get all properties
+            List<hoa_properties> propList = new List<hoa_properties>();
+            var propQuery = new QueryDefinition("SELECT * FROM c ORDER BY c.Parcel_ID");
+            var propFeed = propContainer.GetItemQueryIterator<hoa_properties>(propQuery);
+            while (propFeed.HasMoreResults)
+            {
+                var response = await propFeed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    propList.Add(item);
+                }
+            }
+
+            int count = 0;
+            DateTime now = DateTime.Now;
+            foreach (var prop in propList)
+            {
+                // Check if assessment already exists for this property and year
+                var checkQuery = new QueryDefinition("SELECT * FROM c WHERE c.Parcel_ID = @parcelId AND c.FY = @fy")
+                    .WithParameter("@parcelId", prop.Parcel_ID)
+                    .WithParameter("@fy", fiscalYear);
+                var checkFeed = assessContainer.GetItemQueryIterator<hoa_assessments>(checkQuery);
+                bool exists = false;
+                while (checkFeed.HasMoreResults)
+                {
+                    var checkResp = await checkFeed.ReadNextAsync();
+                    if (checkResp.Count > 0)
+                    {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (exists) continue;
+
+                // Create new assessment
+                var assessment = new hoa_assessments
+                {
+                    id = Guid.NewGuid().ToString(),
+                    Parcel_ID = prop.Parcel_ID,
+                    FY = fiscalYear,
+                    OwnerID = prop.OwnerID,
+                    DuesAmt = duesAmt.ToString("F2"),
+                    Paid = 0,
+                    NonCollectible = 0,
+                    DateDue = new DateTime(fiscalYear - 1, 10, 1).ToString("yyyy-MM-dd"),
+                    LastChangedBy = userName,
+                    LastChangedTs = now
+                };
+                await assessContainer.CreateItemAsync(assessment, new PartitionKey(assessment.Parcel_ID));
+                count++;
+            }
+            return count;
         }
 
 
