@@ -80,7 +80,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (fiscalYearSelect) {
 		const currentYear = new Date().getFullYear();
 		fiscalYearSelect.innerHTML = '';
-		for (let i = 1; i < 5; i++) {
+		for (let i = 1; i < 4; i++) {
 			const year = currentYear + i;
 			const option = document.createElement('option');
 			option.value = year;
@@ -116,22 +116,21 @@ document.addEventListener('DOMContentLoaded', () => {
 				return;
 			}
 			confirmBtn.disabled = true;
+			showLoadingSpinner(errorDiv);
 			try {
-				const resp = await fetch('/api/AddAssessments', {
+				const response = await fetch('/api/AddAssessments', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ DuesAmt: duesAmt, FiscalYear: fiscalYear })
-				});
-				const data = await resp.json();
-				if (!resp.ok) {
-					errorDiv.textContent = data || 'Error adding assessments.';
-				} else {
-					// Hide modal and show result
-					bootstrap.Modal.getInstance(document.getElementById('AddAssessmentsConfirmModal')).hide();
-					document.getElementById('ResultMessage').textContent = data;
-				}
+				})
+				await checkFetchResponse(response);
+				errorDiv.textContent = ''
+				const adminResultMessage = await response.text();
+				// Hide modal and show result
+				bootstrap.Modal.getInstance(document.getElementById('AddAssessmentsConfirmModal')).hide()
+				document.getElementById('AdminMessage').textContent = adminResultMessage
 			} catch (err) {
-				errorDiv.textContent = 'Network or server error.';
+				errorDiv.textContent = 'Error adding Assessments: ' + err.message;
 			} finally {
 				confirmBtn.disabled = false;
 			}
