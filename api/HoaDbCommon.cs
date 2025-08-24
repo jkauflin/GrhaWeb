@@ -1663,10 +1663,49 @@ namespace GrhaWeb.Function
                 if (exists) continue;
                 // >>>>> Maybe do an update/replace with new amt???
 
+/*
+{
+    "id": "c04237e8-9c90-4330-b776-b05f6bf2c8f1",
+    "OwnerID": 1254,
+    "Parcel_ID": "R72617521 0024",
+    "FY": 2026,
+    "DuesAmt": "145.67",
+    "DateDue": "2025-10-01",
+    "DuesDue": false,
+    "Paid": 0,
+    "NonCollectible": 0,
+    "DatePaid": null,
+    "PaymentMethod": null,
+    "Lien": 0,
+    "LienRefNo": null,
+    "DateFiled": "0001-01-01T00:00:00",
+    "Disposition": null,
+    "FilingFee": 0,
+    "ReleaseFee": 0,
+    "DateReleased": "0001-01-01T00:00:00",
+    "LienDatePaid": "0001-01-01T00:00:00",
+    "AmountPaid": 0,
+    "StopInterestCalc": 0,
+    "FilingFeeInterest": 0,
+    "AssessmentInterest": 0,
+    "InterestNotPaid": 0,
+    "BankFee": 0,
+    "LienComment": null,
+    "Comments": null,
+    "LastChangedBy": "jkauflin",
+    "LastChangedTs": "2025-08-24T10:45:21.859468-04:00",
+    "_rid": "pGFPAItORlPXKQAAAAAAAA==",
+    "_self": "dbs/pGFPAA==/colls/pGFPAItORlM=/docs/pGFPAItORlPXKQAAAAAAAA==/",
+    "_etag": "\"32001472-0000-0200-0000-68ab25b30000\"",
+    "_attachments": "attachments/",
+    "_ts": 1756046771
+}
+*/
                 // Create new assessment
                 var assessment = new hoa_assessments
                 {
-                    id = Guid.NewGuid().ToString(),
+                    //id = Guid.NewGuid().ToString(),
+                    id = Guid.NewGuid().ToString(),  // Id: String(OwnerID + FY)
                     Parcel_ID = prop.Parcel_ID,
                     FY = fiscalYear,
                     OwnerID = prop.OwnerID,
