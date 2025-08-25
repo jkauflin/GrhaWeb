@@ -1661,51 +1661,75 @@ namespace GrhaWeb.Function
                     }
                 }
                 if (exists) continue;
-                // >>>>> Maybe do an update/replace with new amt???
+                // >>>>> Maybe do an update/replace with new amt??? or just an Upsert
 
-/*
-{
-    "id": "c04237e8-9c90-4330-b776-b05f6bf2c8f1",
-    "OwnerID": 1254,
-    "Parcel_ID": "R72617521 0024",
-    "FY": 2026,
-    "DuesAmt": "145.67",
-    "DateDue": "2025-10-01",
-    "DuesDue": false,
-    "Paid": 0,
-    "NonCollectible": 0,
-    "DatePaid": null,
-    "PaymentMethod": null,
-    "Lien": 0,
-    "LienRefNo": null,
-    "DateFiled": "0001-01-01T00:00:00",
-    "Disposition": null,
-    "FilingFee": 0,
-    "ReleaseFee": 0,
-    "DateReleased": "0001-01-01T00:00:00",
-    "LienDatePaid": "0001-01-01T00:00:00",
-    "AmountPaid": 0,
-    "StopInterestCalc": 0,
-    "FilingFeeInterest": 0,
-    "AssessmentInterest": 0,
-    "InterestNotPaid": 0,
-    "BankFee": 0,
-    "LienComment": null,
-    "Comments": null,
-    "LastChangedBy": "jkauflin",
-    "LastChangedTs": "2025-08-24T10:45:21.859468-04:00",
-    "_rid": "pGFPAItORlPXKQAAAAAAAA==",
-    "_self": "dbs/pGFPAA==/colls/pGFPAItORlM=/docs/pGFPAItORlPXKQAAAAAAAA==/",
-    "_etag": "\"32001472-0000-0200-0000-68ab25b30000\"",
-    "_attachments": "attachments/",
-    "_ts": 1756046771
-}
-*/
+                /*
+                {
+                    "id": "c04237e8-9c90-4330-b776-b05f6bf2c8f1",
+                    "OwnerID": 1254,
+                    "Parcel_ID": "R72617521 0024",
+                    "FY": 2026,
+                    "DuesAmt": "145.67",
+                    "DateDue": "2025-10-01",
+                    "DuesDue": false,
+                    "Paid": 0,
+                    "NonCollectible": 0,
+                    "DatePaid": null,
+                    "PaymentMethod": null,
+                    "Lien": 0,
+                    "LienRefNo": null,
+                    "DateFiled": "0001-01-01T00:00:00",
+                    "Disposition": null,
+                    "FilingFee": 0,
+                    "ReleaseFee": 0,
+                    "DateReleased": "0001-01-01T00:00:00",
+                    "LienDatePaid": "0001-01-01T00:00:00",
+                    "AmountPaid": 0,
+                    "StopInterestCalc": 0,
+                    "FilingFeeInterest": 0,
+                    "AssessmentInterest": 0,
+                    "InterestNotPaid": 0,
+                    "BankFee": 0,
+                    "LienComment": null,
+                    "Comments": null,
+				$OwnerID = 0;
+				$Parcel_ID = "";
+				$FY = intval($fiscalYear);
+				$DuesAmt = '$' . strval($duesAmt);
+				$DateDue = strval($fiscalYear-1) . "-10-01";
+				$Paid = 0;
+				$NonCollectible = 0;
+				$DatePaid = "";
+				$PaymentMethod = "";
+
+				$Lien = 0;
+				$LienRefNo = "";
+				$DateFiled = "";
+				$Disposition = "";
+				$FilingFee = "";
+				$ReleaseFee = "";
+				$DateReleased = "";
+				$LienDatePaid = "";
+				$AmountPaid = "";
+				$StopInterestCalc = 0;
+				$FilingFeeInterest = "";
+				$AssessmentInterest = "";
+				$InterestNotPaid = 0;
+				$BankFee = "";
+				$LienComment = "";
+
+				$Comments = "";
+
+                    
+                }
+                */
+
+                DateTime currTs = now;
                 // Create new assessment
                 var assessment = new hoa_assessments
                 {
                     //id = Guid.NewGuid().ToString(),
-                    id = Guid.NewGuid().ToString(),  // Id: String(OwnerID + FY)
+                    id = prop.OwnerID.ToString() + fiscalYear.ToString(),
                     Parcel_ID = prop.Parcel_ID,
                     FY = fiscalYear,
                     OwnerID = prop.OwnerID,
@@ -1714,7 +1738,8 @@ namespace GrhaWeb.Function
                     NonCollectible = 0,
                     DateDue = new DateTime(fiscalYear - 1, 10, 1).ToString("yyyy-MM-dd"),
                     LastChangedBy = userName,
-                    LastChangedTs = now
+                    LastChangedTs = currTs
+                    
                 };
                 await assessContainer.CreateItemAsync(assessment, new PartitionKey(assessment.Parcel_ID));
                 count++;
