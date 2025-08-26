@@ -1702,3 +1702,4 @@ namespace GrhaWeb.Function
 
     } // public class HoaDbCommon
 } // namespace GrhaWeb.Function
+
