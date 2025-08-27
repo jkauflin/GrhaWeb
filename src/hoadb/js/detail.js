@@ -58,7 +58,6 @@ import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,f
 //=================================================================================================================
 // Variables cached from the DOM
 // Current hoaRec from last query and updates
-
 var hoaRec
 var createNewOwnerIdStr = "*** CREATE NEW OWNER (on Save) ***"
 var isTouchDevice = 'ontouchstart' in document.documentElement
@@ -67,7 +66,7 @@ var isTouchDevice = 'ontouchstart' in document.documentElement
 var messageDisplay
 var DuesStatementButton
 var NewOwnerButton
-//var CommunicationsButton
+var CommunicationsButton
 var Parcel_ID
 var LotNo
 var Property_Street_No
@@ -130,11 +129,11 @@ var assLastChangedTs
 var UpdatePropertyForm
 var propertyOwnersTbody
 var propertyAssessmentsTbody
-//var CommunicationsTbody
+var CommunicationsTbody
 var duesStatementModal
 var OwnerUpdateModal
 var AssessmentUpdateModal
-//var CommunicationsModal
+var CommunicationsModal
 var detailPageTab
 
 //=================================================================================================================
@@ -145,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     messageDisplay = document.getElementById("DetailMessageDisplay")
     DuesStatementButton = document.getElementById("DuesStatementButton")
     NewOwnerButton = document.getElementById("NewOwnerButton")
-    //CommunicationsButton = document.getElementById("CommunicationsButton")
+    CommunicationsButton = document.getElementById("CommunicationsButton")
     Parcel_ID = document.getElementById("Parcel_ID")
     LotNo = document.getElementById("LotNo")
     Property_Street_No = document.getElementById("Property_Street_No")
@@ -208,11 +207,11 @@ document.addEventListener('DOMContentLoaded', () => {
     UpdatePropertyForm = document.getElementById("UpdatePropertyForm")
     propertyOwnersTbody = document.getElementById("PropertyOwnersTbody")
     propertyAssessmentsTbody = document.getElementById("PropertyAssessmentsTbody")
-    //CommunicationsTbody = document.getElementById("CommunicationsTbody")
+    CommunicationsTbody = document.getElementById("CommunicationsTbody")
     duesStatementModal = new bootstrap.Modal(document.getElementById('duesStatementModal'));
     OwnerUpdateModal = new bootstrap.Modal(document.getElementById('OwnerUpdateModal'));
     AssessmentUpdateModal = new bootstrap.Modal(document.getElementById('AssessmentUpdateModal'));
-    //CommunicationsModal = new bootstrap.Modal(document.getElementById('CommunicationsModal'));
+    CommunicationsModal = new bootstrap.Modal(document.getElementById('CommunicationsModal'));
     detailPageTab = bootstrap.Tab.getOrCreateInstance(document.querySelector(`.navbar-nav a[href="#DetailPage"]`))
 
     NewOwnerButton.addEventListener("click", function (event) {
@@ -225,9 +224,9 @@ document.addEventListener('DOMContentLoaded', () => {
         getDuesStatement(this.dataset.parcelId)
     })
 
-    //CommunicationsButton.addEventListener("click", function () {
-    //    getCommunications(this.dataset.parcelId)
-    //})
+    CommunicationsButton.addEventListener("click", function () {
+        getCommunications(this.dataset.parcelId)
+    })
 
     // Add form validation classes to the input fields
     document.querySelectorAll('.form-control').forEach(input => {
@@ -560,7 +559,6 @@ async function updateProperty() {
     }
 }
 
-/*
 async function getCommunications(parcelId) {
     //console.log("getCommunications called with parcelId = "+parcelId)
     commParcel_ID.value = parcelId
@@ -642,7 +640,6 @@ function formatCommunicationsResults(communicationsList) {
         tbody.appendChild(tr)
     }
 }
-*/
 
 async function getHoaRec(parcelId) {
     // Clear out the property detail display fields
@@ -711,7 +708,7 @@ function displayDetail() {
 
     DuesStatementButton.dataset.parcelId = hoaRec.property.parcel_ID
     NewOwnerButton.dataset.parcelId = hoaRec.property.parcel_ID
-    //CommunicationsButton.dataset.parcelId = hoaRec.property.parcel_ID
+    CommunicationsButton.dataset.parcelId = hoaRec.property.parcel_ID
 }
 
 function displayDetailOwners() {
