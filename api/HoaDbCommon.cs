@@ -678,7 +678,7 @@ namespace GrhaWeb.Function
         }
 
 
-        public async Task<List<hoa_communications>> GetCommunications(string parcelId)
+        public async Task<List<hoa_communications>> GetCommunicationsDB(string parcelId)
         {
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
@@ -690,12 +690,23 @@ namespace GrhaWeb.Function
 
             CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
-            //Container configContainer = db.GetContainer("hoa_config");
-
             Container container = db.GetContainer(containerId);
-            var queryDefinition = new QueryDefinition(
-                "SELECT * FROM c WHERE c.Parcel_ID = @parcelId ORDER BY c.CommID DESC ")
+
+            QueryDefinition queryDefinition;
+            if (parcelId.Equals("DuesNoticeEmails"))
+            {
+                queryDefinition = new QueryDefinition(
+                    //"SELECT * FROM c WHERE c.Email = 1 AND c.SentStatus = 'Y' ORDER BY c._ts DESC OFFSET 0 LIMIT 200");
+                    "SELECT * FROM c WHERE c.Email = 1 ORDER BY c._ts DESC OFFSET 0 LIMIT 200");
+            }
+            else
+            {
+                //    "SELECT * FROM c WHERE c.Parcel_ID = @parcelId ORDER BY c.CommID DESC ")
+                queryDefinition = new QueryDefinition(
+                    "SELECT * FROM c WHERE c.Parcel_ID = @parcelId ORDER BY c._ts DESC ")
                     .WithParameter("@parcelId", parcelId);
+            }
+
             var feed = container.GetItemQueryIterator<hoa_communications>(queryDefinition);
             int cnt = 0;
             while (feed.HasMoreResults)
@@ -710,6 +721,91 @@ namespace GrhaWeb.Function
 
             return hoaCommunicationsList;
         }
+
+        public async Task<List<hoa_communications>> CreateDuesNoticeEmailsDB(string userName)
+        {
+            bool duesOwed = true;
+            bool skipEmail = false;
+            bool currYearPaid = false;
+            bool currYearUnpaid = false;
+            bool testEmail = false;
+
+            //List<HoaRec>
+            var hoaRecList = await GetHoaRecListDB(duesOwed, skipEmail, currYearPaid, currYearUnpaid, testEmail);
+            /*
+                        // Loop through the list, find the ones with an email address
+                        $cnt = 0;
+                        foreach ($hoaRecList as $hoaRec)  {
+                            $cnt = $cnt + 1;
+                            foreach ($hoaRec->emailAddrList as $EmailAddr) {
+                                insertCommRec($conn,$hoaRec->Parcel_ID,$hoaRec->ownersList[0]->OwnerID,$commType,$commDesc,
+                                    $hoaRec->ownersList[0]->Mailing_Name,1,$EmailAddr,'N',$userRec->userName);
+                            }
+                        }
+            */
+            string containerId = "hoa_communications";
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
+
+            List<hoa_communications> hoaCommunicationsList = new List<hoa_communications>();
+            DateTime currDateTime = DateTime.Now;
+            string LastChangedTs = currDateTime.ToString("o");
+
+            int cnt = 0;
+            string tempEmailAddr = "";
+            foreach (var hoaRec in hoaRecList)
+            {
+                cnt++;
+                log.LogWarning($"{cnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue} ");
+
+                tempEmailAddr = hoaRec.ownersList[0].EmailAddr;
+
+                if (string.IsNullOrEmpty(tempEmailAddr) || !util.IsValidEmail(tempEmailAddr)) {
+                    continue;
+                }
+
+                /*
+                foreach (var emailAddr in hoaRec.emailAddrList)
+                {
+                    log.LogWarning($"{cnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue}, email = {emailAddr}");
+                }
+[2025-08-27T20:03:35.582Z] 1 Parcel = R72617307 0002, TotalDue = 1751.45 
+POST http://localhost:4280/api/CreateDuesNoticeEmails - 200
+[2025-08-27T20:03:35.583Z] 2 Parcel = R72617307 0004, TotalDue = 999.97
+[2025-08-27T20:03:35.585Z] 3 Parcel = R72617307 0007, TotalDue = 557.04
+[2025-08-27T20:03:35.693Z] 116 Parcel = R72617603 0019, TotalDue = 1482.04
+[2025-08-27T20:03:35.694Z] 117 Parcel = R72617603 0022, TotalDue = 1041.03
+[2025-08-27T20:03:35.695Z] 118 Parcel = R72617604 0021, TotalDue = 249.90
+                */
+
+                // Create a metadata object from the media file information
+                hoa_communications hoa_comm = new hoa_communications
+                {
+                    id = Guid.NewGuid().ToString(),
+
+                    Parcel_ID = hoaRec.property.Parcel_ID,
+                    CommID = 9999,
+                    CreateTs = currDateTime,
+                    OwnerID = hoaRec.property.OwnerID,
+                    CommType = "Dues Notice",
+                    CommDesc = "Sent to Owner email",
+                    Mailing_Name = hoaRec.property.Mailing_Name,
+                    Email = 1,
+                    EmailAddr = tempEmailAddr,
+                    SentStatus = "N",
+                    LastChangedBy = userName,
+                    LastChangedTs = currDateTime
+                };
+
+                // Insert a new doc, or update an existing one
+                //await container.UpsertItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
+                await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
+            }
+
+            return hoaCommunicationsList;
+        }
+
 
         public async Task<List<hoa_sales>> GetSalesListDb()
         {

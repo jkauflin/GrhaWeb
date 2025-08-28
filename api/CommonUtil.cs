@@ -10,8 +10,10 @@ Modification History
                 calculation of total dues (& fees) based on Assessments
 2025-08-17 JJK  Added a better version of stringToMoney that allows for currency symbols, 
                 thousands separators, and decimal points
+2025-08-27 JJK  Added IsValidEmail to check email addresses
 ================================================================================*/
 
+using System.Net.Mail;
 using System.Globalization;
 using Microsoft.Extensions.Logging;
 
@@ -27,30 +29,43 @@ namespace GrhaWeb.Function
             log = logger;
         }
 
-        public decimal stringToMoney(string moneyString)
+        public bool IsValidEmail(string email)
         {
-            /*
-            // Remove the dollar sign and parse the string to a decimal
-            decimal moneyValue = decimal.Parse(moneyString.TrimStart('$'));
-            // Round down to 2 decimal places
-            moneyValue = Math.Floor(moneyValue * 100) / 100;
-            return moneyValue;
-            */
-
-            // Allow currency symbols, thousands separators, and decimal points
-            var style = NumberStyles.Currency;
-            var culture = CultureInfo.GetCultureInfo("en-US");
-
-            if (Decimal.TryParse(moneyString, style, culture, out decimal result))
+            try
             {
-                Console.WriteLine($"Parsed value: {result}"); // Output: 1234.56
+                var addr = new MailAddress(email);
+                return addr.Address == email.Trim();
             }
-            else
+            catch
             {
-                throw new FormatException("Invalid money format, moneyString: " + moneyString);
+                return false;
             }
-            return result;
         }
+        
+        public decimal stringToMoney(string moneyString)
+    {
+        /*
+        // Remove the dollar sign and parse the string to a decimal
+        decimal moneyValue = decimal.Parse(moneyString.TrimStart('$'));
+        // Round down to 2 decimal places
+        moneyValue = Math.Floor(moneyValue * 100) / 100;
+        return moneyValue;
+        */
+
+        // Allow currency symbols, thousands separators, and decimal points
+        var style = NumberStyles.Currency;
+        var culture = CultureInfo.GetCultureInfo("en-US");
+
+        if (Decimal.TryParse(moneyString, style, culture, out decimal result))
+        {
+            Console.WriteLine($"Parsed value: {result}"); // Output: 1234.56
+        }
+        else
+        {
+            throw new FormatException("Invalid money format, moneyString: " + moneyString);
+        }
+        return result;
+    }
 
         /*
                 decimal amount = 1234.56m;

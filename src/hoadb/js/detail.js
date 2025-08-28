@@ -607,12 +607,11 @@ function formatCommunicationsResults(communicationsList) {
     tr = document.createElement('tr')
     tr.classList.add('small')
     // Append the header elements
-    th = document.createElement("th"); th.textContent = "CommID"; tr.appendChild(th)        
+    //th = document.createElement("th"); th.textContent = "CommID"; tr.appendChild(th)        
     th = document.createElement("th"); th.textContent = "Datetime"; tr.appendChild(th)
     th = document.createElement("th"); th.textContent = "Type"; tr.appendChild(th)
-    th = document.createElement("th"); th.textContent = "Email"; tr.appendChild(th)
-    th = document.createElement("th"); th.textContent = "Sent"; tr.appendChild(th)
     th = document.createElement("th"); th.textContent = "Address"; tr.appendChild(th)
+    th = document.createElement("th"); th.textContent = "Sent"; tr.appendChild(th)
     th = document.createElement("th"); th.textContent = "Name"; tr.appendChild(th)
     th = document.createElement("th"); th.textContent = "Description"; tr.appendChild(th)
     //th = document.createElement("th"); th.textContent = "Last Changed"; tr.appendChild(th)
@@ -621,20 +620,20 @@ function formatCommunicationsResults(communicationsList) {
     tbody.appendChild(tr)
 
     // Append a row for every record in list
+    
     for (let index in communicationsList) {
         let commRec = communicationsList[index]
 
         tr = document.createElement('tr')
         tr.classList.add('small')
 
-        td = document.createElement("td"); td.textContent = commRec.commID; tr.appendChild(td)
+        //td = document.createElement("td"); td.textContent = commRec.commID; tr.appendChild(td)
         td = document.createElement("td"); td.textContent = standardizeDate(commRec.createTs); tr.appendChild(td)
         td = document.createElement("td"); td.textContent = commRec.commType; tr.appendChild(td)
         td = document.createElement("td"); td.textContent = commRec.emailAddr; tr.appendChild(td)
         td = document.createElement("td"); td.textContent = commRec.sentStatus; tr.appendChild(td)
-        td = document.createElement("td"); td.textContent = "test address"; tr.appendChild(td)
         td = document.createElement("td"); td.textContent = commRec.mailing_Name; tr.appendChild(td)
-        td = document.createElement("td"); td.textContent = commRec.commDesc; tr.appendChild(td)
+        td = document.createElement("td"); td.textContent = commRec.commDesc.substring(0,40); tr.appendChild(td)
         //td = document.createElement("td"); td.textContent = standardizeDate(commRec.createTs); tr.appendChild(td)
 
         tbody.appendChild(tr)

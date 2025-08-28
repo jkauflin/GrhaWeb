@@ -70,11 +70,26 @@ import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,f
 
 //=================================================================================================================
 // Variables cached from the DOM
+var AdminListDisplayTbody
+var AdminResults
+var AdminRecCnt
+var DuesNoticeEmailButtons
+var messageDisplay
 
 //=================================================================================================================
 // Bind events
 
 document.addEventListener('DOMContentLoaded', () => {
+	AdminListDisplayTbody = document.getElementById("AdminListDisplayTbody")
+	AdminResults = document.getElementById("AdminResults")
+	AdminRecCnt = document.getElementById("AdminRecCnt")
+	DuesNoticeEmailButtons = document.getElementById("DuesNoticeEmailButtons")
+	messageDisplay = document.getElementById("AdminMessageDisplay")
+
+	document.getElementById("DuesEmailsButton").addEventListener("click", function (event) {
+		getDuesNotesEmails()
+	})
+
 	// Dynamically populate FiscalYear select with current year and next 4 years
 	const fiscalYearSelect = document.getElementById('FiscalYear');
 	if (fiscalYearSelect) {
@@ -128,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
 				const adminResultMessage = await response.text();
 				// Hide modal and show result
 				bootstrap.Modal.getInstance(document.getElementById('AddAssessmentsConfirmModal')).hide()
-				document.getElementById('AdminMessage').textContent = adminResultMessage
+				messageDisplay.textContent = adminResultMessage
 			} catch (err) {
 				errorDiv.textContent = 'Error adding Assessments: ' + err.message;
 			} finally {
@@ -139,10 +154,132 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 document.body.addEventListener("click", async function (event) {
-	if (event.target.classList.contains("x")) {
+	if (event.target.classList.contains("CreateDuesNoticeEmails")) {
 		event.preventDefault()
-		//const configName = event.target.dataset.configname
-		//formatUpdateConfig(configName)
+		createDuesNotesEmails()
 	}
 })
 
+async function createDuesNotesEmails() {
+	//AdminResults.textContent = "Dues Notice Emails"
+	showLoadingSpinner(messageDisplay)
+
+	let paramData = {
+		parcelId: "DuesNoticeEmails"
+	}
+
+	try {
+		const response = await fetch("/api/CreateDuesNoticeEmails", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(paramData)
+		})
+		await checkFetchResponse(response)
+		// Success
+		let returnMessage = await response.text();
+		messageDisplay.textContent = returnMessage
+		getDuesNotesEmails()
+	} catch (err) {
+		console.error(err)
+		messageDisplay.textContent = `Error in Fetch: ${err.message}`
+	}
+}
+
+async function getDuesNotesEmails() {
+	AdminResults.textContent = "Dues Notice Emails"
+
+	AdminRecCnt.textContent = ""
+	empty(DuesNoticeEmailButtons)
+	let tbody = AdminListDisplayTbody
+	empty(tbody)
+
+	showLoadingSpinner(messageDisplay)
+
+	let paramData = {
+		parcelId: "DuesNoticeEmails"
+	}
+
+	try {
+		const response = await fetch("/api/GetCommunications", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(paramData)
+		})
+		await checkFetchResponse(response)
+		// Success
+		let communicationsList = await response.json();
+		formatCommunicationsResults(communicationsList);
+		messageDisplay.textContent = ""
+	} catch (err) {
+		console.error(err)
+		messageDisplay.textContent = `Error in Fetch: ${err.message}`
+	}
+}
+
+function formatCommunicationsResults(communicationsList) {
+	// Example assumes communicationsRec is an array of communication objects
+	// and there is a table with id "CommunicationsTable" in the modal
+
+	AdminRecCnt.textContent = ""
+	empty(DuesNoticeEmailButtons)
+	let tbody = AdminListDisplayTbody
+	empty(tbody)
+	let tr = document.createElement("tr");
+	let td = document.createElement("td");
+	let th = document.createElement("th");
+	
+	if (!communicationsList || communicationsList.length === 0) {
+		td.colSpan = 4;
+		td.textContent = "No communications found.";
+		tr.appendChild(td);
+		tbody.appendChild(tr);
+		return;
+	}
+
+	tr = document.createElement('tr')
+	tr.classList.add('small')
+	// Append the header elements
+	th = document.createElement("th"); th.textContent = "CommID"; tr.appendChild(th)        
+	th = document.createElement("th"); th.textContent = "Datetime"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Type"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Address"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Sent"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Name"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "Description"; tr.appendChild(th)
+	tbody.appendChild(tr)
+
+	// Append a row for every record in list
+	let sentCnt = 0
+	let unsentCnt = 0
+	for (let index in communicationsList) {
+		let commRec = communicationsList[index]
+
+		tr = document.createElement('tr')
+		tr.classList.add('small')
+
+		td = document.createElement("td"); td.textContent = commRec.commID; tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = standardizeDate(commRec.createTs); tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = commRec.commType; tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = commRec.emailAddr; tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = commRec.sentStatus; tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = commRec.mailing_Name; tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = commRec.commDesc.substring(0,30); tr.appendChild(td)
+
+		tbody.appendChild(tr)
+
+		if (commRec.sentStatus == 'Y') {
+			sentCnt++
+		} else {
+			unsentCnt++
+		}
+	}
+
+	AdminRecCnt.textContent = `Emails sent = ${sentCnt}, Emails waiting to Send = ${unsentCnt}`
+
+	let button = document.createElement("button")
+	button.setAttribute('type',"button")
+	button.setAttribute('role',"button")
+	button.classList.add('btn','btn-primary','btn-sm','mb-1','me-1','shadow-none','CreateDuesNoticeEmails')
+	button.innerHTML = '<i class="fa fa-envelope me-1"></i> Create and Send Dues Notice Emails'
+	DuesNoticeEmailButtons.appendChild(button);
+}
