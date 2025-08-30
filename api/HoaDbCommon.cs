@@ -756,15 +756,15 @@ namespace GrhaWeb.Function
             string tempEmailAddr = "";
             foreach (var hoaRec in hoaRecList)
             {
-                cnt++;
-                log.LogWarning($"{cnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue} ");
-
                 tempEmailAddr = hoaRec.ownersList[0].EmailAddr;
 
                 if (string.IsNullOrEmpty(tempEmailAddr) || !util.IsValidEmail(tempEmailAddr))
                 {
                     continue;
                 }
+
+                cnt++;
+                log.LogWarning($"{cnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue} ");
 
                 /*
                 foreach (var emailAddr in hoaRec.emailAddrList)
@@ -801,7 +801,7 @@ POST http://localhost:4280/api/CreateDuesNoticeEmails - 200
 
                 // Insert a new doc, or update an existing one
                 //await container.UpsertItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
-                await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
+                //await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
                 hoaCommunicationsList.Add(hoa_comm);
             }
 

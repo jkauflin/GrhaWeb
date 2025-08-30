@@ -177,7 +177,8 @@ async function createDuesNotesEmails() {
 		await checkFetchResponse(response)
 		// Success
 		let returnMessage = await response.text();
-		messageDisplay.textContent = returnMessage
+		//messageDisplay.textContent = returnMessage
+		AdminRecCnt.textContent = returnMessage
 		getDuesNotesEmails()
 	} catch (err) {
 		console.error(err)

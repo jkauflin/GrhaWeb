@@ -609,9 +609,9 @@ namespace GrhaWeb.Function
                 );
 
                 hoaCommunicationsList = await hoaDbCommon.CreateDuesNoticeEmailsDB(userName);
+                int cnt = 0;
                 foreach (var commRec in hoaCommunicationsList)
                 {
-
                     await eventGridPublisherClient.SendEventAsync(
                         new EventGridEvent(
                             subject: "DuesEmailRequest",
@@ -620,10 +620,11 @@ namespace GrhaWeb.Function
                             data: new { parcelId = commRec.Parcel_ID }
                         )
                     );
-
+                    cnt++;
+                    log.LogWarning($"{cnt} Sent Event, Parcel = {commRec.Parcel_ID} ");
                 }
 
-                returnMessage = "Dues Notice Emails queued successfully";
+                returnMessage = $"Dues Notice Emails queued successfully, count = {cnt}";
             }
             catch (Exception ex)
             {
