@@ -761,7 +761,8 @@ namespace GrhaWeb.Function
 
                 tempEmailAddr = hoaRec.ownersList[0].EmailAddr;
 
-                if (string.IsNullOrEmpty(tempEmailAddr) || !util.IsValidEmail(tempEmailAddr)) {
+                if (string.IsNullOrEmpty(tempEmailAddr) || !util.IsValidEmail(tempEmailAddr))
+                {
                     continue;
                 }
 
@@ -801,6 +802,7 @@ POST http://localhost:4280/api/CreateDuesNoticeEmails - 200
                 // Insert a new doc, or update an existing one
                 //await container.UpsertItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
                 await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
+                hoaCommunicationsList.Add(hoa_comm);
             }
 
             return hoaCommunicationsList;

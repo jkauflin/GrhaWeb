@@ -20,11 +20,21 @@ Modification History
 2025-08-03 JJK  Added GetSalesList and UpdateSales functions to get sales data
                 and update the sales record WelcomeSent flag
 2025-08-08 JJK  Added new owner update function
+2025-08-27 JJK  Added CreateDuesNoticeEmails to create communication records
+                and EventGrid events (which are handled by an Azure Function)
 ================================================================================*/
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Azure;
+using Azure.Messaging.EventGrid;
+//using Azure.Messaging.EventGrid.Models;
+//using Microsoft.Azure.Functions.Worker.Extensions.EventGrid;
+//using Microsoft.Azure.Functions.Worker.Extensions.EventGrid.Models;
+
+//TopicCredentials
+
 using Microsoft.AspNetCore.Mvc;     // for IActionResult
 using Newtonsoft.Json.Linq;
 
@@ -44,6 +54,8 @@ namespace GrhaWeb.Function
         private readonly string userAdminRole;
         private readonly CommonUtil util;
         private readonly HoaDbCommon hoaDbCommon;
+        private readonly string? grhaSendEmailEventTopicEndpoint;
+        private readonly string? grhaSendEmailEventTopicKey;
 
         public WebApi(ILogger<WebApi> logger, IConfiguration configuration)
         {
@@ -53,6 +65,8 @@ namespace GrhaWeb.Function
             userAdminRole = "hoadbadmin";   // add to config ???
             util = new CommonUtil(log);
             hoaDbCommon = new HoaDbCommon(log, config);
+            grhaSendEmailEventTopicEndpoint = config["GRHA_SENDMAIL_EVENT_TOPIC_ENDPOINT"];
+            grhaSendEmailEventTopicKey = config["GRHA_SENDMAIL_EVENT_TOPIC_KEY"];
         }
 
         [Function("GetPropertyList")]
@@ -589,8 +603,27 @@ namespace GrhaWeb.Function
                 }
                 */
 
+                var eventGridPublisherClient = new EventGridPublisherClient(
+                    new Uri(grhaSendEmailEventTopicEndpoint),
+                    new AzureKeyCredential(grhaSendEmailEventTopicKey)
+                );
+
                 hoaCommunicationsList = await hoaDbCommon.CreateDuesNoticeEmailsDB(userName);
-                returnMessage = "Dues Notice Emails created successfully";
+                foreach (var commRec in hoaCommunicationsList)
+                {
+
+                    await eventGridPublisherClient.SendEventAsync(
+                        new EventGridEvent(
+                            subject: "DuesEmailRequest",
+                            eventType: "SendMail",
+                            dataVersion: "1.0",
+                            data: new { parcelId = commRec.Parcel_ID }
+                        )
+                    );
+
+                }
+
+                returnMessage = "Dues Notice Emails queued successfully";
             }
             catch (Exception ex)
             {
@@ -600,6 +633,7 @@ namespace GrhaWeb.Function
 
             return new OkObjectResult(returnMessage);
         }
+
 
 
         /*
