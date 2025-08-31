@@ -617,7 +617,7 @@ namespace GrhaWeb.Function
                             subject: "DuesEmailRequest",
                             eventType: "SendMail",
                             dataVersion: "1.0",
-                            data: new { parcelId = commRec.Parcel_ID }
+                            data: commRec.Parcel_ID
                         )
                     );
                     cnt++;
