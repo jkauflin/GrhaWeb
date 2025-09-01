@@ -31,6 +31,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Cosmos;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+
+using Azure;
+using Azure.Messaging.EventGrid;
+
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
@@ -48,6 +52,8 @@ namespace GrhaWeb.Function
         private readonly string? apiCosmosDbConnStr;
         private readonly string? apiStorageConnStr;
         private readonly string databaseId;
+        private readonly string? grhaSendEmailEventTopicEndpoint;
+        private readonly string? grhaSendEmailEventTopicKey;
         private readonly CommonUtil util;
 
         public HoaDbCommon(ILogger logger, IConfiguration configuration)
@@ -57,6 +63,8 @@ namespace GrhaWeb.Function
             apiCosmosDbConnStr = config["API_COSMOS_DB_CONN_STR"];
             apiStorageConnStr = config["API_STORAGE_CONN_STR"];
             databaseId = "hoadb";
+            grhaSendEmailEventTopicEndpoint = config["GRHA_SENDMAIL_EVENT_TOPIC_ENDPOINT"];
+            grhaSendEmailEventTopicKey = config["GRHA_SENDMAIL_EVENT_TOPIC_KEY"];
             util = new CommonUtil(log);
         }
 
@@ -722,90 +730,158 @@ namespace GrhaWeb.Function
             return hoaCommunicationsList;
         }
 
-        public async Task<List<hoa_communications>> CreateDuesNoticeEmailsDB(string userName)
+        public async Task<int> CreateDuesNoticeEmailsDB(string userName)
         {
             bool duesOwed = true;
             bool skipEmail = false;
             bool currYearPaid = false;
             bool currYearUnpaid = false;
             bool testEmail = false;
+            int returnCnt = 0;
 
-            //List<HoaRec>
+            // Get a list of the parcels that have dues owed
             var hoaRecList = await GetHoaRecListDB(duesOwed, skipEmail, currYearPaid, currYearUnpaid, testEmail);
-            /*
-                        // Loop through the list, find the ones with an email address
-                        $cnt = 0;
-                        foreach ($hoaRecList as $hoaRec)  {
-                            $cnt = $cnt + 1;
-                            foreach ($hoaRec->emailAddrList as $EmailAddr) {
-                                insertCommRec($conn,$hoaRec->Parcel_ID,$hoaRec->ownersList[0]->OwnerID,$commType,$commDesc,
-                                    $hoaRec->ownersList[0]->Mailing_Name,1,$EmailAddr,'N',$userRec->userName);
-                            }
-                        }
-            */
             string containerId = "hoa_communications";
             CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
-
-            List<hoa_communications> hoaCommunicationsList = new List<hoa_communications>();
             DateTime currDateTime = DateTime.Now;
             string LastChangedTs = currDateTime.ToString("o");
 
+            var eventGridPublisherClient = new EventGridPublisherClient(
+                new Uri(grhaSendEmailEventTopicEndpoint),
+                new AzureKeyCredential(grhaSendEmailEventTopicKey)
+            );
+
             int cnt = 0;
-            string tempEmailAddr = "";
+            string commId = "";
             foreach (var hoaRec in hoaRecList)
             {
-                tempEmailAddr = hoaRec.ownersList[0].EmailAddr;
+                hoaRec.emailAddrList = new List<string>();
 
-                if (string.IsNullOrEmpty(tempEmailAddr) || !util.IsValidEmail(tempEmailAddr))
+                // Add the valid emails to the list
+                if (!string.IsNullOrWhiteSpace(hoaRec.ownersList[0].EmailAddr))
+                {
+                    if (util.IsValidEmail(hoaRec.ownersList[0].EmailAddr))
+                    {
+                        hoaRec.emailAddrList.Add(hoaRec.ownersList[0].EmailAddr);
+                    }
+                }
+                if (!string.IsNullOrWhiteSpace(hoaRec.ownersList[0].EmailAddr2))
+                {
+                    if (util.IsValidEmail(hoaRec.ownersList[0].EmailAddr2))
+                    {
+                        hoaRec.emailAddrList.Add(hoaRec.ownersList[0].EmailAddr2);
+                    }
+                }
+
+                // Skip parcel if there are no valid email addresses
+                if (hoaRec.emailAddrList.Count < 1)
                 {
                     continue;
                 }
 
-                cnt++;
-                log.LogWarning($"{cnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue} ");
-
-                /*
+                // Create a communication record and an email send event for each valid email address for the Owner
                 foreach (var emailAddr in hoaRec.emailAddrList)
                 {
-                    log.LogWarning($"{cnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue}, email = {emailAddr}");
+                    returnCnt++;
+                    //log.LogWarning($"{returnCnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue}, email = {emailAddr}");
+
+                    commId = Guid.NewGuid().ToString();
+
+                    // Create a metadata object from the media file information
+                    hoa_communications hoa_comm = new hoa_communications
+                    {
+                        id = commId,
+                        Parcel_ID = hoaRec.property.Parcel_ID,
+                        CommID = 9999,
+                        CreateTs = currDateTime,
+                        OwnerID = hoaRec.property.OwnerID,
+                        CommType = "Dues Notice",
+                        CommDesc = "Sent to Owner email",
+                        Mailing_Name = hoaRec.property.Mailing_Name,
+                        Email = 1,
+                        EmailAddr = emailAddr,
+                        SentStatus = "N",
+                        LastChangedBy = userName,
+                        LastChangedTs = currDateTime
+                    };
+
+                    // Insert a new doc, or update an existing one
+                    await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
+                    
+                    await eventGridPublisherClient.SendEventAsync(
+                        new EventGridEvent(
+                            subject: "DuesEmailRequest",
+                            eventType: "SendMail",
+                            dataVersion: "1.0",
+                            //data: hoa_comm.Parcel_ID
+                            data: new {id = commId, parcelId = hoa_comm.Parcel_ID, totalDue = hoaRec.totalDue, emailAddr = emailAddr}
+                        )
+                    );
                 }
-[2025-08-27T20:03:35.582Z] 1 Parcel = R72617307 0002, TotalDue = 1751.45 
-POST http://localhost:4280/api/CreateDuesNoticeEmails - 200
-[2025-08-27T20:03:35.583Z] 2 Parcel = R72617307 0004, TotalDue = 999.97
-[2025-08-27T20:03:35.585Z] 3 Parcel = R72617307 0007, TotalDue = 557.04
-[2025-08-27T20:03:35.693Z] 116 Parcel = R72617603 0019, TotalDue = 1482.04
-[2025-08-27T20:03:35.694Z] 117 Parcel = R72617603 0022, TotalDue = 1041.03
-[2025-08-27T20:03:35.695Z] 118 Parcel = R72617604 0021, TotalDue = 249.90
-                */
-
-                // Create a metadata object from the media file information
-                hoa_communications hoa_comm = new hoa_communications
-                {
-                    id = Guid.NewGuid().ToString(),
-
-                    Parcel_ID = hoaRec.property.Parcel_ID,
-                    CommID = 9999,
-                    CreateTs = currDateTime,
-                    OwnerID = hoaRec.property.OwnerID,
-                    CommType = "Dues Notice",
-                    CommDesc = "Sent to Owner email",
-                    Mailing_Name = hoaRec.property.Mailing_Name,
-                    Email = 1,
-                    EmailAddr = tempEmailAddr,
-                    SentStatus = "N",
-                    LastChangedBy = userName,
-                    LastChangedTs = currDateTime
-                };
-
-                // Insert a new doc, or update an existing one
-                //await container.UpsertItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
-                //await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
-                hoaCommunicationsList.Add(hoa_comm);
             }
+/*
+function createDuesMessage($conn,$Parcel_ID) {
+    $htmlMessageStr = '';
+    $title = 'Member Dues Notice';
+    $hoaName = getConfigValDB($conn,'hoaName');
 
-            return hoaCommunicationsList;
+    // Current System datetime
+    $currSysDate = date_create();
+    // Get the current data for the property
+    $hoaRec = getHoaRec($conn,$Parcel_ID);
+
+    $FY = 1991;
+    // *** just use the highest FY - the first assessment record ***
+    $result = $conn->query("SELECT MAX(FY) AS maxFY FROM hoa_assessments; ");
+    if ($result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            $FY = $row["maxFY"];
+        }
+    }
+    $result->close();
+
+    $noticeYear = (string) $hoaRec->assessmentsList[0]->FY - 1;
+    $noticeDate = date_format($currSysDate,"Y-m-d");
+
+    $htmlMessageStr .= '<b>' . $hoaName . '</b>' . '<br>';
+    $htmlMessageStr .= $title . " for Fiscal Year " . '<b>' . $FY . '</b>' . '<br>';
+    $htmlMessageStr .= '<b>For the Period:</b> Oct 1, ' . $noticeYear . ' thru Sept 30, ' . $FY . '<br><br>';
+
+    if (!$hoaRec->assessmentsList[0]->Paid) {
+        $htmlMessageStr .= '<b>Current Dues Amount: </b>$' . stringToMoney($hoaRec->assessmentsList[0]->DuesAmt) . '<br>';
+    }
+    //$htmlMessageStr .= '<b>Total Outstanding (as of ' . $noticeDate . ') :</b> $' . $hoaRec->TotalDue . '<br>';
+    $htmlMessageStr .= '<b>*****Total Outstanding:</b> $' . $hoaRec->TotalDue . ' (Includes fees, current & past dues)<br>';
+    //$htmlMessageStr .= '*** Includes fees, current & past dues *** <br>';
+    $htmlMessageStr .= '<b>Due Date: </b>' . 'October 1, ' . $noticeYear . '<br>';
+    $htmlMessageStr .= '<b>Dues must be paid to avoid a lien and lien fees </b><br><br>';
+
+    $htmlMessageStr .= '<b>Parcel Id: </b>' . $hoaRec->Parcel_ID . '<br>';
+    $htmlMessageStr .= '<b>Owner: </b>' . $hoaRec->ownersList[0]->Mailing_Name . '<br>';
+    $htmlMessageStr .= '<b>Location: </b>' . $hoaRec->Parcel_Location . '<br>';
+    $htmlMessageStr .= '<b>Phone: </b>' . $hoaRec->ownersList[0]->Owner_Phone . '<br>';
+    $htmlMessageStr .= '<b>Email: </b>' . $hoaRec->DuesEmailAddr . '<br>';
+    $htmlMessageStr .= '<b>Email2: </b>' . $hoaRec->ownersList[0]->EmailAddr2 . '<br>';
+
+    $htmlMessageStr .= '<h3><a href="' . getConfigValDB($conn,'duesUrl') . '">Click here to view Dues Statement or PAY online</a></h3>';
+    $htmlMessageStr .= '*** Online payment is for properties with ONLY current dues outstanding - if there are outstanding past dues or fees on the account, contact Treasurer for online payment options *** <br>';
+
+    $htmlMessageStr .= 'Send payment checks to:<br>';
+    $htmlMessageStr .= '<b>' . getConfigValDB($conn,'hoaNameShort') . '</b>' . '<br>';
+    $htmlMessageStr .= '<b>' . getConfigValDB($conn,'hoaAddress1') . '</b>' . '<br>';
+    $htmlMessageStr .= '<b>' . getConfigValDB($conn,'hoaAddress2') . '</b>' . '<br>';
+
+    $helpNotes = getConfigValDB($conn,'duesNotes');
+    if (!empty($helpNotes)) {
+        $htmlMessageStr .= '<br>' . $helpNotes . '<br>';
+    }
+
+    return $htmlMessageStr;
+}
+*/
+            return returnCnt;
         }
 
 
