@@ -787,6 +787,12 @@ namespace GrhaWeb.Function
                     returnCnt++;
                     //log.LogWarning($"{returnCnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue}, email = {emailAddr}");
 
+                    // >>>>> just the first one for TESTING
+                    if (returnCnt > 1)
+                    {
+                        continue;
+                    }
+
                     commId = Guid.NewGuid().ToString();
 
                     // Create a metadata object from the media file information
@@ -809,14 +815,14 @@ namespace GrhaWeb.Function
 
                     // Insert a new doc, or update an existing one
                     await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
-                    
+
+                    var payload = new { id = commId, parcelId = hoa_comm.Parcel_ID, totalDue = hoaRec.totalDue, emailAddr = emailAddr };
                     await eventGridPublisherClient.SendEventAsync(
                         new EventGridEvent(
                             subject: "DuesEmailRequest",
                             eventType: "SendMail",
                             dataVersion: "1.0",
-                            //data: hoa_comm.Parcel_ID
-                            data: new {id = commId, parcelId = hoa_comm.Parcel_ID, totalDue = hoaRec.totalDue, emailAddr = emailAddr}
+                            data: BinaryData.FromObjectAsJson(payload)
                         )
                     );
                 }
