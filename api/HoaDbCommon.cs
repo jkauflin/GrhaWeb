@@ -643,10 +643,12 @@ namespace GrhaWeb.Function
                 {
                     continue;
                 }
+                /* 2025-09-02 JJK - Commented out - don't skip if they have an email - send postal for ALL properties for now
                 if (skipEmail && (hoaRec.property.UseEmail == 1))
                 {
                     continue;
                 }
+                */
                 outputList.Add(hoaRec);
             }
 
@@ -787,12 +789,6 @@ namespace GrhaWeb.Function
                     returnCnt++;
                     //log.LogWarning($"{returnCnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue}, email = {emailAddr}");
 
-                    // >>>>> just the first one for TESTING
-                    if (returnCnt > 1)
-                    {
-                        continue;
-                    }
-
                     commId = Guid.NewGuid().ToString();
 
                     // Create a metadata object from the media file information
@@ -813,9 +809,10 @@ namespace GrhaWeb.Function
                         LastChangedTs = currDateTime
                     };
 
-                    // Insert a new doc, or update an existing one
+                    // Insert a new communications doc for the dues email send
                     await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
 
+                    // Queue up an event to create and send the dues notice for this email address
                     var payload = new { id = commId, parcelId = hoa_comm.Parcel_ID, totalDue = hoaRec.totalDue, emailAddr = emailAddr };
                     await eventGridPublisherClient.SendEventAsync(
                         new EventGridEvent(
