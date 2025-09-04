@@ -707,7 +707,7 @@ namespace GrhaWeb.Function
             {
                 queryDefinition = new QueryDefinition(
                     //"SELECT * FROM c WHERE c.Email = 1 AND c.SentStatus = 'Y' ORDER BY c._ts DESC OFFSET 0 LIMIT 200");
-                    "SELECT * FROM c WHERE c.Email = 1 ORDER BY c._ts DESC OFFSET 0 LIMIT 250");
+                    "SELECT * FROM c WHERE c.Email = 1 ORDER BY c._ts DESC OFFSET 0 LIMIT 200");
             }
             else
             {
