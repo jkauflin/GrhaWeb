@@ -747,6 +747,7 @@ namespace GrhaWeb.Function
             CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
+            Container configContainer = db.GetContainer("hoa_config");
             DateTime currDateTime = DateTime.Now;
             string LastChangedTs = currDateTime.ToString("o");
 
@@ -754,6 +755,15 @@ namespace GrhaWeb.Function
                 new Uri(grhaSendEmailEventTopicEndpoint),
                 new AzureKeyCredential(grhaSendEmailEventTopicKey)
             );
+
+            // Create an object to send data values to the send email event
+            DuesEmailEvent duesEmailEvent = new DuesEmailEvent();
+            duesEmailEvent.hoaName = await getConfigVal(configContainer, "hoaName");
+            duesEmailEvent.hoaNameShort = await getConfigVal(configContainer, "hoaNameShort");
+            duesEmailEvent.hoaAddress1 = await getConfigVal(configContainer, "hoaAddress1");
+            duesEmailEvent.hoaAddress2 = await getConfigVal(configContainer, "hoaAddress2");
+            duesEmailEvent.helpNotes = await getConfigVal(configContainer, "duesNotes");
+            duesEmailEvent.duesUrl = await getConfigVal(configContainer, "duesUrl");
 
             int cnt = 0;
             string commId = "";
@@ -812,14 +822,27 @@ namespace GrhaWeb.Function
                     // Insert a new communications doc for the dues email send
                     await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
 
+                    duesEmailEvent.id = hoa_comm.id;
+                    duesEmailEvent.parcelId = hoa_comm.Parcel_ID;
+                    duesEmailEvent.emailAddr = emailAddr;
+                    duesEmailEvent.mailingName = hoaRec.property.Mailing_Name;
+                    duesEmailEvent.parcelLocation = hoaRec.property.Parcel_Location;
+                    duesEmailEvent.ownerPhone = hoaRec.ownersList[0].Owner_Phone;
+                    duesEmailEvent.ownerEmail1 = hoaRec.ownersList[0].EmailAddr;
+                    duesEmailEvent.ownerEmail2 = hoaRec.ownersList[0].EmailAddr2;
+                    duesEmailEvent.fy = hoaRec.assessmentsList[0].FY;
+                    duesEmailEvent.DuesAmt = hoaRec.assessmentsList[0].DuesAmt;
+                    duesEmailEvent.Paid = hoaRec.assessmentsList[0].Paid;
+                    duesEmailEvent.totalDue = hoaRec.totalDue;
+                    //var payload = new { id = commId, parcelId = hoa_comm.Parcel_ID, totalDue = hoaRec.totalDue, emailAddr = emailAddr };
+
                     // Queue up an event to create and send the dues notice for this email address
-                    var payload = new { id = commId, parcelId = hoa_comm.Parcel_ID, totalDue = hoaRec.totalDue, emailAddr = emailAddr };
                     await eventGridPublisherClient.SendEventAsync(
                         new EventGridEvent(
                             subject: "DuesEmailRequest",
                             eventType: "SendMail",
                             dataVersion: "1.0",
-                            data: BinaryData.FromObjectAsJson(payload)
+                            data: BinaryData.FromObjectAsJson(duesEmailEvent)
                         )
                     );
                 }
