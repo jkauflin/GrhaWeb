@@ -590,8 +590,8 @@ namespace GrhaWeb.Function
                 }
                 */
 
-                int cnt = await hoaDbCommon.CreateDuesNoticeEmailsDB(userName);
-                returnMessage = $"Dues Notice Emails queued successfully, count = {cnt}";
+                int cnt = await hoaDbCommon.CreateDuesEmailsListDB(userName);
+                returnMessage = $"Dues Notice Emails list created, count = {cnt}";
             }
             catch (Exception ex)
             {

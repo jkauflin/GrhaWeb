@@ -707,13 +707,13 @@ namespace GrhaWeb.Function
             {
                 queryDefinition = new QueryDefinition(
                     //"SELECT * FROM c WHERE c.Email = 1 AND c.SentStatus = 'Y' ORDER BY c._ts DESC OFFSET 0 LIMIT 200");
-                    "SELECT * FROM c WHERE c.Email = 1 ORDER BY c._ts DESC OFFSET 0 LIMIT 200");
+                    "SELECT * FROM c WHERE c.Email = 1 ORDER BY c.CreateTs DESC OFFSET 0 LIMIT 250");
             }
             else
             {
                 //    "SELECT * FROM c WHERE c.Parcel_ID = @parcelId ORDER BY c.CommID DESC ")
                 queryDefinition = new QueryDefinition(
-                    "SELECT * FROM c WHERE c.Parcel_ID = @parcelId ORDER BY c._ts DESC ")
+                    "SELECT * FROM c WHERE c.Parcel_ID = @parcelId ORDER BY c.CreateTs DESC ")
                     .WithParameter("@parcelId", parcelId);
             }
 
@@ -732,7 +732,115 @@ namespace GrhaWeb.Function
             return hoaCommunicationsList;
         }
 
-        public async Task<int> CreateDuesNoticeEmailsDB(string userName)
+        public async Task<int> CreateDuesEmailsListDB(string userName)
+        {
+            bool duesOwed = true;
+            bool skipEmail = false;
+            bool currYearPaid = false;
+            bool currYearUnpaid = false;
+            bool testEmail = false;
+            int returnCnt = 0;
+
+            // Get a list of the parcels that have dues owed
+            var hoaRecList = await GetHoaRecListDB(duesOwed, skipEmail, currYearPaid, currYearUnpaid, testEmail);
+            string containerId = "hoa_communications";
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
+            Container configContainer = db.GetContainer("hoa_config");
+            DateTime currDateTime = DateTime.Now;
+            string LastChangedTs = currDateTime.ToString("o");
+
+            // Should I delete unsent emails first??  Probably not...
+
+            // Get list of parcels that owe dues and have a valid email address
+            int cnt = 0;
+            string commId = "";
+            foreach (var hoaRec in hoaRecList)
+            {
+                hoaRec.emailAddrList = new List<string>();
+
+                // Add the valid emails to the list
+                if (!string.IsNullOrWhiteSpace(hoaRec.ownersList[0].EmailAddr))
+                {
+                    if (util.IsValidEmail(hoaRec.ownersList[0].EmailAddr))
+                    {
+                        hoaRec.emailAddrList.Add(hoaRec.ownersList[0].EmailAddr);
+                    }
+                }
+                if (!string.IsNullOrWhiteSpace(hoaRec.ownersList[0].EmailAddr2))
+                {
+                    if (util.IsValidEmail(hoaRec.ownersList[0].EmailAddr2))
+                    {
+                        hoaRec.emailAddrList.Add(hoaRec.ownersList[0].EmailAddr2);
+                    }
+                }
+
+                // Skip parcel if there are no valid email addresses
+                if (hoaRec.emailAddrList.Count < 1)
+                {
+                    continue;
+                }
+
+                // Create a communication record and an email send event for each valid email address for the Owner
+                foreach (var emailAddr in hoaRec.emailAddrList)
+                {
+                    returnCnt++;
+                    //log.LogWarning($"{returnCnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue}, email = {emailAddr}");
+
+                    commId = Guid.NewGuid().ToString();
+
+                    // Create a metadata object from the media file information
+                    hoa_communications hoa_comm = new hoa_communications
+                    {
+                        id = commId,
+                        Parcel_ID = hoaRec.property.Parcel_ID,
+                        CommID = 9999,
+                        CreateTs = currDateTime,
+                        OwnerID = hoaRec.property.OwnerID,
+                        CommType = "Dues Notice",
+                        CommDesc = "Sent to Owner email - " + hoaRec.property.Parcel_Location,
+                        Mailing_Name = hoaRec.property.Mailing_Name,
+                        Email = 1,
+                        EmailAddr = emailAddr,
+                        SentStatus = "N",
+                        LastChangedBy = userName,
+                        LastChangedTs = currDateTime
+                    };
+
+                    // Insert a new communications doc for the dues email send
+                    await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
+
+                    duesEmailEvent.id = hoa_comm.id;
+                    duesEmailEvent.parcelId = hoa_comm.Parcel_ID;
+                    duesEmailEvent.emailAddr = emailAddr;
+                    duesEmailEvent.mailingName = hoaRec.property.Mailing_Name;
+                    duesEmailEvent.parcelLocation = hoaRec.property.Parcel_Location;
+                    duesEmailEvent.ownerPhone = hoaRec.ownersList[0].Owner_Phone;
+                    duesEmailEvent.ownerEmail1 = hoaRec.ownersList[0].EmailAddr;
+                    duesEmailEvent.ownerEmail2 = hoaRec.ownersList[0].EmailAddr2;
+                    duesEmailEvent.fy = hoaRec.assessmentsList[0].FY;
+                    duesEmailEvent.DuesAmt = hoaRec.assessmentsList[0].DuesAmt;
+                    duesEmailEvent.Paid = hoaRec.assessmentsList[0].Paid;
+                    duesEmailEvent.totalDue = hoaRec.totalDue;
+                    //var payload = new { id = commId, parcelId = hoa_comm.Parcel_ID, totalDue = hoaRec.totalDue, emailAddr = emailAddr };
+
+                    // Queue up an event to create and send the dues notice for this email address
+                    await eventGridPublisherClient.SendEventAsync(
+                        new EventGridEvent(
+                            subject: "DuesEmailRequest",
+                            eventType: "SendMail",
+                            dataVersion: "1.0",
+                            data: BinaryData.FromObjectAsJson(duesEmailEvent)
+                        )
+                    );
+                }
+            }
+            return returnCnt;
+        }
+
+
+        public async Task<int> CreateDuesNoticeEmailsDBold(string userName)
         {
             bool duesOwed = true;
             bool skipEmail = false;
@@ -810,7 +918,7 @@ namespace GrhaWeb.Function
                         CreateTs = currDateTime,
                         OwnerID = hoaRec.property.OwnerID,
                         CommType = "Dues Notice",
-                        CommDesc = "Sent to Owner email",
+                        CommDesc = "Sent to Owner email - " + hoaRec.property.Parcel_Location,
                         Mailing_Name = hoaRec.property.Mailing_Name,
                         Email = 1,
                         EmailAddr = emailAddr,
