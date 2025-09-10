@@ -167,7 +167,7 @@ document.body.addEventListener("click", async function (event) {
 		getDuesNotesEmails(sentStatus)
 	} else if (event.target.classList.contains("SendDuesNoticeEmails")) {
 		event.preventDefault()
-		sendDuesNotesEmails()
+		sendDuesNoticeEmails()
 	}
 })
 
@@ -198,7 +198,7 @@ async function createDuesNotesEmails() {
 	}
 }
 
-async function sendDuesNotesEmails() {
+async function sendDuesNoticeEmails() {
 	//AdminResults.textContent = "Dues Notice Emails"
 	showLoadingSpinner(messageDisplay)
 
@@ -207,7 +207,7 @@ async function sendDuesNotesEmails() {
 	}
 
 	try {
-		const response = await fetch("/api/CreateDuesNoticeEmails", {
+		const response = await fetch("/api/SendDuesNoticeEmails", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(paramData)
