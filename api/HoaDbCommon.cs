@@ -705,13 +705,17 @@ namespace GrhaWeb.Function
             QueryDefinition queryDefinition;
             if (parcelId.Equals("DuesNoticeEmails"))
             {
-                queryDefinition = new QueryDefinition(
-                    //"SELECT * FROM c WHERE c.Email = 1 AND c.SentStatus = 'Y' ORDER BY c._ts DESC OFFSET 0 LIMIT 200");
-                    "SELECT * FROM c WHERE c.Email = 1 ORDER BY c.CreateTs DESC OFFSET 0 LIMIT 250");
+                if (!sentStatus.Equals("")) {
+                    queryDefinition = new QueryDefinition(
+                        "SELECT * FROM c WHERE c.Email = 1 AND c.SentStatus = @sentStatus ORDER BY c.CreateTs DESC ")
+                        .WithParameter("@sentStatus", sentStatus);
+                } else {
+                    queryDefinition = new QueryDefinition(
+                        "SELECT * FROM c WHERE c.Email = 1 ORDER BY c.CreateTs DESC OFFSET 0 LIMIT 250");
+                }
             }
             else
             {
-                //    "SELECT * FROM c WHERE c.Parcel_ID = @parcelId ORDER BY c.CommID DESC ")
                 queryDefinition = new QueryDefinition(
                     "SELECT * FROM c WHERE c.Parcel_ID = @parcelId ORDER BY c.CreateTs DESC ")
                     .WithParameter("@parcelId", parcelId);

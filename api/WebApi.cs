@@ -523,6 +523,7 @@ namespace GrhaWeb.Function
 
                 // Construct the query from the query parameters
                 string parcelId = "";
+                string sentStatus = "";
 
                 JToken? jToken;
                 if (jObject.TryGetValue("parcelId", out jToken))
@@ -538,7 +539,13 @@ namespace GrhaWeb.Function
                     return new BadRequestObjectResult("GetHoaRec failed because parcelId was NOT FOUND");
                 }
 
-                hoaCommunicationsList = await hoaDbCommon.GetCommunicationsDB(parcelId);
+                // Set the sentStatus to filter on if it was passed in
+                if (jObject.TryGetValue("sentStatus", out jToken))
+                {
+                    sentStatus = jToken.ToString();
+                }
+
+                hoaCommunicationsList = await hoaDbCommon.GetCommunicationsDB(parcelId, sentStatus);
             }
             catch (Exception ex)
             {
@@ -566,30 +573,6 @@ namespace GrhaWeb.Function
 
                 //log.LogInformation(">>> User is authorized ");
 
-                // Get the content string from the HTTP request body
-                /*
-                string content = await new StreamReader(req.Body).ReadToEndAsync();
-                // Deserialize the JSON string into a generic JSON object
-                JObject jObject = JObject.Parse(content);
-
-                // Construct the query from the query parameters
-                string parcelId = "";
-
-                JToken? jToken;
-                if (jObject.TryGetValue("parcelId", out jToken))
-                {
-                    parcelId = jToken.ToString();
-                    if (parcelId.Equals(""))
-                    {
-                        return new BadRequestObjectResult("GetHoaRec failed because parcelId was blank");
-                    }
-                }
-                else
-                {
-                    return new BadRequestObjectResult("GetHoaRec failed because parcelId was NOT FOUND");
-                }
-                */
-
                 int cnt = await hoaDbCommon.CreateDuesEmailsListDB(userName);
                 returnMessage = $"Dues Notice Emails list created, count = {cnt}";
             }
@@ -601,7 +584,6 @@ namespace GrhaWeb.Function
 
             return new OkObjectResult(returnMessage);
         }
-
 
         /*
         using Newtonsoft.Json.Linq;

@@ -160,12 +160,12 @@ document.body.addEventListener("click", async function (event) {
 		createDuesNotesEmails()
 	} else if (event.target.classList.contains("CheckDuesNoticeEmails")) {
 		event.preventDefault()
-		//createDuesNotesEmails()
+		let sentStatus="N"
+		getDuesNotesEmails(sentStatus)
 	} else if (event.target.classList.contains("SendDuesNoticeEmails")) {
 		event.preventDefault()
 		//createDuesNotesEmails()
 	}
-
 })
 
 async function createDuesNotesEmails() {
@@ -184,17 +184,18 @@ async function createDuesNotesEmails() {
 		})
 		await checkFetchResponse(response)
 		// Success
-		let returnMessage = await response.text();
+		//let returnMessage = await response.text();
 		//messageDisplay.textContent = returnMessage
-		AdminRecCnt.textContent = returnMessage
-		getDuesNotesEmails()
+		//AdminRecCnt.textContent = returnMessage
+		let sentStatus="N"
+		getDuesNotesEmails(sentStatus)
 	} catch (err) {
 		console.error(err)
 		messageDisplay.textContent = `Error in Fetch: ${err.message}`
 	}
 }
 
-async function getDuesNotesEmails() {
+async function getDuesNotesEmails(sentStatus="") {
 	AdminResults.textContent = "Dues Notice Emails"
 
 	AdminRecCnt.textContent = ""
@@ -205,7 +206,8 @@ async function getDuesNotesEmails() {
 	showLoadingSpinner(messageDisplay)
 
 	let paramData = {
-		parcelId: "DuesNoticeEmails"
+		parcelId: "DuesNoticeEmails",        
+		sentStatus: sentStatus
 	}
 
 	try {
@@ -238,18 +240,10 @@ function formatCommunicationsResults(communicationsList) {
 	let th = document.createElement("th");
 	let button = document.createElement("button")
 	
-	if (!communicationsList || communicationsList.length === 0) {
-		td.colSpan = 4;
-		td.textContent = "No communications found.";
-		tr.appendChild(td);
-		tbody.appendChild(tr);
-		return;
-	}
-
 	tr = document.createElement('tr')
 	tr.classList.add('small')
 	// Append the header elements
-	th = document.createElement("th"); th.textContent = "id"; tr.appendChild(th)        
+	//th = document.createElement("th"); th.textContent = "id"; tr.appendChild(th)        
 	th = document.createElement("th"); th.textContent = "Parcel ID"; tr.appendChild(th)        
 	th = document.createElement("th"); th.textContent = "Datetime"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "Email Address"; tr.appendChild(th)
@@ -267,7 +261,7 @@ function formatCommunicationsResults(communicationsList) {
 		tr = document.createElement('tr')
 		tr.classList.add('small')
 
-		td = document.createElement("td"); td.textContent = commRec.id; tr.appendChild(td)
+		//td = document.createElement("td"); td.textContent = commRec.id; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = commRec.parcel_ID; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = standardizeDate(commRec.createTs); tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = commRec.emailAddr; tr.appendChild(td)
