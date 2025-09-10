@@ -157,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 document.body.addEventListener("click", async function (event) {
 	if (event.target.classList.contains("CreateDuesNoticeEmails")) {
 		event.preventDefault()
-		//createDuesNotesEmails()
+		createDuesNotesEmails()
 	} else if (event.target.classList.contains("CheckDuesNoticeEmails")) {
 		event.preventDefault()
 		//createDuesNotesEmails()

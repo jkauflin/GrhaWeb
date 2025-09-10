@@ -1,6 +1,6 @@
 # Project Overview
 
-This project is an azure static web application for a homeowners association.  It contains a main public page under /src, an admin page under /src/admin, and a database page for the treasurer under /src/hoadb.  It provides public information about the homeowners association, allows users to pay their dues, and provides a database for the treasurer to manage financial records. 
+This project is an azure static web application for a homeowners association.  It contains a main public page under /src, an admin page under /src/admin, and a database page for the treasurer under /src/hoadb.  It provides public information about the homeowners association, allows users to pay their dues through paypal, and provides a database for the treasurer to manage financial records.
 
 ## Folder Structure
 
@@ -22,6 +22,10 @@ The frontend is an azure static web app written using:
 
 The backend is written using:
 - C# with Azure Functions for serverless API endpoints.
+- Functions run as .NET 8 isolated process.
+- Uses Azure Functions HTTP triggers for API endpoints in WebApi.cs which makes calls to functions in HoaDbCommon.cs to handle database operations, and other common processing tasks.
+- Uses Azure Functions Timer triggers for scheduled tasks.
+- Used Azure Event Grid for queued processing tasks such as sending emails.
 - Cosmos DB for data storage.
 - Built-in GraphQL for azure swa data-api queries.
 - Azure storage for file uploads and static content.
