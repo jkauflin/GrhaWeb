@@ -155,7 +155,10 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 document.body.addEventListener("click", async function (event) {
-	if (event.target.classList.contains("CreateDuesNoticeEmails")) {
+	if (event.target.classList.contains("ShowDuesNoticeEmails")) {
+		event.preventDefault()
+		getDuesNotesEmails()
+	} else if (event.target.classList.contains("CreateDuesNoticeEmails")) {
 		event.preventDefault()
 		createDuesNotesEmails()
 	} else if (event.target.classList.contains("CheckDuesNoticeEmails")) {
@@ -164,11 +167,38 @@ document.body.addEventListener("click", async function (event) {
 		getDuesNotesEmails(sentStatus)
 	} else if (event.target.classList.contains("SendDuesNoticeEmails")) {
 		event.preventDefault()
-		//createDuesNotesEmails()
+		sendDuesNotesEmails()
 	}
 })
 
 async function createDuesNotesEmails() {
+	//AdminResults.textContent = "Dues Notice Emails"
+	showLoadingSpinner(messageDisplay)
+
+	let paramData = {
+		parcelId: "DuesNoticeEmails"
+	}
+
+	try {
+		const response = await fetch("/api/CreateDuesNoticeEmails", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify(paramData)
+		})
+		await checkFetchResponse(response)
+		// Success
+		//let returnMessage = await response.text();
+		//messageDisplay.textContent = returnMessage
+		//AdminRecCnt.textContent = returnMessage
+		let sentStatus="N"
+		getDuesNotesEmails(sentStatus)
+	} catch (err) {
+		console.error(err)
+		messageDisplay.textContent = `Error in Fetch: ${err.message}`
+	}
+}
+
+async function sendDuesNotesEmails() {
 	//AdminResults.textContent = "Dues Notice Emails"
 	showLoadingSpinner(messageDisplay)
 
@@ -267,7 +297,7 @@ function formatCommunicationsResults(communicationsList) {
 		td = document.createElement("td"); td.textContent = commRec.emailAddr; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = commRec.sentStatus; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = commRec.mailing_Name; tr.appendChild(td)
-		td = document.createElement("td"); td.textContent = commRec.commDesc.substring(0,30); tr.appendChild(td)
+		td = document.createElement("td"); td.textContent = commRec.commDesc.substring(0,40); tr.appendChild(td)
 
 		tbody.appendChild(tr)
 
@@ -284,7 +314,14 @@ function formatCommunicationsResults(communicationsList) {
 	button = document.createElement("button")
 	button.setAttribute('type',"button")
 	button.setAttribute('role',"button")
-	button.classList.add('btn','btn-primary','btn-sm','mb-1','me-1','shadow-none','CreateDuesNoticeEmails')
+	button.classList.add('btn','btn-primary','btn-sm','mb-1','me-1','shadow-none','ShowDuesNoticeEmails')
+	button.innerHTML = '<i class="fa fa-envelope me-1"></i> Show ALL Emails'
+	DuesNoticeEmailButtons.appendChild(button);
+
+	button = document.createElement("button")
+	button.setAttribute('type',"button")
+	button.setAttribute('role',"button")
+	button.classList.add('btn','btn-info','btn-sm','mb-1','me-1','shadow-none','CreateDuesNoticeEmails')
 	button.innerHTML = '<i class="fa fa-envelope me-1"></i> Create NEW List'
 	DuesNoticeEmailButtons.appendChild(button);
 

@@ -585,6 +585,35 @@ namespace GrhaWeb.Function
             return new OkObjectResult(returnMessage);
         }
 
+        [Function("SendDuesNoticeEmails")]
+        public async Task<IActionResult> SendDuesNoticeEmails(
+                [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            List<hoa_communications> hoaCommunicationsList = new List<hoa_communications>();
+            string returnMessage = "";
+
+            try
+            {
+                string userName = "";
+                if (!authCheck.UserAuthorizedForRole(req, userAdminRole, out userName))
+                {
+                    return new BadRequestObjectResult("Unauthorized call - User does not have the correct Admin role");
+                }
+
+                //log.LogInformation(">>> User is authorized ");
+
+                int cnt = await hoaDbCommon.SendDuesNoticeEmailsDB(userName);
+                returnMessage = $"Dues Notice Emails queued for send, count = {cnt}";
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+            }
+
+            return new OkObjectResult(returnMessage);
+        }
+
         /*
         using Newtonsoft.Json.Linq;
         string json = "{\"Name\":\"John\",\"Age\":30}";

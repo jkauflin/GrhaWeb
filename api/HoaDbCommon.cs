@@ -711,7 +711,7 @@ namespace GrhaWeb.Function
                         .WithParameter("@sentStatus", sentStatus);
                 } else {
                     queryDefinition = new QueryDefinition(
-                        "SELECT * FROM c WHERE c.Email = 1 ORDER BY c.CreateTs DESC OFFSET 0 LIMIT 250");
+                        "SELECT * FROM c WHERE c.Email = 1 ORDER BY c.CreateTs DESC OFFSET 0 LIMIT 400");
                 }
             }
             else
@@ -790,6 +790,12 @@ namespace GrhaWeb.Function
                     returnCnt++;
                     //log.LogWarning($"{returnCnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue}, email = {emailAddr}");
 
+                    if (returnCnt > 5)
+                    {
+                        // Limit to 5 new email records for testing
+                        return returnCnt;
+                    }
+
                     commId = Guid.NewGuid().ToString();
 
                     // Create a metadata object from the media file information
@@ -818,7 +824,6 @@ namespace GrhaWeb.Function
             }
             return returnCnt;
         }
-
 
         public async Task<int> SendDuesNoticeEmailsDB(string userName)
         {
@@ -859,11 +864,13 @@ namespace GrhaWeb.Function
                     returnCnt++;
                     // Get the full hoaRec for this parcel  
                     //var hoaRec = await GetHoaRec(hoa_comm.Parcel_ID, hoa_comm.OwnerID.ToString(), "LATEST");    
-                    var hoaRec = await GetHoaRec(hoa_comm.Parcel_ID, hoa_comm.OwnerID.ToString());    
+                    //var hoaRec = await GetHoaRec(hoa_comm.Parcel_ID, hoa_comm.OwnerID.ToString());    
 
                     duesEmailEvent.id = hoa_comm.id;
                     duesEmailEvent.parcelId = hoa_comm.Parcel_ID;
                     duesEmailEvent.emailAddr = hoa_comm.EmailAddr;
+
+                    /*
                     duesEmailEvent.mailingName = hoaRec.property.Mailing_Name;
                     duesEmailEvent.parcelLocation = hoaRec.property.Parcel_Location;
                     duesEmailEvent.ownerPhone = hoaRec.ownersList[0].Owner_Phone;
@@ -873,6 +880,7 @@ namespace GrhaWeb.Function
                     duesEmailEvent.DuesAmt = hoaRec.assessmentsList[0].DuesAmt;
                     duesEmailEvent.Paid = hoaRec.assessmentsList[0].Paid;
                     duesEmailEvent.totalDue = hoaRec.totalDue;
+                    */
 
                     // Queue up an event to create and send the dues notice for this email address
                     await eventGridPublisherClient.SendEventAsync(
