@@ -65,6 +65,7 @@
  * 2025-08-23 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
  *                  js module, and move from PHP/MySQL to Azure SWA
  * 2025-08-06 JJK   Working on Dues Emails
+ * 2025-09-11 JJK   Finished Dues Emails
 *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
@@ -88,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	messageDisplay = document.getElementById("AdminMessageDisplay")
 
 	document.getElementById("DuesEmailsButton").addEventListener("click", function (event) {
-		getDuesNotesEmails()
+		getDuesNoticeEmails()
 	})
 
 	// Dynamically populate FiscalYear select with current year and next 4 years
@@ -157,21 +158,24 @@ document.addEventListener('DOMContentLoaded', () => {
 document.body.addEventListener("click", async function (event) {
 	if (event.target.classList.contains("ShowDuesNoticeEmails")) {
 		event.preventDefault()
-		getDuesNotesEmails()
+		getDuesNoticeEmails()
 	} else if (event.target.classList.contains("CreateDuesNoticeEmails")) {
 		event.preventDefault()
-		createDuesNotesEmails()
+		createDuesNoticeEmails()
 	} else if (event.target.classList.contains("CheckDuesNoticeEmails")) {
 		event.preventDefault()
 		let sentStatus="N"
-		getDuesNotesEmails(sentStatus)
+		getDuesNoticeEmails(sentStatus)
 	} else if (event.target.classList.contains("SendDuesNoticeEmails")) {
 		event.preventDefault()
 		sendDuesNoticeEmails()
+	} else if (event.target.classList.contains("TestDuesNoticeEmails")) {
+		event.preventDefault()
+		//sendDuesNoticeEmails()
 	}
 })
 
-async function createDuesNotesEmails() {
+async function createDuesNoticeEmails() {
 	//AdminResults.textContent = "Dues Notice Emails"
 	showLoadingSpinner(messageDisplay)
 
@@ -191,7 +195,7 @@ async function createDuesNotesEmails() {
 		//messageDisplay.textContent = returnMessage
 		//AdminRecCnt.textContent = returnMessage
 		let sentStatus="N"
-		getDuesNotesEmails(sentStatus)
+		getDuesNoticeEmails(sentStatus)
 	} catch (err) {
 		console.error(err)
 		messageDisplay.textContent = `Error in Fetch: ${err.message}`
@@ -218,14 +222,14 @@ async function sendDuesNoticeEmails() {
 		//messageDisplay.textContent = returnMessage
 		//AdminRecCnt.textContent = returnMessage
 		let sentStatus="N"
-		getDuesNotesEmails(sentStatus)
+		getDuesNoticeEmails(sentStatus)
 	} catch (err) {
 		console.error(err)
 		messageDisplay.textContent = `Error in Fetch: ${err.message}`
 	}
 }
 
-async function getDuesNotesEmails(sentStatus="") {
+async function getDuesNoticeEmails(sentStatus="") {
 	AdminResults.textContent = "Dues Notice Emails"
 
 	AdminRecCnt.textContent = ""
@@ -273,7 +277,8 @@ function formatCommunicationsResults(communicationsList) {
 	tr = document.createElement('tr')
 	tr.classList.add('small')
 	// Append the header elements
-	//th = document.createElement("th"); th.textContent = "id"; tr.appendChild(th)        
+
+	//th = document.createElement("th"); th.textContent = "Test Email"; tr.appendChild(th)        
 	th = document.createElement("th"); th.textContent = "Parcel ID"; tr.appendChild(th)        
 	th = document.createElement("th"); th.textContent = "Datetime"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "Email Address"; tr.appendChild(th)
@@ -290,8 +295,15 @@ function formatCommunicationsResults(communicationsList) {
 
 		tr = document.createElement('tr')
 		tr.classList.add('small')
-
-		//td = document.createElement("td"); td.textContent = commRec.id; tr.appendChild(td)
+		/*
+			button = document.createElement("button")
+			button.setAttribute('type',"button")
+			button.setAttribute('role',"button")
+			button.dataset.parcelId = commRec.parcel_ID
+			button.classList.add('btn','btn-danger','btn-sm','mb-1','me-1','shadow-none','TestDuesNoticeEmails')
+			button.innerHTML = '<i class="fa fa-envelope me-1"></i> TEST Email'
+			td = document.createElement("td"); td.appendChild(button); tr.appendChild(td)
+		*/
 		td = document.createElement("td"); td.textContent = commRec.parcel_ID; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = standardizeDate(commRec.createTs); tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = commRec.emailAddr; tr.appendChild(td)
