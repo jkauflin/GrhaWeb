@@ -65,7 +65,7 @@
  * 2025-08-23 JJK   Starting conversion to Bootstrap 5, vanilla JS, 
  *                  js module, and move from PHP/MySQL to Azure SWA
  * 2025-08-06 JJK   Working on Dues Emails
- * 2025-09-11 JJK   Finished Dues Emails
+ * 2025-09-11 JJK   Finished Dues Emails.  Working on Sales Upload
 *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
