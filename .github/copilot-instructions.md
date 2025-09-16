@@ -39,6 +39,10 @@ Local development uses:
 
 - Use proper indentation (4 spaces).
 - Use camelCase for variable and function names with lowercase first letter to match JavaScript conventions and JSON transformations.
+- Add new functions to WebApi.cs and HoaDbCommon.cs as needed but put them at the bottom of the class in the file.
+- Use async/await for asynchronous operations in C#.
+- Use try/catch blocks for error handling in C#, but not in HoaDbCommon.cs which should throw exceptions to be caught in WebApi.cs.
+- Use comments to explain complex logic and document functions.
 
 ## UI guidelines
 

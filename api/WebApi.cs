@@ -38,6 +38,7 @@ namespace GrhaWeb.Function
 {
     public class WebApi
     {
+
         private readonly ILogger<WebApi> log;
         private readonly IConfiguration config;
 
@@ -845,6 +846,128 @@ namespace GrhaWeb.Function
             {
                 log.LogError($"Exception in AddAssessments, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult($"Error in AddAssessments - {ex.Message}");
+            }
+            return new OkObjectResult(resultMessage);
+        }
+
+        // Sales Upload endpoint
+        [Function("SalesUpload")]
+        public async Task<IActionResult> SalesUpload(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            string resultMessage = "";
+
+            try
+            {
+                // Get content from the Request BODY
+                var boundary = HeaderUtilities.RemoveQuotes(MediaTypeHeaderValue.Parse(req.Headers.GetValues("Content-Type").FirstOrDefault()).Boundary).Value;
+                var reader = new MultipartReader(boundary, req.Body);
+                var section = await reader.ReadNextSectionAsync();
+
+                Stream fileStream = null;
+                string fileName = null;
+                var formFields = new Dictionary<string, string>();
+                //var files = new List<(string fieldName, string fileName, byte[] content)>();
+
+                while (section != null)
+                {
+                    var hasContentDispositionHeader =
+                        ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var contentDisposition);
+
+                    if (hasContentDispositionHeader && contentDisposition.DispositionType.Equals("form-data") &&
+                        !string.IsNullOrEmpty(contentDisposition.FileName.Value))
+                    {
+                        fileName = contentDisposition.FileName.Value;
+                    }
+                    section = await reader.ReadNextSectionAsync();
+                }
+
+                while (section != null)
+                {
+                    var contentDisposition = section.GetContentDispositionHeader();
+                    if (contentDisposition != null)
+                    {
+                        if (contentDisposition.IsFileDisposition())
+                        {
+                            fileStream = new MemoryStream();
+                            await section.Body.CopyToAsync(fileStream);
+                            fileStream.Position = 0;
+                            //break;
+                        }
+                        else if (contentDisposition.IsFormDisposition())
+                        {
+                            using var streamReader = new StreamReader(section.Body);
+                            formFields[contentDisposition.Name.Value] = await streamReader.ReadToEndAsync();
+                        }
+                    }
+
+                    section = await reader.ReadNextSectionAsync();
+                }
+
+                if (fileStream == null)
+                {
+                    return new BadRequestObjectResult($"No file uploaded.");
+                }
+
+                //string result = await hoaDbCommon.ProcessSalesUploadDB(fileStream, fileName);
+
+                /*
+            if (fileStream == null || string.IsNullOrEmpty(fileName))
+                return "No file uploaded.";
+
+            // Only CSV supported for now
+            if (!fileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                return "Only CSV files are supported.";
+
+
+
+                if (files[0].fieldName.Equals("DocFile")) {
+                    docName = files[0].fileName;
+                    docTitle = files[0].fileName;
+                    if (docCategory.Equals("Quail Call newsletters")) {
+                        docName = docMonth+"-GRHA-QuailCall.pdf";
+                        docTitle = docMonth+"-GRHA-QuailCall";
+                    }
+
+                    await hoaDbCommon.UploadFileToDatabase(mediaTypeId, docName, mediaDateTime, files[0].content, docCategory, docTitle);
+                    returnMessage = "Upload was successful";
+                } 
+                */
+
+                /*
+                var boundary = MultipartRequestHelper.GetBoundary(req.Headers.GetValues("content-type").First());
+                var reader = new MultipartReader(boundary, req.Body);
+                var section = await reader.ReadNextSectionAsync();
+                Stream fileStream = null;
+                string fileName = null;
+                while (section != null)
+                {
+                    var hasContentDispositionHeader =
+                        ContentDispositionHeaderValue.TryParse(section.ContentDisposition, out var contentDisposition);
+
+                    if (hasContentDispositionHeader && contentDisposition.DispositionType.Equals("form-data") &&
+                        !string.IsNullOrEmpty(contentDisposition.FileName.Value))
+                    {
+                        fileName = contentDisposition.FileName.Value;
+                        fileStream = new MemoryStream();
+                        await section.Body.CopyToAsync(fileStream);
+                        fileStream.Position = 0;
+                        break;
+                    }
+                    section = await reader.ReadNextSectionAsync();
+                }
+                if (fileStream == null)
+                {
+                    response.StatusCode = System.Net.HttpStatusCode.BadRequest;
+                    await response.WriteStringAsync("No file uploaded.");
+                    return response;
+                }
+                */
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception in SalesUpload, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Error in SalesUpload - {ex.Message}");
             }
             return new OkObjectResult(resultMessage);
         }

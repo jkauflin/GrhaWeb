@@ -642,14 +642,18 @@
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 id="FileUploadTitle" class="modal-title">File Upload</h5>
+                <h5 class="modal-title">Sales File Upload</h5>
 				<button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <div id="FileUploadMessage" class="modal-body">
-                <form id="FileUploadForm" action="" method="post" enctype="multipart/form-data" class="form-group">
-                    <input id="uploadFilename" type="file" accept=".csv, .zip" name="uploadFilename" class="form-control p-1 m-1 float-left" />
-                    <input class="btn btn-success mt-2 float-left" type="submit" value="Upload file" >
-                </form>
+            <div class="modal-body">
+				<p>Select a CSV or ZIP file to upload.  Files will be processed and new records will be added to the Sales list</p>
+            	<form id="FileUploadForm" action="" method="post" enctype="multipart/form-data" class="form-group">
+                    <input id="uploadFilename" type="file" accept=".csv, .zip" name="uploadFilename" class="form-control p-1 m-1 float-start" />
+					<button type="submit" class="btn btn-success shadow-none my-2">
+						<i class="fa fa-upload me-1"></i> Upload File
+					</button>
+            	</form>
+            	<div id="FileUploadMessage"></div>
             </div>
             <div class="modal-footer">
             </div>

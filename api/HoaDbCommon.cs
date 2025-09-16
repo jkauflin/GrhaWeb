@@ -67,7 +67,6 @@ namespace GrhaWeb.Function
             grhaSendEmailEventTopicKey = config["GRHA_SENDMAIL_EVENT_TOPIC_KEY"];
             util = new CommonUtil(log);
         }
-
         // Common internal function to lookup configuration values
         private async Task<string> getConfigVal(Container container, string configName)
         {
@@ -643,12 +642,14 @@ namespace GrhaWeb.Function
                 {
                     continue;
                 }
-                /* 2025-09-02 JJK - Commented out - don't skip if they have an email - send postal for ALL properties for now
+                /* 2025-09-11 JJK - Board decided to send Due Notice postal letters to ALL properties, even if they have an email use preference
+                                    (because of old or bad emails and the need to make sure everyone gets a notice)
                 if (skipEmail && (hoaRec.property.UseEmail == 1))
                 {
                     continue;
                 }
                 */
+
                 outputList.Add(hoaRec);
             }
 
@@ -1885,6 +1886,43 @@ namespace GrhaWeb.Function
                 count++;
             }
             return count;
+        }
+
+        // Process uploaded sales file and update hoa_sales container
+        public async Task<string> ProcessSalesUploadDB(Stream fileStream, string fileName)
+        {
+            fileStream.Position = 0;
+            using var reader = new StreamReader(fileStream);
+            var header = await reader.ReadLineAsync();
+            if (string.IsNullOrEmpty(header))
+                return "Empty file.";
+
+            // Assume header: PARID,SALEDT,PRICE,OWNERNAME1,PARCELLOCATION, etc.
+            int count = 0;
+            var cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            var db = cosmosClient.GetDatabase(databaseId);
+            var salesContainer = db.GetContainer("hoa_sales");
+
+            string line;
+            while ((line = await reader.ReadLineAsync()) != null)
+            {
+                var fields = line.Split(',');
+                if (fields.Length < 3) continue;
+                var sale = new Model.hoa_sales
+                {
+                    id = Guid.NewGuid().ToString(),
+                    PARID = fields[0].Trim(),
+                    SALEDT = fields[1].Trim(),
+                    PRICE = fields[2].Trim(),
+                    OWNERNAME1 = fields.Length > 3 ? fields[3].Trim() : string.Empty,
+                    PARCELLOCATION = fields.Length > 4 ? fields[4].Trim() : string.Empty,
+                    LastChangedBy = "upload",
+                    LastChangedTs = DateTime.UtcNow
+                };
+                await salesContainer.CreateItemAsync(sale, new PartitionKey(sale.SALEDT));
+                count++;
+            }
+            return $"{count} sales records uploaded.";
         }
 
 
