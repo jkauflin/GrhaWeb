@@ -913,7 +913,8 @@ namespace GrhaWeb.Function
             Database db = cosmosClient.GetDatabase(databaseId);
             //Container configContainer = db.GetContainer("hoa_config");
             Container container = db.GetContainer(containerId);
-            var queryDefinition = new QueryDefinition("SELECT * FROM c ORDER BY c.CreateTimestamp DESC OFFSET 0 LIMIT 200 ");
+            //var queryDefinition = new QueryDefinition("SELECT * FROM c ORDER BY c.CreateTimestamp DESC OFFSET 0 LIMIT 200 ");
+            var queryDefinition = new QueryDefinition("SELECT * FROM c ORDER BY c.LastChangedTs DESC OFFSET 0 LIMIT 200 ");
             var feed = container.GetItemQueryIterator<hoa_sales>(queryDefinition);
             int cnt = 0;
             while (feed.HasMoreResults)
@@ -1889,40 +1890,147 @@ namespace GrhaWeb.Function
         }
 
         // Process uploaded sales file and update hoa_sales container
-        public async Task<string> ProcessSalesUploadDB(Stream fileStream, string fileName)
+        public async Task<string> ProcessSalesUploadDB(string userName, Stream fileStream, string fileName)
         {
+            if (fileStream == null || string.IsNullOrEmpty(fileName))
+            {
+                return "No file uploaded - file is empty or name is not set";
+            }
+
             fileStream.Position = 0;
-            using var reader = new StreamReader(fileStream);
+            Stream csvStream = null;
+            if (fileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+            {
+                csvStream = fileStream;
+            }
+            else if (fileName.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+            {
+                // Try to extract the first .csv file from the zip
+                using (var archive = new System.IO.Compression.ZipArchive(fileStream, System.IO.Compression.ZipArchiveMode.Read, true))
+                {
+                    var csvEntry = archive.Entries.FirstOrDefault(e => e.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase));
+                    if (csvEntry == null)
+                        return "No CSV file found in ZIP.";
+                    csvStream = csvEntry.Open();
+                }
+            }
+            else
+            {
+                return "File Error - Only CSV or ZIP files are supported.";
+            }
+
+            using var reader = new StreamReader(csvStream);
             var header = await reader.ReadLineAsync();
             if (string.IsNullOrEmpty(header))
-                return "Empty file.";
+            {
+                return "File Error - Empty file.";
+            }
 
-            // Assume header: PARID,SALEDT,PRICE,OWNERNAME1,PARCELLOCATION, etc.
-            int count = 0;
             var cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             var db = cosmosClient.GetDatabase(databaseId);
             var salesContainer = db.GetContainer("hoa_sales");
+            var propertyContainer = db.GetContainer("hoa_properties");
 
+            DateTime currDateTime = DateTime.Now;
+            string LastChangedTs = currDateTime.ToString("o");
+            string parcelId = "";
+            string saleDate = "";
+            bool exists; 
             string line;
+            int fileCnt = 0;
+            int foundCnt = 0;
+            int insertCnt = 0;
+            // Loop through the lines in the CSV file
             while ((line = await reader.ReadLineAsync()) != null)
             {
+                fileCnt++;
+                //log.LogWarning($">>> Line {fileCnt}: {line}");
                 var fields = line.Split(',');
-                if (fields.Length < 3) continue;
-                var sale = new Model.hoa_sales
+                // Strip double quotes and trim each field
+                for (int i = 0; i < fields.Length; i++)
                 {
-                    id = Guid.NewGuid().ToString(),
-                    PARID = fields[0].Trim(),
-                    SALEDT = fields[1].Trim(),
-                    PRICE = fields[2].Trim(),
-                    OWNERNAME1 = fields.Length > 3 ? fields[3].Trim() : string.Empty,
-                    PARCELLOCATION = fields.Length > 4 ? fields[4].Trim() : string.Empty,
-                    LastChangedBy = "upload",
-                    LastChangedTs = DateTime.UtcNow
+                    fields[i] = fields[i].Trim().Trim('"');
+                }
+                parcelId = fields[0];
+                saleDate = fields[2];
+
+                // Skip parcels that are not part of the HOA (i.e., do not start with "R72617")
+                if (!parcelId.StartsWith("R72617", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                // Check if the parcel exists in the hoa_properties container
+                exists = false;
+                var queryDefinition = new QueryDefinition(
+                    "SELECT * FROM c WHERE c.id = @parcelId ")
+                        .WithParameter("@parcelId", parcelId);
+                var checkFeed = propertyContainer.GetItemQueryIterator<hoa_properties>(queryDefinition);
+                while (checkFeed.HasMoreResults)
+                {
+                    var response = await checkFeed.ReadNextAsync();
+                    foreach (var item in response)
+                    {
+                        exists = true;
+                    }
+                }
+
+                // Skip if the parcel is not found in the hoa_properties container
+                if (!exists) continue;
+
+                //log.LogWarning($">>> Line {fileCnt}: {line}");
+                foundCnt++;
+
+                // Check if the sales record already exists for this property and sale date
+                var checkQuery = new QueryDefinition("SELECT * FROM c WHERE c.PARID = @parcelId AND c.SALEDT = @saleDate")
+                    .WithParameter("@parcelId", parcelId)
+                    .WithParameter("@saleDate", saleDate);
+
+                var feed = salesContainer.GetItemQueryIterator<hoa_sales>(checkQuery);
+                exists = false;
+                while (feed.HasMoreResults)
+                {
+                    var response = await feed.ReadNextAsync();
+                    foreach (var item in response)
+                    {
+                        exists = true;
+                    }
+                }
+
+                // Skip the insert if the record already exists
+                if (exists) continue;
+
+                currDateTime = DateTime.Now;
+                LastChangedTs = currDateTime.ToString("o");
+
+                var salesRec = new Model.hoa_sales
+                {
+                    id = parcelId,
+                    PARID = parcelId,
+                    CONVNUM = fields[1],
+                    SALEDT = saleDate,
+                    PRICE = fields[3],
+                    OLDOWN = fields[4],
+                    OWNERNAME1 = fields[5],
+                    PARCELLOCATION = fields[6],
+                    MAILINGNAME1 = fields[7],
+                    MAILINGNAME2 = fields[8],
+                    PADDR1 = fields[9],
+                    PADDR2 = fields[10],
+                    PADDR3 = fields[11],
+                    CreateTimestamp = LastChangedTs,
+                    NotificationFlag = "N",
+                    ProcessedFlag = "N",
+                    LastChangedBy = userName,
+                    LastChangedTs = currDateTime,
+                    WelcomeSent = "N"
                 };
-                await salesContainer.CreateItemAsync(sale, new PartitionKey(sale.SALEDT));
-                count++;
+
+                await salesContainer.CreateItemAsync(salesRec, new PartitionKey(salesRec.SALEDT));
+                insertCnt++;
             }
-            return $"{count} sales records uploaded.";
+
+            return $"Sales records = {fileCnt}, found in HOA = {foundCnt}, NEW records inserted = {insertCnt}  (Check Sales Report)";
         }
 
 

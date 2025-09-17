@@ -1,46 +1,3 @@
-// Handle Sales Upload Button
-document.getElementById('SalesUploadButton').addEventListener('click', function () {
-	// Show the FileUploadModal
-	var fileUploadModal = new bootstrap.Modal(document.getElementById('FileUploadModal'));
-	document.getElementById('FileUploadTitle').textContent = 'Upload Sales File';
-	document.getElementById('FileUploadMessage').innerHTML = `
-		<form id="FileUploadForm" enctype="multipart/form-data" class="form-group">
-			<input id="uploadFilename" type="file" accept=".csv, .zip" name="uploadFilename" class="form-control p-1 m-1 float-left" required />
-			<input class="btn btn-success mt-2 float-left" type="submit" value="Upload file" >
-		</form>
-		<div id="FileUploadResult" class="mt-2"></div>
-	`;
-	fileUploadModal.show();
-
-	// Add submit handler
-	document.getElementById('FileUploadForm').onsubmit = async function (e) {
-		e.preventDefault();
-		const fileInput = document.getElementById('uploadFilename');
-		if (!fileInput.files.length) {
-			document.getElementById('FileUploadResult').textContent = 'Please select a file.';
-			return;
-		}
-		const formData = new FormData();
-		formData.append('file', fileInput.files[0]);
-		document.getElementById('FileUploadResult').textContent = 'Uploading...';
-		try {
-			const response = await fetch('/api/SalesUpload', {
-				method: 'POST',
-				body: formData
-			});
-			const result = await response.text();
-			if (response.ok) {
-				document.getElementById('FileUploadResult').innerHTML = '<span class="text-success">' + result + '</span>';
-			} else {
-				document.getElementById('FileUploadResult').innerHTML = '<span class="text-danger">' + result + '</span>';
-			}
-		} catch (err) {
-			document.getElementById('FileUploadResult').innerHTML = '<span class="text-danger">Upload failed: ' + err + '</span>';
-		}
-	};
-});
-
-
 /*==============================================================================
  * (C) Copyright 2015,2020 John J Kauflin, All rights reserved.
  *----------------------------------------------------------------------------
@@ -430,8 +387,8 @@ async function processSalesUpload() {
 		await checkFetchResponse(response)
 		// Success
 		fileUploadModal.hide();
-		let returnMessage = await response.text();
-		messageDisplay.textContent = "File processed successfully - Check Sales Report"
+		//messageDisplay.textContent = "File processed successfully - Check Sales Report"
+		messageDisplay.textContent = await response.text()
 	} catch (err) {
 		console.error(err)
 		messageDisplay.textContent = `Error in Fetch: ${err.message}`

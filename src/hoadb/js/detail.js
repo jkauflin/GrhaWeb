@@ -382,7 +382,25 @@ export function formatUpdateOwner(parcelId,ownerId,saleDate="") {
             updOwner_Name1.value = salesRec.ownernamE1
             updOwner_Name2.value = ""
             updDatePurchased.value = standardizeDate(salesRec.saledt)
-            updMailing_Name.value = salesRec.mailingnamE1 + " " + salesRec.mailingnamE2
+            // 2025-09-17 JJK - Problem is the values in Sales record from the County are inconsistent
+            //   sometimes the mailing name is the new owner, but sometimes it is the old owner
+            //   *** So, just use the Owner Name field for now ***
+            //updMailing_Name.value = salesRec.mailingnamE1 + " " + salesRec.mailingnamE2
+            updMailing_Name.value = salesRec.ownernamE1
+
+            // Clear out values for NEW owner
+            updAlternateMailing.checked = 0;
+            updAlt_Address_Line1.value = ""
+            updAlt_Address_Line2.value = ""
+            updAlt_City.value = ""
+            updAlt_State.value = ""
+            updAlt_Zip.value = ""
+            updOwner_Phone.value = ""
+            updEmailAddr.value = ""
+            updEmailAddr2.value = ""
+            updComments.value = ""
+            updLastChangedTs.value = ""
+            updLastChangedBy.value = ""
         }
     }
 

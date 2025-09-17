@@ -175,7 +175,7 @@ function formatSalesResults(salesList) {
 	// Append the header elements
 	th = document.createElement("th"); th.textContent = "Row"; tr.appendChild(th)        
 	th = document.createElement("th"); th.textContent = "Sales Dates"; tr.appendChild(th)
-	th = document.createElement("th"); th.textContent = "Welcome Sent"; tr.appendChild(th)
+	th = document.createElement("th"); th.textContent = "NEW"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "Parcel Location"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "Old Owner Name"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "New Owner Name"; tr.appendChild(th)
@@ -192,6 +192,7 @@ function formatSalesResults(salesList) {
 		td = document.createElement("td"); td.textContent = salesRec.saledt; tr.appendChild(td)
 
 		td = document.createElement("td");
+		/*
 		if (salesRec.welcomeSent == null || salesRec.welcomeSent == 'X' || salesRec.welcomeSent == ' ' || salesRec.welcomeSent == '') {
 			// offer buttons for Send and Ignore
 			button = document.createElement("button")
@@ -216,6 +217,7 @@ function formatSalesResults(salesList) {
 		} else {
 			td.textContent = salesRec.welcomeSent
 		}
+		*/
 		if (salesRec.processedFlag != 'Y') {
 			// offer buttons for New Owner and Ignore Owner
 			button = document.createElement("button")
