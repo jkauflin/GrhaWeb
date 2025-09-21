@@ -11,12 +11,12 @@
     <meta name="description"
         content="This is the web site for the Gander Road Homeowners Association in Quail Hollow, Dayton, OH" />
     <meta name="Author" content="John J Kauflin" />
-    <meta property="og:url" content="http://grha-dayton.org" />
+    <meta property="og:url" content="https://grha-dayton.org" />
     <meta property="og:type" content="article" />
     <meta property="og:title" content="Gander Road Homeowners Association" />
     <meta property="og:description" content="This is the web site for the Gander Road Homeowners Association" />
-    <meta property="og:image" content="http://grha-dayton.org/Media/images/qh-sign.jpg" />
-
+    <meta property="og:image" content="https://grhawebstorage.blob.core.windows.net/images/qh-sign.jpg" />
+    
     <!-- Place favicon.ico in the root directory -->
     <link rel="icon" href="favicon.ico?ver=1.001">
     <link rel="manifest" href="manifest.json">
@@ -30,7 +30,7 @@
 
 <body>
     <nav class="navbar navbar-expand-sm bg-dark navbar-dark" role="navigation">
-        <a class="navbar-brand p-0 mx-2" href="index.html"><img class="m-0 p-0" id="header-image" alt="Brand logo photo" src="Media/images/logo-photo.jpg"></a>
+        <a class="navbar-brand p-0 mx-2" href="index.html"><img class="m-0 p-0" id="header-image" alt="Brand logo photo" src="https://grhawebstorage.blob.core.windows.net/images/logo-photo.jpg"></a>
         <a class="navbar-brand d-lg-none" href="index.html">Gander Rd HOA</a>
         <a class="navbar-brand d-none d-lg-block" href="index.html">Gander Road Homeowners Association</a>
 
@@ -67,8 +67,11 @@
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
         integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-
-    <script src="https://www.paypal.com/sdk/js?client-id=AfPzVjZCh8dqc1d4pYuzGRCBlcEkS8-MySH5qxewT575KjBu3hJect0Aw3J2ZBkhexwABLk3rMgkRujv&disable-funding=credit"></script>
+    <!--
+        PROD
+        <script src="https://www.paypal.com/sdk/js?client-id=AfPzVjZCh8dqc1d4pYuzGRCBlcEkS8-MySH5qxewT575KjBu3hJect0Aw3J2ZBkhexwABLk3rMgkRujv&disable-funding=credit"></script>
+    -->
+    <script src="https://www.paypal.com/sdk/js?client-id=AUAQM6mbhIn8s9I3Omv3RBg9qcCLMTuYghYeoGEAVj0cRJ6FCSWsdCh4qEQt3fkoC5PIj3yNV50R9VQC&buyer-country=US&currency=USD&components=buttons&enable-funding=venmo,card"></script>
     <script src="js/payDues.js" type="module"></script>
 
 </body>

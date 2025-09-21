@@ -22,6 +22,7 @@ Modification History
 2025-08-08 JJK  Added new owner update function
 2025-08-27 JJK  Added CreateDuesNoticeEmails to create communication records
                 and EventGrid events (which are handled by an Azure Function)
+2025-09-18 JJK  Added HandlePayment function to process payment posting
 ================================================================================*/
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -31,30 +32,42 @@ using Microsoft.AspNetCore.Mvc;     // for IActionResult
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json.Linq;
+using PaypalServerSdk.Standard;
+using PaypalServerSdk.Standard.Controllers;
+using PaypalServerSdk.Standard.Http.Response;
+using PaypalServerSdk.Standard.Models;
+
+/*
+using PaypalServerSdk.Standard;
+using PaypalServerSdk.Standard.Authentication;
+using PaypalServerSdk.Standard.Controllers;
+using PaypalServerSdk.Standard.Http.Response;
+using PaypalServerSdk.Standard.Models;
+*/
 
 using GrhaWeb.Function.Model;
-using Microsoft.Azure.Cosmos;
 
 namespace GrhaWeb.Function
 {
     public class WebApi
     {
-
         private readonly ILogger<WebApi> log;
-        private readonly IConfiguration config;
+        private readonly Microsoft.Extensions.Configuration.IConfiguration config;
 
         private readonly AuthorizationCheck authCheck;
         private readonly string userAdminRole;
         private readonly CommonUtil util;
         private readonly HoaDbCommon hoaDbCommon;
+        private readonly PaypalServerSdkClient paypalClient;
 
-        public WebApi(ILogger<WebApi> logger, IConfiguration configuration)
+        public WebApi(ILogger<WebApi> logger, Microsoft.Extensions.Configuration.IConfiguration configuration, PaypalServerSdkClient inPaypalClient)
         {
             log = logger;
             config = configuration;
             authCheck = new AuthorizationCheck(log);
             userAdminRole = "hoadbadmin";   // add to config ???
             util = new CommonUtil(log);
+            paypalClient = inPaypalClient;
             hoaDbCommon = new HoaDbCommon(log, config);
         }
 
@@ -145,7 +158,7 @@ namespace GrhaWeb.Function
                     saleDate = jToken.ToString();
                 }
 
-                hoaRec = await hoaDbCommon.GetHoaRec(parcelId, ownerId, fy, saleDate);
+                hoaRec = await hoaDbCommon.GetHoaRecDB(parcelId, ownerId, fy, saleDate);
             }
             catch (Exception ex)
             {
@@ -906,6 +919,188 @@ namespace GrhaWeb.Function
             {
                 log.LogError($"Exception in SalesUpload, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult($"Error in SalesUpload - {ex.Message}");
+            }
+            return new OkObjectResult(resultMessage);
+        }
+
+        /*
+                Handle Payment endpoint - called from client after PayPal payment is approved
+                This will verify the payment with PayPal and then call hoaDbCommon to record the payment in hoa_payments
+                The request body should contain JSON with orderId, payerId, amount, parcelId, fiscalYear
+                Example:
+                {
+                    "orderId": "5O190127TN364715T",
+                    "payerId": "DUFRQ8GWYMJXC",
+                    "amount": "75.00",
+                    "parcelId": "1234567890",
+                    "fiscalYear": "2024"
+                }
+
+        Key Best Practices
+        - Reuse the PayPal client — don’t recreate it per request.
+        - Secure your credentials — use Azure Key Vault in production.
+        - Log PayPal API responses for troubleshooting (but never log full card or PII data).
+        - Handle webhooks for payment confirmation instead of relying solely on redirect flows
+        */
+
+        // 2025-09-21 JJK - Comments from original PHP version
+        /*==============================================================================
+        * (C) Copyright 2016,2020,2021 John J Kauflin, All rights reserved.
+        *----------------------------------------------------------------------------
+        * DESCRIPTION: Handle notification from payment merchant - insert a payment
+        * 				transaction record, update paid flags, and send an email to
+        * 				the payer.  This service is called from the client after
+        *              it has created the order and gotten approval from Paypal
+        *----------------------------------------------------------------------------
+        * Modification History
+        * 2016-04-26 JJK 	Initial version starting with paypal_ipn.php
+        * 2016-05-02 JJK   Modified to update assessment to paid
+        * 2016-05-11 JJK	Modified to insert payment transaction record
+        * 2016-05-14 JJK   Moved updates to updHoaPayment
+        * 2016-08-26 JJK   Changed from sandbox to live production
+        * 2020-08-05 JJK   Modified to include hoaDbCommon and call function there
+        *                  to do the update the HOA database
+        * 2020-09-08 JJK   Added email to notify of problems (INVALID) for the 
+        *                  Access Denied issue
+        * 2020-09-19 JJK   Corrected email issue by including autoload.php
+        * 2020-12-31 JJK   New version (not using IPN), using PHP SDK for Paypal API
+        * 2020-01-03 JJK   Modified to go Live with production settings
+        * 2021-02-13 JJK   Modified CustomId to be FY,ParcelId
+        * 2021-09-04 JJK   Added logging to check email function
+        *============================================================================*/
+        [Function("HandlePayment")]
+        public async Task<IActionResult> HandlePayment(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            string resultMessage = "";
+            try
+            {
+                string orderID = await new StreamReader(req.Body).ReadToEndAsync();
+                var ordersController = paypalClient.OrdersController;
+                CaptureOrderInput ordersCaptureInput = new CaptureOrderInput { Id = orderID, };
+                ApiResponse<Order> result = await ordersController.CaptureOrderAsync(ordersCaptureInput);
+
+                /*
+                // Get the id of the order created in the client and paid by the member in paypal
+                $orderID = getParamVal("orderID");
+
+                // OrdersCaptureRequest() creates a POST request to /v2/checkout/orders (to get an order)
+                $request = new OrdersCaptureRequest($orderID);
+                $request->prefer('return=representation');
+
+// Use Paypal API classes
+use PayPalCheckoutSdk\Core\PayPalHttpClient;
+//use PayPalCheckoutSdk\Core\SandboxEnvironment;
+use PayPalCheckoutSdk\Core\ProductionEnvironment;
+use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;
+// Creating an environment (with secrets from the external file included above)
+//$environment = new SandboxEnvironment($clientId, $clientSecret);
+$environment = new ProductionEnvironment($clientId, $clientSecret);
+$client = new PayPalHttpClient($environment);
+
+// Get the id of the order created in the client and paid by the member in paypal
+$orderID = getParamVal("orderID");
+
+// OrdersCaptureRequest() creates a POST request to /v2/checkout/orders (to get an order)
+$request = new OrdersCaptureRequest($orderID);
+$request->prefer('return=representation');
+$response = null;
+try {
+    // Call API with your client and get a response for your call
+    $response = $client->execute($request);
+
+    // Error out if the order is NOT completed/approved
+    if ($response->result->status != "COMPLETED" || 
+        $response->result->purchase_units[0]->payments->captures[0]->status != "COMPLETED") {
+        throw new Exception('Status is not COMPLETED', 500);
+    }
+
+    // Get the values from the response
+    $parcelId = $response->result->purchase_units[0]->reference_id;
+    $ownerId = 0;
+    $payeeEmail = $response->result->purchase_units[0]->payee->email_address;
+
+    $strArray = explode(",",$response->result->purchase_units[0]->custom_id);
+    $fy = $strArray[0];
+    $parcelId2 = $strArray[1];
+
+    $txn_id = $response->result->purchase_units[0]->payments->captures[0]->id;
+    $totalAmount = $response->result->purchase_units[0]->payments->captures[0]->amount->value;
+    $payment_date = $response->result->purchase_units[0]->payments->captures[0]->create_time;
+    $payment_amt = $response->result->purchase_units[0]->payments->captures[0]->seller_receivable_breakdown->gross_amount->value;
+    $payment_fee = $response->result->purchase_units[0]->payments->captures[0]->seller_receivable_breakdown->paypal_fee->value;
+    $payment_net = $response->result->purchase_units[0]->payments->captures[0]->seller_receivable_breakdown->net_amount->value;
+    $payer_email = $response->result->payer->email_address;
+    $payer_name = $response->result->payer->name->given_name . ' ' . $response->result->payer->name->surname;
+
+    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", BEFORE updAssessmentPaid, parcel = " . $parcelId . PHP_EOL, 3, LOG_FILE);
+
+    // Get a database connection and call the common function to mark paid
+    $conn = getConn($host, $dbadmin, $password, $dbname);
+    updAssessmentPaid(
+        $conn,
+        $parcelId,
+        $ownerId,
+        $fy,
+        $txn_id,
+        $payment_date,
+        $payer_email,
+        $payment_amt,
+        $payment_fee);
+	// Close db connection
+    $conn->close();
+
+    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", AFTER updAssessmentPaid, parcel = " . $parcelId . PHP_EOL, 3, LOG_FILE);
+
+    // Return order details to the client
+    echo json_encode($response);
+
+} catch (Exception $e) {
+    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
+    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Request = " . json_encode($request,JSON_PRETTY_PRINT) . PHP_EOL, 3, LOG_FILE);
+    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Response = " . json_encode($response,JSON_PRETTY_PRINT) . PHP_EOL, 3, LOG_FILE);
+    echo json_encode($e->getMessage());
+}
+
+
+                */
+
+                // Read request body
+                /*
+                string content = await new StreamReader(req.Body).ReadToEndAsync();
+                JObject jObject = JObject.Parse(content);
+                string orderId = jObject["orderId"]?.ToString();
+                string payerId = jObject["payerId"]?.ToString();
+                string amount = jObject["amount"]?.ToString();
+                string parcelId = jObject["parcelId"]?.ToString();
+                string fiscalYear = jObject["fiscalYear"]?.ToString();
+                if (string.IsNullOrEmpty(orderId) || string.IsNullOrEmpty(amount) || string.IsNullOrEmpty(parcelId))
+                {
+                    return new BadRequestObjectResult("Missing required payment info");
+                }
+                */
+
+
+                /*
+                // Get order details from PayPal
+                var request = new PayPalCheckoutSdk.Orders.OrdersGetRequest(orderId);
+                var response = await client.Execute(request);
+                var order = response.Result<PayPalCheckoutSdk.Orders.Order>();
+                if (order == null || order.Status != "COMPLETED")
+                {
+                    return new BadRequestObjectResult("Payment not completed or invalid order");
+                }
+                */
+
+                // Call HoaDbCommon to update hoa_payments
+                //await hoaDbCommon.RecordPayment(parcelId, fiscalYear, orderId, payerId, amount, order);
+
+                resultMessage = "Payment processed and recorded.";
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception in HandlePayment, message: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Error in HandlePayment - {ex.Message}");
             }
             return new OkObjectResult(resultMessage);
         }

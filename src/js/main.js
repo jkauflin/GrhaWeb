@@ -220,7 +220,7 @@ function formatDuesStatementResults(hoaRec) {
                 i.classList.add('fa','fa-usd','float-start','mr-1')
                 i.textContent = ' Click HERE to make payment online'
                 let a = document.createElement("a")
-                a.href = "payDues.html?parcelId=" + hoaRec.parcel_ID
+                a.href = "payDues.html?parcelId=" + hoaRec.property.parcel_ID
                 a.classList.add('btn','btn-success','m-2','link-tile')
                 a.appendChild(i)
                 payDues.appendChild(a)

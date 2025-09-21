@@ -181,7 +181,7 @@ namespace GrhaWeb.Function
         // Main details lookup service to get data from all the containers for a specific property and populate
         // the HoaRec object.  It also calculates the total Dues due with interest, and gets emails and sales info
         //==============================================================================================================
-        public async Task<HoaRec> GetHoaRec(string parcelId, string ownerId = "", string fy = "", string saleDate = "")
+        public async Task<HoaRec> GetHoaRecDB(string parcelId, string ownerId = "", string fy = "", string saleDate = "")
         {
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
@@ -412,7 +412,7 @@ namespace GrhaWeb.Function
         }
 
 
-        public async Task<HoaRec2> GetHoaRec2(string parcelId)
+        public async Task<HoaRec2> GetHoaRec2DB(string parcelId)
         {
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
@@ -689,7 +689,7 @@ namespace GrhaWeb.Function
         }
 
 
-        public async Task<List<hoa_communications>> GetCommunicationsDB(string parcelId, string sentStatus="")
+        public async Task<List<hoa_communications>> GetCommunicationsDB(string parcelId, string sentStatus = "")
         {
             //------------------------------------------------------------------------------------------------------------------
             // Query the NoSQL container to get values
@@ -706,11 +706,14 @@ namespace GrhaWeb.Function
             QueryDefinition queryDefinition;
             if (parcelId.Equals("DuesNoticeEmails"))
             {
-                if (!sentStatus.Equals("")) {
+                if (!sentStatus.Equals(""))
+                {
                     queryDefinition = new QueryDefinition(
                         "SELECT * FROM c WHERE c.Email = 1 AND c.SentStatus = @sentStatus ORDER BY c.CreateTs DESC ")
                         .WithParameter("@sentStatus", sentStatus);
-                } else {
+                }
+                else
+                {
                     queryDefinition = new QueryDefinition(
                         "SELECT * FROM c WHERE c.Email = 1 ORDER BY c.CreateTs DESC OFFSET 0 LIMIT 400");
                 }
@@ -1866,20 +1869,20 @@ namespace GrhaWeb.Function
                     DateDue = new DateTime(fiscalYear - 1, 10, 1).ToString("yyyy-MM-dd"),
                     Paid = 0,
                     NonCollectible = 0,
-				    DatePaid = "",
-				    PaymentMethod = "",
-				    Lien = 0,
-				    LienRefNo = "",
-				    FilingFee = 0,
-				    ReleaseFee = 0,
-				    AmountPaid = 0,
-				    StopInterestCalc = 0,
-				    FilingFeeInterest = 0,
-				    AssessmentInterest = 0,
-				    InterestNotPaid = 0,
-				    BankFee = 0,
+                    DatePaid = "",
+                    PaymentMethod = "",
+                    Lien = 0,
+                    LienRefNo = "",
+                    FilingFee = 0,
+                    ReleaseFee = 0,
+                    AmountPaid = 0,
+                    StopInterestCalc = 0,
+                    FilingFeeInterest = 0,
+                    AssessmentInterest = 0,
+                    InterestNotPaid = 0,
+                    BankFee = 0,
                     LienComment = "",
-				    Comments = "",
+                    Comments = "",
                     LastChangedBy = userName,
                     LastChangedTs = currTs
                 };
@@ -1935,7 +1938,7 @@ namespace GrhaWeb.Function
             string LastChangedTs = currDateTime.ToString("o");
             string parcelId = "";
             string saleDate = "";
-            bool exists; 
+            bool exists;
             string line;
             int fileCnt = 0;
             int foundCnt = 0;
@@ -2031,6 +2034,34 @@ namespace GrhaWeb.Function
             }
 
             return $"Sales records = {fileCnt}, found in HOA = {foundCnt}, NEW records inserted = {insertCnt}  (Check Sales Report)";
+        }
+
+        // ...existing code...
+        // Record PayPal payment in hoa_payments container
+        public async Task RecordPayment(string parcelId, string fiscalYear, string orderId, string payerId, string amount, object order)
+        {
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container paymentsContainer = db.GetContainer("hoa_payments");
+
+            /*
+            var paymentRec = new Model.hoa_payments
+            {
+                id = orderId,
+                Parcel_ID = parcelId,
+                FiscalYear = fiscalYear,
+                OrderId = orderId,
+                PayerId = payerId,
+                Amount = amount,
+                PaymentStatus = "COMPLETED",
+                PaymentDate = DateTime.UtcNow.ToString("s"),
+                RawOrderJson = order.ToString(),
+                LastChangedBy = "paypal",
+                LastChangedTs = DateTime.UtcNow
+            };
+            await paymentsContainer.UpsertItemAsync(paymentRec, new PartitionKey(parcelId));
+            */
+            
         }
 
 

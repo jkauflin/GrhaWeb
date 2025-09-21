@@ -66,7 +66,7 @@ namespace GrhaWeb.Function
             try {
                 // Get the content string from the HTTP request body
                 string parcelId = await new StreamReader(req.Body).ReadToEndAsync();
-                hoaRec2 = await hoaDbCommon.GetHoaRec2(parcelId);
+                hoaRec2 = await hoaDbCommon.GetHoaRec2DB(parcelId);
             }
             catch (Exception ex) {
                 log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
