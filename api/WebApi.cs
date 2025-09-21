@@ -980,35 +980,16 @@ namespace GrhaWeb.Function
                 CaptureOrderInput ordersCaptureInput = new CaptureOrderInput { Id = orderID, };
                 ApiResponse<Order> result = await ordersController.CaptureOrderAsync(ordersCaptureInput);
 
+                //result.Data.PurchaseUnits[0].ReferenceId = "TestParcel123";
+                //result.Data.Status = "COMPLETED";
+                //result.Data.PurchaseUnits[0].Payments.Captures[0].Status = "COMPLETED";
+
+                //result.Data.PurchaseUnits[0].CustomId = "2024,1234567890";
+                string[] parts = result.Data.PurchaseUnits[0].CustomId.Split(',');
+                string fiscalYear = parts[0];
+                string parcelId = parts[1];
+
                 /*
-                // Get the id of the order created in the client and paid by the member in paypal
-                $orderID = getParamVal("orderID");
-
-                // OrdersCaptureRequest() creates a POST request to /v2/checkout/orders (to get an order)
-                $request = new OrdersCaptureRequest($orderID);
-                $request->prefer('return=representation');
-
-// Use Paypal API classes
-use PayPalCheckoutSdk\Core\PayPalHttpClient;
-//use PayPalCheckoutSdk\Core\SandboxEnvironment;
-use PayPalCheckoutSdk\Core\ProductionEnvironment;
-use PayPalCheckoutSdk\Orders\OrdersCaptureRequest;
-// Creating an environment (with secrets from the external file included above)
-//$environment = new SandboxEnvironment($clientId, $clientSecret);
-$environment = new ProductionEnvironment($clientId, $clientSecret);
-$client = new PayPalHttpClient($environment);
-
-// Get the id of the order created in the client and paid by the member in paypal
-$orderID = getParamVal("orderID");
-
-// OrdersCaptureRequest() creates a POST request to /v2/checkout/orders (to get an order)
-$request = new OrdersCaptureRequest($orderID);
-$request->prefer('return=representation');
-$response = null;
-try {
-    // Call API with your client and get a response for your call
-    $response = $client->execute($request);
-
     // Error out if the order is NOT completed/approved
     if ($response->result->status != "COMPLETED" || 
         $response->result->purchase_units[0]->payments->captures[0]->status != "COMPLETED") {

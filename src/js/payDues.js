@@ -59,16 +59,18 @@ async function startPaymentCapture(parcelId) {
         await checkFetchResponse(response)
         payDuesMessage.textContent = ''
         const hoaRec = await response.json();
-        console.log("hoaRec.Parcel_ID = "+hoaRec.Parcel_ID);
+        console.log("hoaRec.property.parcel_ID = "+hoaRec.property.parcel_ID);
 
-        if (hoaRec.TotalDue == 0) {
+        // check hoaRec null
+
+        if (hoaRec.totalDue == 0) {
             payDuesMessage.textContent = "No Dues are currently owed on this property"
-        } else if (hoaRec.TotalDue != formatMoney(hoaRec.assessmentsList[0].DuesAmt)) {
+        } else if (hoaRec.totalDue != formatMoney(hoaRec.assessmentsList[0].duesAmt)) {
             payDuesMessage.textContent = "More than current year dues are owed on this property - contact Treasurer"
         } else {
-            var paymentValue = hoaRec.TotalDue + hoaRec.paymentFee;
-            payDuesTitle.textContent = "Pay HOA dues for property at "+hoaRec.Parcel_Location
-            payDuesTitle2.textContent = `$${hoaRec.TotalDue} (Dues) + $${formatMoney(hoaRec.paymentFee)} (Processing Fee) = $${formatMoney(paymentValue)} Total`
+            var paymentValue = hoaRec.totalDue + hoaRec.paymentFee;
+            payDuesTitle.textContent = "Pay HOA dues for property at "+hoaRec.property.parcel_Location
+            payDuesTitle2.textContent = `$${hoaRec.totalDue} (Dues) + $${formatMoney(hoaRec.paymentFee)} (Processing Fee) = $${formatMoney(paymentValue)} Total`
             //"$"+hoaRec.TotalDue+" (Dues) + $"+formatMoney(hoaRec.paymentFee) +" (Processing Fee) = $"+formatMoney(paymentValue)+" Total"
 
             // Use the Paypal javascript SDK to render buttons for dues payment, and respond to approval
@@ -87,8 +89,8 @@ async function startPaymentCapture(parcelId) {
                             amount: {
                                 value: paymentValue
                             },
-                            description: hoaRec.assessmentsList[0].FY+' Dues and processing fee for property at '+hoaRec.Parcel_Location,
-                            custom_id: hoaRec.assessmentsList[0].FY+','+parcelId
+                            description: hoaRec.assessmentsList[0].fy+' Dues and processing fee for property at '+hoaRec.property.parcel_Location,
+                            custom_id: hoaRec.assessmentsList[0].fy+','+parcelId
                         }]
                     });
                 },
@@ -98,7 +100,7 @@ async function startPaymentCapture(parcelId) {
                     //return fetch('hoadb/handlePayment.php?orderID='+data.orderID)
                     //return fetch('api/HandlePayment?orderID='+data.orderID)
 
-                    fetch('/api/GetHoaRec2', {
+                    fetch('/api/HandlePayment', {
                         method: 'POST',
                         headers: { "Content-Type": "application/json" },
                         body: data.orderID
@@ -118,7 +120,7 @@ async function startPaymentCapture(parcelId) {
                             //return response.json();
                         }).then(function (details) {
                             payDuesMessage.textContent = "Thank you, "+details.result.payer.name.given_name
-                                +".  "+hoaRec.assessmentsList[0].FY+' Dues for property at '+hoaRec.Parcel_Location
+                                +".  "+hoaRec.assessmentsList[0].fy+' Dues for property at '+hoaRec.property.parcel_Location
                                 +" have been marked as PAID"
                         })
 
