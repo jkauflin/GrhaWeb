@@ -923,26 +923,9 @@ namespace GrhaWeb.Function
             return new OkObjectResult(resultMessage);
         }
 
-        /*
-                Handle Payment endpoint - called from client after PayPal payment is approved
-                This will verify the payment with PayPal and then call hoaDbCommon to record the payment in hoa_payments
-                The request body should contain JSON with orderId, payerId, amount, parcelId, fiscalYear
-                Example:
-                {
-                    "orderId": "5O190127TN364715T",
-                    "payerId": "DUFRQ8GWYMJXC",
-                    "amount": "75.00",
-                    "parcelId": "1234567890",
-                    "fiscalYear": "2024"
-                }
-
-        Key Best Practices
-        - Reuse the PayPal client — don’t recreate it per request.
-        - Secure your credentials — use Azure Key Vault in production.
-        - Log PayPal API responses for troubleshooting (but never log full card or PII data).
-        - Handle webhooks for payment confirmation instead of relying solely on redirect flows
-        */
-
+        //-------------------------------------------------------------------------------------------------------------
+        // Handle Payment endpoint - called from client after PayPal payment is approved
+        // This will verify the payment with PayPal and then call hoaDbCommon to record the payment in hoa_payments
         // 2025-09-21 JJK - Comments from original PHP version
         /*==============================================================================
         * (C) Copyright 2016,2020,2021 John J Kauflin, All rights reserved.
@@ -976,12 +959,16 @@ namespace GrhaWeb.Function
             try
             {
                 string orderID = await new StreamReader(req.Body).ReadToEndAsync();
+                if (string.IsNullOrEmpty(orderID))
+                {
+                    return new BadRequestObjectResult("HandlePayment failed because orderID was blank");
+                }
                 var ordersController = paypalClient.OrdersController;
                 CaptureOrderInput ordersCaptureInput = new CaptureOrderInput { Id = orderID };
                 ApiResponse<Order> result = await ordersController.CaptureOrderAsync(ordersCaptureInput);
 
                 // Error out if the order is NOT completed/approved
-                if (result.Data.Status != OrderStatus.Completed || 
+                if (result.Data.Status != OrderStatus.Completed ||
                     result.Data.PurchaseUnits[0].Payments.Captures[0].Status != CaptureStatus.Completed)
                 {
                     return new BadRequestObjectResult("Payment not completed or invalid order");
@@ -989,9 +976,6 @@ namespace GrhaWeb.Function
 
                 // Get the values from the response
                 string parcelId = result.Data.PurchaseUnits[0].ReferenceId;
-                //int ownerId = 0;
-                //string payeeEmail = result.Data.PurchaseUnits[0].Payee.EmailAddress;
-
                 string[] customId = result.Data.PurchaseUnits[0].Payments.Captures[0].CustomId.Split(',');
                 string fiscalYear = customId[0];
                 string parcelId2 = customId[1];
@@ -999,87 +983,18 @@ namespace GrhaWeb.Function
                 {
                     return new BadRequestObjectResult("ParcelId in ReferenceId does not match CustomId");
                 }
-                int fy = int.Parse(fiscalYear);
-                string txn_id = result.Data.PurchaseUnits[0].Payments.Captures[0].Id;
-
-/*
-                var money = result.Data.PurchaseUnits[0].Payments.Captures[0].Amount;
-money.MValue
-// Safely convert to decimal
-if (decimal.TryParse(
-        money.MValue,
-        System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowLeadingSign,
-        System.Globalization.CultureInfo.InvariantCulture,
-        out decimal amount))
-{
-    Console.WriteLine($"Amount: {amount} {money.CurrencyCode}");
-}
-else
-{
-    Console.WriteLine("Invalid money value format.");
-}
-*/
-
+                string transactionId = result.Data.PurchaseUnits[0].Payments.Captures[0].Id;
                 decimal totalAmount = decimal.Parse(result.Data.PurchaseUnits[0].Payments.Captures[0].Amount.MValue);
-                decimal payment_amt = decimal.Parse(result.Data.PurchaseUnits[0].Payments.Captures[0].SellerReceivableBreakdown.GrossAmount.MValue);
-                decimal payment_fee = decimal.Parse(result.Data.PurchaseUnits[0].Payments.Captures[0].SellerReceivableBreakdown.PaypalFee.MValue);
-                string payment_date = result.Data.PurchaseUnits[0].Payments.Captures[0].CreateTime;
-                string payer_email = result.Data.Payer.EmailAddress;
-                string payer_name = result.Data.Payer.Name.GivenName + ' ' + result.Data.Payer.Name.Surname;
-
-                /*
-    // Get the values from the response
-
-    $txn_id = $response->result->purchase_units[0]->payments->captures[0]->id;
-    $totalAmount = $response->result->purchase_units[0]->payments->captures[0]->amount->value;
-    $payment_date = $response->result->purchase_units[0]->payments->captures[0]->create_time;
-    $payment_amt = $response->result->purchase_units[0]->payments->captures[0]->seller_receivable_breakdown->gross_amount->value;
-    $payment_fee = $response->result->purchase_units[0]->payments->captures[0]->seller_receivable_breakdown->paypal_fee->value;
-    $payment_net = $response->result->purchase_units[0]->payments->captures[0]->seller_receivable_breakdown->net_amount->value;
-    $payer_email = $response->result->payer->email_address;
-    $payer_name = $response->result->payer->name->given_name . ' ' . $response->result->payer->name->surname;
-
-    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", BEFORE updAssessmentPaid, parcel = " . $parcelId . PHP_EOL, 3, LOG_FILE);
-
-    // Get a database connection and call the common function to mark paid
-    $conn = getConn($host, $dbadmin, $password, $dbname);
-    updAssessmentPaid(
-        $conn,
-        $parcelId,
-        $ownerId,
-        $fy,
-        $txn_id,
-        $payment_date,
-        $payer_email,
-        $payment_amt,
-        $payment_fee);
-	// Close db connection
-    $conn->close();
-
-    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", AFTER updAssessmentPaid, parcel = " . $parcelId . PHP_EOL, 3, LOG_FILE);
-
-    // Return order details to the client
-    echo json_encode($response);
-
-} catch (Exception $e) {
-    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Exception = " . $e->getMessage() . PHP_EOL, 3, LOG_FILE);
-    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Request = " . json_encode($request,JSON_PRETTY_PRINT) . PHP_EOL, 3, LOG_FILE);
-    error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Response = " . json_encode($response,JSON_PRETTY_PRINT) . PHP_EOL, 3, LOG_FILE);
-    echo json_encode($e->getMessage());
-}
-                */
-
+                decimal paymentAmt = decimal.Parse(result.Data.PurchaseUnits[0].Payments.Captures[0].SellerReceivableBreakdown.GrossAmount.MValue);
+                decimal paymentFee = decimal.Parse(result.Data.PurchaseUnits[0].Payments.Captures[0].SellerReceivableBreakdown.PaypalFee.MValue);
+                string paymentDate = result.Data.PurchaseUnits[0].Payments.Captures[0].CreateTime;
+                string payerEmail = result.Data.Payer.EmailAddress;
+                string payerName = result.Data.Payer.Name.GivenName + ' ' + result.Data.Payer.Name.Surname;
 
                 // Call HoaDbCommon to update hoa_payments
-                //await hoaDbCommon.RecordPayment(parcelId, fiscalYear, orderId, payerId, amount, order);
+                await hoaDbCommon.RecordPayment(parcelId, fiscalYear, transactionId, totalAmount, paymentAmt, paymentFee, paymentDate, payerEmail, payerName);
 
-                /*
-                payDuesMessage.textContent = "Thank you, "+details.result.payer.name.given_name
-                                +".  "+hoaRec.assessmentsList[0].fy+' Dues for property at '+hoaRec.property.parcel_Location
-                                +" have been marked as PAID"
-                */
-
-                resultMessage = "Payment processed and recorded.";
+                resultMessage = $"Thank you, {result.Data.Payer.Name.GivenName}.  {fiscalYear} Dues for parcel {parcelId} have been marked as PAID, and you will receive a confirmation email";
             }
             catch (Exception ex)
             {

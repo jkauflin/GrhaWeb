@@ -2037,42 +2037,213 @@ namespace GrhaWeb.Function
         }
 
         // Record PayPal payment in hoa_payments container
-        public async Task RecordPayment(string parcelId, string fiscalYear, string orderId, string payerId, string amount, object order)
+        public async Task RecordPayment(string parcelId, string fiscalYear, string transactionId,
+                                        decimal totalAmount, decimal paymentAmt, decimal paymentFee, string paymentDate, string payerEmail, string payerName)
         {
             CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
+            Container assessmentsContainer = db.GetContainer("hoa_assessments");
             Container paymentsContainer = db.GetContainer("hoa_payments");
+            Container configContainer = db.GetContainer("hoa_config");
+            DateTime currDateTime = DateTime.UtcNow;
+            string LastChangedTs = currDateTime.ToString("o");
 
+            // First, get the Assessment record for this parcel and fiscal year to get the OwnerID (and double check info from payment source)
+            var query = new QueryDefinition("SELECT * FROM c WHERE c.Parcel_ID = @parcelId AND c.FY = @fy")
+                .WithParameter("@parcelId", parcelId)
+                .WithParameter("@fy", int.Parse(fiscalYear));
+            var feed = assessmentsContainer.GetItemQueryIterator<hoa_assessments>(query);
+            bool exists = false;
+            hoa_assessments assessmentRec = new hoa_assessments();
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    exists = true;
+                    assessmentRec = item;
+                }
+            }
+            if (!exists)
+            {
+                throw new Exception("Assessment record not found for Parcel " + parcelId + ", FY = " + fiscalYear);
+            }
+
+            // Next, check if a payment record already exists for this parcel and transaction id (idempotent check) - NO, should not have to do this
             /*
+            query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id AND c.Parcel_ID = @parcelId ")
+                .WithParameter("@id", transactionId)
+                .WithParameter("@parcelId", parcelId);
+            var paymentsFeed = paymentsContainer.GetItemQueryIterator<hoa_payments>(query);
+            bool paymentExists = false;
+            hoa_payments paymentRec;
+            while (paymentsFeed.HasMoreResults)
+            {
+                var response = await paymentsFeed.ReadNextAsync();
+
+                foreach (var item in response)
+                {
+                    paymentExists = true;
+                    paymentRec = item;
+                }
+            }
+            if (paymentExists)
+            {
+                throw new Exception("Payment record already exists for Parcel " + parcelId + ", transaction id = " + transactionId);
+            }
+            */
             var paymentRec = new Model.hoa_payments
             {
-                id = orderId,
+                id = transactionId,
                 Parcel_ID = parcelId,
-                FiscalYear = fiscalYear,
-                OrderId = orderId,
-                PayerId = payerId,
-                Amount = amount,
-                PaymentStatus = "COMPLETED",
-                PaymentDate = DateTime.UtcNow.ToString("s"),
-                RawOrderJson = order.ToString(),
-                LastChangedBy = "paypal",
-                LastChangedTs = DateTime.UtcNow
+                OwnerID = assessmentRec.OwnerID,
+                FY = int.Parse(fiscalYear),
+                txn_id = transactionId,
+                payment_date = paymentDate,
+                payer_email = payerEmail,
+                payment_amt = paymentAmt,
+                payment_fee = paymentFee,
+                LastChangedTs = currDateTime,
+                paidEmailSent = "N"
             };
-            await paymentsContainer.UpsertItemAsync(paymentRec, new PartitionKey(parcelId));
+            await paymentsContainer.UpsertItemAsync(paymentRec, new PartitionKey(paymentRec.Parcel_ID));
 
-                "id": "00040102VL231264L",
-    "Parcel_ID": "R72617324 0019",
-    "OwnerID": 875,
-    "FY": 2022,
-    "txn_id": "00040102VL231264L",
-    "payment_date": "2021-10-02T22:37:53Z",
-    "payer_email": "millsey28@gmail.com",
-    "payment_amt": 134.5,
-    "payment_fee": 5.18,
-    "LastChangedTs": "2021-10-02T22:37:54",
-    "paidEmailSent": "Y",
-            */
-            
+            // Mark the assessment as paid and update relevant fields
+            assessmentRec.Paid = 1;
+            assessmentRec.DatePaid = paymentDate.Substring(0, 10); // Just the date part
+            assessmentRec.PaymentMethod = "Paypal";
+            assessmentRec.Comments = transactionId;
+            assessmentRec.LastChangedBy = "paypal";
+            assessmentRec.LastChangedTs = currDateTime;
+            await assessmentsContainer.ReplaceItemAsync(assessmentRec, assessmentRec.id, new PartitionKey(assessmentRec.Parcel_ID));
+
+            // Queue up events to send payment confirmation emails to the payer and notification to treasurer
+            var eventGridPublisherClient = new EventGridPublisherClient(
+                new Uri(grhaSendEmailEventTopicEndpoint),
+                new AzureKeyCredential(grhaSendEmailEventTopicKey)
+            );
+
+            // Create an object to send data values to the send email event
+            DuesEmailEvent duesEmailEvent = new DuesEmailEvent();
+            duesEmailEvent.hoaName = await getConfigVal(configContainer, "hoaName");
+            duesEmailEvent.hoaNameShort = await getConfigVal(configContainer, "hoaNameShort");
+            duesEmailEvent.hoaAddress1 = await getConfigVal(configContainer, "hoaAddress1");
+            duesEmailEvent.hoaAddress2 = await getConfigVal(configContainer, "hoaAddress2");
+            duesEmailEvent.helpNotes = await getConfigVal(configContainer, "duesNotes");
+            duesEmailEvent.duesUrl = await getConfigVal(configContainer, "duesUrl");
+
+                    //duesEmailEvent.id = hoa_comm.id;
+                    //duesEmailEvent.parcelId = hoa_comm.Parcel_ID;
+                    //duesEmailEvent.emailAddr = hoa_comm.EmailAddr;
+
+                    /*
+                    duesEmailEvent.mailingName = hoaRec.property.Mailing_Name;
+                    duesEmailEvent.parcelLocation = hoaRec.property.Parcel_Location;
+                    duesEmailEvent.ownerPhone = hoaRec.ownersList[0].Owner_Phone;
+                    duesEmailEvent.ownerEmail1 = hoaRec.ownersList[0].EmailAddr;
+                    duesEmailEvent.ownerEmail2 = hoaRec.ownersList[0].EmailAddr2;
+                    duesEmailEvent.fy = hoaRec.assessmentsList[0].FY;
+                    duesEmailEvent.DuesAmt = hoaRec.assessmentsList[0].DuesAmt;
+                    duesEmailEvent.Paid = hoaRec.assessmentsList[0].Paid;
+                    duesEmailEvent.totalDue = hoaRec.totalDue;
+                    */
+
+                    // Queue up an event to create and send the dues notice for this email address
+                    await eventGridPublisherClient.SendEventAsync(
+                        new EventGridEvent(
+                            subject: "DuesEmailRequest",
+                            eventType: "SendMail",
+                            dataVersion: "1.0",
+                            data: BinaryData.FromObjectAsJson(duesEmailEvent)
+                        )
+                    );
+
+
+
+            /*
+                        $fromEmailAddress = getConfigValDB($conn,"fromEmailAddress");
+                        $treasurerEmail = getConfigValDB($conn,"treasurerEmail");
+                        $paymentEmailList = getConfigValDB($conn,"paymentEmailList");
+
+                            $payerInfo = 'Thank you for your GRHA member dues payment.  Our records have been successfully updated to show that the assessment has been PAID.  ';
+                            $payerInfo .= 'Your dues will be used to promote the recreation, health, safety, and welfare of the ';
+                            $payerInfo .= 'residents in the Properties, and for the improvement and maintenance of the Common Areas. ';
+                            $treasurerInfo = 'The following payment has been recorded and the assessment has been marked as PAID. ';
+
+                        $treasurerInfo .= ' Payment fee was ' . $payment_fee;
+
+                        $paymentInfoStr = '<br><br>Parcel Id: ' . $parcelId;
+                        $paymentInfoStr .= '<br>Fiscal Year: ' . $fy;
+                        $paymentInfoStr .= '<br>Transaction Id: ' . $txn_id;
+                        $paymentInfoStr .= '<br>Payment Date: ' . $payment_date;
+                        $paymentInfoStr .= '<br>Payer Email: ' . $payer_email;
+                        $paymentInfoStr .= '<br>Payment Amount: ' . $payment_amt . ' (this includes the Paypal processing fee) <br>';
+
+                        $sendMailSuccess = false;
+
+                        $subject = 'GRHA Payment Confirmation';
+                        $messageStr = '<h4>GRHA Payment Confirmation</h4>' . $payerInfo . $paymentInfoStr;
+                        $sendMailSuccess = sendHtmlEMail($payer_email,$subject,$messageStr,$fromEmailAddress);
+                        $sendMailSuccessStr = $sendMailSuccess ? 'true' : 'false';
+                        error_log("After payment email sent to:  $payer_email, sendMailSuccess = $sendMailSuccessStr" . PHP_EOL, 3, LOG_FILE);
+
+                        $subject = 'GRHA Payment Notification';
+                        $messageStr = '<h4>GRHA Payment Notification</h4>' . $treasurerInfo . $paymentInfoStr;
+                        $sendMailSuccess = sendHtmlEMail($treasurerEmail,$subject,$messageStr,$fromEmailAddress);
+                        $sendMailSuccessStr = $sendMailSuccess ? 'true' : 'false';
+                        error_log("After payment email sent to:  $treasurerEmail, sendMailSuccess = $sendMailSuccessStr" . PHP_EOL, 3, LOG_FILE);
+                        $sendMailSuccess = sendHtmlEMail($paymentEmailList,$subject,$messageStr,$fromEmailAddress);
+                        $sendMailSuccessStr = $sendMailSuccess ? 'true' : 'false';
+                        error_log("After payment email sent to:  $paymentEmailList, sendMailSuccess = $sendMailSuccessStr" . PHP_EOL, 3, LOG_FILE);
+
+                        // Update the paidEmailSent flag on the Payment record
+                        if ($sendMailSuccess) {
+                            $hoaPaymentRec->paidEmailSent = 'Y';
+                            if (!$stmt = $conn->prepare("UPDATE hoa_payments SET paidEmailSent=? WHERE Parcel_ID = ? AND FY = ? AND txn_id = ? ; ")) {
+                                    error_log("Update Payments Prepare failed: " . $stmt->errno . ", Error = " . $stmt->error . PHP_EOL, 3, LOG_FILE);
+                                    //echo "Prepare failed: (" . $stmt->errno . ") " . $stmt->error;
+                            }
+                            if (!$stmt->bind_param("ssis",$hoaPaymentRec->paidEmailSent,$parcelId,$fy,$txn_id)) {
+                                error_log("Update Assessment Bind failed: " . $stmt->errno . ", Error = " . $stmt->error . PHP_EOL, 3, LOG_FILE);
+                                //echo "Bind failed: (" . $stmt->errno . ") " . $stmt->error;
+                            }
+                            if (!$stmt->execute()) {
+                                error_log("Update Assessment Execute failed: " . $stmt->errno . ", Error = " . $stmt->error . PHP_EOL, 3, LOG_FILE);
+                                //echo "Add Assessment Execute failed: (" . $stmt->errno . ") " . $stmt->error;
+                            }
+                            $stmt->close();
+                        }
+
+
+                "id": "2262008",
+                "OwnerID": 226,
+                "Parcel_ID": "R72617502 0002",
+                "FY": 2008,
+                "DuesAmt": "93.45",
+                "DateDue": "2007-10-01",
+                "Paid": 0,
+                "NonCollectible": 0,
+                "DatePaid": "",
+                "PaymentMethod": "",
+                "Lien": 1,
+                "LienRefNo": "2008-00033545",
+                "DateFiled": "2008-05-09T00:00:00",
+                "Disposition": "Open",
+                "FilingFee": 28,
+                "ReleaseFee": 34,
+                "DateReleased": "0001-01-01T00:00:00",
+                "LienDatePaid": "0001-01-01T00:00:00",
+                "AmountPaid": 0,
+                "StopInterestCalc": 0,
+                "FilingFeeInterest": 32.79,
+                "AssessmentInterest": 116.93,
+                "InterestNotPaid": 0,
+                "BankFee": 0,
+                "LienComment": "requested pymt plan 4/19/21",
+                "Comments": "",
+                "LastChangedBy": "treasurer",
+                "LastChangedTs": "2021-08-05T21:30:01",
+                        */
         }
 
 
