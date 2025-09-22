@@ -2036,7 +2036,6 @@ namespace GrhaWeb.Function
             return $"Sales records = {fileCnt}, found in HOA = {foundCnt}, NEW records inserted = {insertCnt}  (Check Sales Report)";
         }
 
-        // ...existing code...
         // Record PayPal payment in hoa_payments container
         public async Task RecordPayment(string parcelId, string fiscalYear, string orderId, string payerId, string amount, object order)
         {
@@ -2060,6 +2059,18 @@ namespace GrhaWeb.Function
                 LastChangedTs = DateTime.UtcNow
             };
             await paymentsContainer.UpsertItemAsync(paymentRec, new PartitionKey(parcelId));
+
+                "id": "00040102VL231264L",
+    "Parcel_ID": "R72617324 0019",
+    "OwnerID": 875,
+    "FY": 2022,
+    "txn_id": "00040102VL231264L",
+    "payment_date": "2021-10-02T22:37:53Z",
+    "payer_email": "millsey28@gmail.com",
+    "payment_amt": 134.5,
+    "payment_fee": 5.18,
+    "LastChangedTs": "2021-10-02T22:37:54",
+    "paidEmailSent": "Y",
             */
             
         }

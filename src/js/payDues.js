@@ -46,9 +46,6 @@ document.addEventListener('DOMContentLoaded', () => {
 })
 
 async function startPaymentCapture(parcelId) {
-    // Fetch data from the database for this property (through the public API function)
-    //return fetch('hoadb/getHoaDbData2.php?parcelId='+rawParcelId)
-
     showLoadingSpinner(payDuesMessage);
     try {
         const response = await fetch('/api/GetHoaRec2', {
@@ -59,9 +56,8 @@ async function startPaymentCapture(parcelId) {
         await checkFetchResponse(response)
         payDuesMessage.textContent = ''
         const hoaRec = await response.json();
-        console.log("hoaRec.property.parcel_ID = "+hoaRec.property.parcel_ID);
-
-        // check hoaRec null
+        //console.log("hoaRec.property.parcel_ID = "+hoaRec.property.parcel_ID);
+        if (hoaRec == null) throw new Error('No data returned from server for parcelId '+parcelId);
 
         if (hoaRec.totalDue == 0) {
             payDuesMessage.textContent = "No Dues are currently owed on this property"
@@ -70,8 +66,7 @@ async function startPaymentCapture(parcelId) {
         } else {
             var paymentValue = hoaRec.totalDue + hoaRec.paymentFee;
             payDuesTitle.textContent = "Pay HOA dues for property at "+hoaRec.property.parcel_Location
-            payDuesTitle2.textContent = `$${hoaRec.totalDue} (Dues) + $${formatMoney(hoaRec.paymentFee)} (Processing Fee) = $${formatMoney(paymentValue)} Total`
-            //"$"+hoaRec.TotalDue+" (Dues) + $"+formatMoney(hoaRec.paymentFee) +" (Processing Fee) = $"+formatMoney(paymentValue)+" Total"
+            payDuesTitle2.innerHTML = `$${hoaRec.totalDue} (Dues) + $${formatMoney(hoaRec.paymentFee)} (Processing Fee) = <b>$${formatMoney(paymentValue)}</b> Total`
 
             // Use the Paypal javascript SDK to render buttons for dues payment, and respond to approval
             paypal.Buttons({
@@ -97,33 +92,25 @@ async function startPaymentCapture(parcelId) {
                 onApprove: function (data) {
                     // After payment approval, call a secure backend server function service to capture the order payment details from Paypal
                     // and update the HOADB to record the payment (and also send confirmation emails)
-                    //return fetch('hoadb/handlePayment.php?orderID='+data.orderID)
-                    //return fetch('api/HandlePayment?orderID='+data.orderID)
-
                     fetch('/api/HandlePayment', {
                         method: 'POST',
-                        headers: { "Content-Type": "application/json" },
                         body: data.orderID
                     })
-                        .then(function (response) {
-                            //console.log(response);
-                            // After successful recording of payment, clear the paypal buttons
-                            empty(payDuesButtons)
-                            // Check the status of the reponse (400 or 500 errors)
-                            if (response.ok) {
-                                // if response and JSON are OK, return the JSON object part of the fetch response to the next promise
-                                return response.json();
-                            } else {
-                                payDuesMessage.textContent = "Payment made but there was a problem updating HOA records - contact Treasurer"
-                                throw new Error('Error in response or JSON from server, code = '+response.status);
-                            }
-                            //return response.json();
-                        }).then(function (details) {
-                            payDuesMessage.textContent = "Thank you, "+details.result.payer.name.given_name
-                                +".  "+hoaRec.assessmentsList[0].fy+' Dues for property at '+hoaRec.property.parcel_Location
-                                +" have been marked as PAID"
-                        })
-
+                    .then(function (response) {
+                        //console.log(response);
+                        // After successful recording of payment, clear the paypal buttons
+                        empty(payDuesButtons)
+                        // Check the status of the reponse (400 or 500 errors)
+                        if (response.ok) {
+                            // if response and JSON are OK, return the JSON object part of the fetch response to the next promise
+                            return response.text();
+                        } else {
+                            payDuesMessage.textContent = "Payment made but there was a problem updating HOA records - contact Treasurer"
+                            throw new Error('Error in response from server, code = '+response.status);
+                        }
+                    }).then(function (returnMessage) {
+                        payDuesMessage.textContent = returnMessage
+                    })
                 },
                 onCancel: function (data) {
                     payDuesMessage.textContent = "Payment cancelled "
@@ -137,8 +124,6 @@ async function startPaymentCapture(parcelId) {
 
     } catch (err) {
         payDuesMessage.textContent = "Error in getting data on property, err = "+err.message
-    } finally {
-        //confirmBtn.disabled = false;
     }
 
 }

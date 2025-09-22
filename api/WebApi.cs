@@ -972,38 +972,63 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> HandlePayment(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
-            string resultMessage = "";
+            string resultMessage;
             try
             {
                 string orderID = await new StreamReader(req.Body).ReadToEndAsync();
                 var ordersController = paypalClient.OrdersController;
-                CaptureOrderInput ordersCaptureInput = new CaptureOrderInput { Id = orderID, };
+                CaptureOrderInput ordersCaptureInput = new CaptureOrderInput { Id = orderID };
                 ApiResponse<Order> result = await ordersController.CaptureOrderAsync(ordersCaptureInput);
 
-                //result.Data.PurchaseUnits[0].ReferenceId = "TestParcel123";
-                //result.Data.Status = "COMPLETED";
-                //result.Data.PurchaseUnits[0].Payments.Captures[0].Status = "COMPLETED";
+                // Error out if the order is NOT completed/approved
+                if (result.Data.Status != OrderStatus.Completed || 
+                    result.Data.PurchaseUnits[0].Payments.Captures[0].Status != CaptureStatus.Completed)
+                {
+                    return new BadRequestObjectResult("Payment not completed or invalid order");
+                }
 
-                //result.Data.PurchaseUnits[0].CustomId = "2024,1234567890";
-                string[] parts = result.Data.PurchaseUnits[0].CustomId.Split(',');
-                string fiscalYear = parts[0];
-                string parcelId = parts[1];
+                // Get the values from the response
+                string parcelId = result.Data.PurchaseUnits[0].ReferenceId;
+                //int ownerId = 0;
+                //string payeeEmail = result.Data.PurchaseUnits[0].Payee.EmailAddress;
+
+                string[] customId = result.Data.PurchaseUnits[0].Payments.Captures[0].CustomId.Split(',');
+                string fiscalYear = customId[0];
+                string parcelId2 = customId[1];
+                if (!parcelId.Equals(parcelId2))
+                {
+                    return new BadRequestObjectResult("ParcelId in ReferenceId does not match CustomId");
+                }
+                int fy = int.Parse(fiscalYear);
+                string txn_id = result.Data.PurchaseUnits[0].Payments.Captures[0].Id;
+
+/*
+                var money = result.Data.PurchaseUnits[0].Payments.Captures[0].Amount;
+money.MValue
+// Safely convert to decimal
+if (decimal.TryParse(
+        money.MValue,
+        System.Globalization.NumberStyles.AllowDecimalPoint | System.Globalization.NumberStyles.AllowLeadingSign,
+        System.Globalization.CultureInfo.InvariantCulture,
+        out decimal amount))
+{
+    Console.WriteLine($"Amount: {amount} {money.CurrencyCode}");
+}
+else
+{
+    Console.WriteLine("Invalid money value format.");
+}
+*/
+
+                decimal totalAmount = decimal.Parse(result.Data.PurchaseUnits[0].Payments.Captures[0].Amount.MValue);
+                decimal payment_amt = decimal.Parse(result.Data.PurchaseUnits[0].Payments.Captures[0].SellerReceivableBreakdown.GrossAmount.MValue);
+                decimal payment_fee = decimal.Parse(result.Data.PurchaseUnits[0].Payments.Captures[0].SellerReceivableBreakdown.PaypalFee.MValue);
+                string payment_date = result.Data.PurchaseUnits[0].Payments.Captures[0].CreateTime;
+                string payer_email = result.Data.Payer.EmailAddress;
+                string payer_name = result.Data.Payer.Name.GivenName + ' ' + result.Data.Payer.Name.Surname;
 
                 /*
-    // Error out if the order is NOT completed/approved
-    if ($response->result->status != "COMPLETED" || 
-        $response->result->purchase_units[0]->payments->captures[0]->status != "COMPLETED") {
-        throw new Exception('Status is not COMPLETED', 500);
-    }
-
     // Get the values from the response
-    $parcelId = $response->result->purchase_units[0]->reference_id;
-    $ownerId = 0;
-    $payeeEmail = $response->result->purchase_units[0]->payee->email_address;
-
-    $strArray = explode(",",$response->result->purchase_units[0]->custom_id);
-    $fy = $strArray[0];
-    $parcelId2 = $strArray[1];
 
     $txn_id = $response->result->purchase_units[0]->payments->captures[0]->id;
     $totalAmount = $response->result->purchase_units[0]->payments->captures[0]->amount->value;
@@ -1042,39 +1067,17 @@ namespace GrhaWeb.Function
     error_log(date('[Y-m-d H:i] '). "in " . basename(__FILE__,".php") . ", Response = " . json_encode($response,JSON_PRETTY_PRINT) . PHP_EOL, 3, LOG_FILE);
     echo json_encode($e->getMessage());
 }
-
-
                 */
 
-                // Read request body
-                /*
-                string content = await new StreamReader(req.Body).ReadToEndAsync();
-                JObject jObject = JObject.Parse(content);
-                string orderId = jObject["orderId"]?.ToString();
-                string payerId = jObject["payerId"]?.ToString();
-                string amount = jObject["amount"]?.ToString();
-                string parcelId = jObject["parcelId"]?.ToString();
-                string fiscalYear = jObject["fiscalYear"]?.ToString();
-                if (string.IsNullOrEmpty(orderId) || string.IsNullOrEmpty(amount) || string.IsNullOrEmpty(parcelId))
-                {
-                    return new BadRequestObjectResult("Missing required payment info");
-                }
-                */
-
-
-                /*
-                // Get order details from PayPal
-                var request = new PayPalCheckoutSdk.Orders.OrdersGetRequest(orderId);
-                var response = await client.Execute(request);
-                var order = response.Result<PayPalCheckoutSdk.Orders.Order>();
-                if (order == null || order.Status != "COMPLETED")
-                {
-                    return new BadRequestObjectResult("Payment not completed or invalid order");
-                }
-                */
 
                 // Call HoaDbCommon to update hoa_payments
                 //await hoaDbCommon.RecordPayment(parcelId, fiscalYear, orderId, payerId, amount, order);
+
+                /*
+                payDuesMessage.textContent = "Thank you, "+details.result.payer.name.given_name
+                                +".  "+hoaRec.assessmentsList[0].fy+' Dues for property at '+hoaRec.property.parcel_Location
+                                +" have been marked as PAID"
+                */
 
                 resultMessage = "Payment processed and recorded.";
             }
