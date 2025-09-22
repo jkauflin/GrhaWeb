@@ -2047,6 +2047,10 @@ namespace GrhaWeb.Function
             Container configContainer = db.GetContainer("hoa_config");
             DateTime currDateTime = DateTime.UtcNow;
             string LastChangedTs = currDateTime.ToString("o");
+            var eventGridPublisherClient = new EventGridPublisherClient(
+                new Uri(grhaSendEmailEventTopicEndpoint),
+                new AzureKeyCredential(grhaSendEmailEventTopicKey)
+            );
 
             // First, get the Assessment record for this parcel and fiscal year to get the OwnerID (and double check info from payment source)
             var query = new QueryDefinition("SELECT * FROM c WHERE c.Parcel_ID = @parcelId AND c.FY = @fy")
@@ -2110,109 +2114,83 @@ namespace GrhaWeb.Function
 
             // Mark the assessment as paid and update relevant fields
             assessmentRec.Paid = 1;
-            assessmentRec.DatePaid = paymentDate.Substring(0, 10); // Just the date part
+            assessmentRec.DatePaid = paymentDate;
             assessmentRec.PaymentMethod = "Paypal";
             assessmentRec.Comments = transactionId;
             assessmentRec.LastChangedBy = "paypal";
             assessmentRec.LastChangedTs = currDateTime;
             await assessmentsContainer.ReplaceItemAsync(assessmentRec, assessmentRec.id, new PartitionKey(assessmentRec.Parcel_ID));
 
+
             // Queue up events to send payment confirmation emails to the payer and notification to treasurer
-            var eventGridPublisherClient = new EventGridPublisherClient(
-                new Uri(grhaSendEmailEventTopicEndpoint),
-                new AzureKeyCredential(grhaSendEmailEventTopicKey)
-            );
+            string treasurerEmail = await getConfigVal(configContainer, "treasurerEmail");
+            string paymentEmailList = await getConfigVal(configContainer, "paymentEmailList");
+            string payorInfo = await getConfigVal(configContainer, "paymentEmailPayorInfo");
+            string treasurerInfo = $"The following payment has been recorded and the assessment has been marked as PAID.  Payment fee was {paymentFee}";
+            string paymentInfoStr = $"<br><br>Parcel Id: {parcelId}";
+            paymentInfoStr += $"<br>Fiscal Year: {fiscalYear}";
+            paymentInfoStr += $"<br>Transaction Id: {transactionId}";
+            paymentInfoStr += $"<br>Payment Date: {paymentDate}";
+            paymentInfoStr += $"<br>Payer Email: {payerEmail}";
+            paymentInfoStr += $"<br>Payment Amount: {paymentAmt} (this includes the Paypal processing fee) <br>";
 
             // Create an object to send data values to the send email event
             DuesEmailEvent duesEmailEvent = new DuesEmailEvent();
+
+            duesEmailEvent.id = transactionId;
+            duesEmailEvent.parcelId = parcelId;
+            duesEmailEvent.emailAddr = payerEmail;
+            //duesEmailEvent.emailAddr = treasurerEmail;
+            //duesEmailEvent.emailAddr = paymentEmailList;  //
+
+
             duesEmailEvent.hoaName = await getConfigVal(configContainer, "hoaName");
             duesEmailEvent.hoaNameShort = await getConfigVal(configContainer, "hoaNameShort");
-            duesEmailEvent.hoaAddress1 = await getConfigVal(configContainer, "hoaAddress1");
-            duesEmailEvent.hoaAddress2 = await getConfigVal(configContainer, "hoaAddress2");
-            duesEmailEvent.helpNotes = await getConfigVal(configContainer, "duesNotes");
-            duesEmailEvent.duesUrl = await getConfigVal(configContainer, "duesUrl");
 
-                    //duesEmailEvent.id = hoa_comm.id;
-                    //duesEmailEvent.parcelId = hoa_comm.Parcel_ID;
-                    //duesEmailEvent.emailAddr = hoa_comm.EmailAddr;
-
-                    /*
-                    duesEmailEvent.mailingName = hoaRec.property.Mailing_Name;
-                    duesEmailEvent.parcelLocation = hoaRec.property.Parcel_Location;
-                    duesEmailEvent.ownerPhone = hoaRec.ownersList[0].Owner_Phone;
-                    duesEmailEvent.ownerEmail1 = hoaRec.ownersList[0].EmailAddr;
-                    duesEmailEvent.ownerEmail2 = hoaRec.ownersList[0].EmailAddr2;
-                    duesEmailEvent.fy = hoaRec.assessmentsList[0].FY;
-                    duesEmailEvent.DuesAmt = hoaRec.assessmentsList[0].DuesAmt;
-                    duesEmailEvent.Paid = hoaRec.assessmentsList[0].Paid;
-                    duesEmailEvent.totalDue = hoaRec.totalDue;
-                    */
-
-                    // Queue up an event to create and send the dues notice for this email address
-                    await eventGridPublisherClient.SendEventAsync(
-                        new EventGridEvent(
-                            subject: "DuesEmailRequest",
-                            eventType: "SendMail",
-                            dataVersion: "1.0",
-                            data: BinaryData.FromObjectAsJson(duesEmailEvent)
-                        )
-                    );
+            duesEmailEvent.mailType = "Payment";
 
 
+            duesEmailEvent.mailSubject = "";
+            duesEmailEvent.htmlMessage = "";
+            await eventGridPublisherClient.SendEventAsync(
+                new EventGridEvent(
+                    subject: "DuesEmailRequest",
+                    eventType: "SendMail",
+                    dataVersion: "1.0",
+                    data: BinaryData.FromObjectAsJson(duesEmailEvent)));
+
+            duesEmailEvent.mailSubject = "";
+            duesEmailEvent.htmlMessage = "";
+            await eventGridPublisherClient.SendEventAsync(
+                new EventGridEvent(
+                    subject: "DuesEmailRequest",
+                    eventType: "SendMail",
+                    dataVersion: "1.0",
+                    data: BinaryData.FromObjectAsJson(duesEmailEvent)));
+
+            if (string.IsNullOrEmpty(paymentEmailList)) {
+                //paymentEmailList
+                duesEmailEvent.mailSubject = "";
+                duesEmailEvent.htmlMessage = "";
+                await eventGridPublisherClient.SendEventAsync(
+                    new EventGridEvent(
+                        subject: "DuesEmailRequest",
+                        eventType: "SendMail",
+                        dataVersion: "1.0",
+                        data: BinaryData.FromObjectAsJson(duesEmailEvent)));
+            }
 
             /*
-                        $fromEmailAddress = getConfigValDB($conn,"fromEmailAddress");
-                        $treasurerEmail = getConfigValDB($conn,"treasurerEmail");
-                        $paymentEmailList = getConfigValDB($conn,"paymentEmailList");
-
-                            $payerInfo = 'Thank you for your GRHA member dues payment.  Our records have been successfully updated to show that the assessment has been PAID.  ';
-                            $payerInfo .= 'Your dues will be used to promote the recreation, health, safety, and welfare of the ';
-                            $payerInfo .= 'residents in the Properties, and for the improvement and maintenance of the Common Areas. ';
-                            $treasurerInfo = 'The following payment has been recorded and the assessment has been marked as PAID. ';
-
-                        $treasurerInfo .= ' Payment fee was ' . $payment_fee;
-
-                        $paymentInfoStr = '<br><br>Parcel Id: ' . $parcelId;
-                        $paymentInfoStr .= '<br>Fiscal Year: ' . $fy;
-                        $paymentInfoStr .= '<br>Transaction Id: ' . $txn_id;
-                        $paymentInfoStr .= '<br>Payment Date: ' . $payment_date;
-                        $paymentInfoStr .= '<br>Payer Email: ' . $payer_email;
-                        $paymentInfoStr .= '<br>Payment Amount: ' . $payment_amt . ' (this includes the Paypal processing fee) <br>';
-
-                        $sendMailSuccess = false;
-
                         $subject = 'GRHA Payment Confirmation';
                         $messageStr = '<h4>GRHA Payment Confirmation</h4>' . $payerInfo . $paymentInfoStr;
-                        $sendMailSuccess = sendHtmlEMail($payer_email,$subject,$messageStr,$fromEmailAddress);
-                        $sendMailSuccessStr = $sendMailSuccess ? 'true' : 'false';
-                        error_log("After payment email sent to:  $payer_email, sendMailSuccess = $sendMailSuccessStr" . PHP_EOL, 3, LOG_FILE);
+                        sendHtmlEMail($payer_email,$subject,$messageStr,$fromEmailAddress);
 
                         $subject = 'GRHA Payment Notification';
                         $messageStr = '<h4>GRHA Payment Notification</h4>' . $treasurerInfo . $paymentInfoStr;
-                        $sendMailSuccess = sendHtmlEMail($treasurerEmail,$subject,$messageStr,$fromEmailAddress);
-                        $sendMailSuccessStr = $sendMailSuccess ? 'true' : 'false';
-                        error_log("After payment email sent to:  $treasurerEmail, sendMailSuccess = $sendMailSuccessStr" . PHP_EOL, 3, LOG_FILE);
-                        $sendMailSuccess = sendHtmlEMail($paymentEmailList,$subject,$messageStr,$fromEmailAddress);
-                        $sendMailSuccessStr = $sendMailSuccess ? 'true' : 'false';
-                        error_log("After payment email sent to:  $paymentEmailList, sendMailSuccess = $sendMailSuccessStr" . PHP_EOL, 3, LOG_FILE);
+                        sendHtmlEMail($treasurerEmail,$subject,$messageStr,$fromEmailAddress);
 
-                        // Update the paidEmailSent flag on the Payment record
-                        if ($sendMailSuccess) {
-                            $hoaPaymentRec->paidEmailSent = 'Y';
-                            if (!$stmt = $conn->prepare("UPDATE hoa_payments SET paidEmailSent=? WHERE Parcel_ID = ? AND FY = ? AND txn_id = ? ; ")) {
-                                    error_log("Update Payments Prepare failed: " . $stmt->errno . ", Error = " . $stmt->error . PHP_EOL, 3, LOG_FILE);
-                                    //echo "Prepare failed: (" . $stmt->errno . ") " . $stmt->error;
-                            }
-                            if (!$stmt->bind_param("ssis",$hoaPaymentRec->paidEmailSent,$parcelId,$fy,$txn_id)) {
-                                error_log("Update Assessment Bind failed: " . $stmt->errno . ", Error = " . $stmt->error . PHP_EOL, 3, LOG_FILE);
-                                //echo "Bind failed: (" . $stmt->errno . ") " . $stmt->error;
-                            }
-                            if (!$stmt->execute()) {
-                                error_log("Update Assessment Execute failed: " . $stmt->errno . ", Error = " . $stmt->error . PHP_EOL, 3, LOG_FILE);
-                                //echo "Add Assessment Execute failed: (" . $stmt->errno . ") " . $stmt->error;
-                            }
-                            $stmt->close();
-                        }
+                        sendHtmlEMail($paymentEmailList,$subject,$messageStr,$fromEmailAddress);
+
 
 
                 "id": "2262008",
