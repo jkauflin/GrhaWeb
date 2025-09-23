@@ -2139,19 +2139,13 @@ namespace GrhaWeb.Function
 
             duesEmailEvent.id = transactionId;
             duesEmailEvent.parcelId = parcelId;
-            duesEmailEvent.emailAddr = payerEmail;
-            //duesEmailEvent.emailAddr = treasurerEmail;
-            //duesEmailEvent.emailAddr = paymentEmailList;  //
-
-
             duesEmailEvent.hoaName = await getConfigVal(configContainer, "hoaName");
             duesEmailEvent.hoaNameShort = await getConfigVal(configContainer, "hoaNameShort");
-
             duesEmailEvent.mailType = "Payment";
 
-
-            duesEmailEvent.mailSubject = "";
-            duesEmailEvent.htmlMessage = "";
+            duesEmailEvent.emailAddr = payerEmail;
+            duesEmailEvent.mailSubject = "GRHA Payment Confirmation";
+            duesEmailEvent.htmlMessage = "<h4>GRHA Payment Confirmation</h4>" + payorInfo + paymentInfoStr;
             await eventGridPublisherClient.SendEventAsync(
                 new EventGridEvent(
                     subject: "DuesEmailRequest",
@@ -2159,8 +2153,9 @@ namespace GrhaWeb.Function
                     dataVersion: "1.0",
                     data: BinaryData.FromObjectAsJson(duesEmailEvent)));
 
-            duesEmailEvent.mailSubject = "";
-            duesEmailEvent.htmlMessage = "";
+            duesEmailEvent.emailAddr = treasurerEmail;
+            duesEmailEvent.mailSubject = "GRHA Payment Notification";
+            duesEmailEvent.htmlMessage = "<h4>GRHA Payment Notification</h4>" + treasurerInfo + paymentInfoStr;
             await eventGridPublisherClient.SendEventAsync(
                 new EventGridEvent(
                     subject: "DuesEmailRequest",
@@ -2168,10 +2163,8 @@ namespace GrhaWeb.Function
                     dataVersion: "1.0",
                     data: BinaryData.FromObjectAsJson(duesEmailEvent)));
 
-            if (string.IsNullOrEmpty(paymentEmailList)) {
-                //paymentEmailList
-                duesEmailEvent.mailSubject = "";
-                duesEmailEvent.htmlMessage = "";
+            if (!string.IsNullOrEmpty(paymentEmailList)) {
+                duesEmailEvent.emailAddr = paymentEmailList;
                 await eventGridPublisherClient.SendEventAsync(
                     new EventGridEvent(
                         subject: "DuesEmailRequest",
@@ -2179,49 +2172,6 @@ namespace GrhaWeb.Function
                         dataVersion: "1.0",
                         data: BinaryData.FromObjectAsJson(duesEmailEvent)));
             }
-
-            /*
-                        $subject = 'GRHA Payment Confirmation';
-                        $messageStr = '<h4>GRHA Payment Confirmation</h4>' . $payerInfo . $paymentInfoStr;
-                        sendHtmlEMail($payer_email,$subject,$messageStr,$fromEmailAddress);
-
-                        $subject = 'GRHA Payment Notification';
-                        $messageStr = '<h4>GRHA Payment Notification</h4>' . $treasurerInfo . $paymentInfoStr;
-                        sendHtmlEMail($treasurerEmail,$subject,$messageStr,$fromEmailAddress);
-
-                        sendHtmlEMail($paymentEmailList,$subject,$messageStr,$fromEmailAddress);
-
-
-
-                "id": "2262008",
-                "OwnerID": 226,
-                "Parcel_ID": "R72617502 0002",
-                "FY": 2008,
-                "DuesAmt": "93.45",
-                "DateDue": "2007-10-01",
-                "Paid": 0,
-                "NonCollectible": 0,
-                "DatePaid": "",
-                "PaymentMethod": "",
-                "Lien": 1,
-                "LienRefNo": "2008-00033545",
-                "DateFiled": "2008-05-09T00:00:00",
-                "Disposition": "Open",
-                "FilingFee": 28,
-                "ReleaseFee": 34,
-                "DateReleased": "0001-01-01T00:00:00",
-                "LienDatePaid": "0001-01-01T00:00:00",
-                "AmountPaid": 0,
-                "StopInterestCalc": 0,
-                "FilingFeeInterest": 32.79,
-                "AssessmentInterest": 116.93,
-                "InterestNotPaid": 0,
-                "BankFee": 0,
-                "LienComment": "requested pymt plan 4/19/21",
-                "Comments": "",
-                "LastChangedBy": "treasurer",
-                "LastChangedTs": "2021-08-05T21:30:01",
-                        */
         }
 
 
