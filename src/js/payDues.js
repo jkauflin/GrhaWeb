@@ -92,6 +92,9 @@ async function startPaymentCapture(parcelId) {
                 onApprove: function (data) {
                     // After payment approval, call a secure backend server function service to capture the order payment details from Paypal
                     // and update the HOADB to record the payment (and also send confirmation emails)
+                    empty(payDuesButtons)
+                    showLoadingSpinner(payDuesMessage);
+
                     fetch('/api/HandlePayment', {
                         method: 'POST',
                         body: data.orderID
@@ -99,7 +102,6 @@ async function startPaymentCapture(parcelId) {
                     .then(function (response) {
                         //console.log(response);
                         // After successful recording of payment, clear the paypal buttons
-                        empty(payDuesButtons)
                         // Check the status of the reponse (400 or 500 errors)
                         if (response.ok) {
                             // if response and JSON are OK, return the JSON object part of the fetch response to the next promise
