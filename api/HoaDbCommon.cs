@@ -2125,6 +2125,12 @@ namespace GrhaWeb.Function
             duesEmailEvent.parcelId = parcelId;
             duesEmailEvent.hoaName = await getConfigVal(configContainer, "hoaName");
             duesEmailEvent.hoaNameShort = await getConfigVal(configContainer, "hoaNameShort");
+
+            duesEmailEvent.hoaAddress1 = await getConfigVal(configContainer, "hoaAddress1");
+            duesEmailEvent.hoaAddress2 = await getConfigVal(configContainer, "hoaAddress2");
+            duesEmailEvent.helpNotes = await getConfigVal(configContainer, "duesNotes");
+            duesEmailEvent.duesUrl = await getConfigVal(configContainer, "duesUrl");
+
             duesEmailEvent.mailType = "Payment";
 
             duesEmailEvent.emailAddr = payerEmail;
@@ -2136,7 +2142,7 @@ namespace GrhaWeb.Function
                     eventType: "SendMail",
                     dataVersion: "1.0",
                     data: BinaryData.FromObjectAsJson(duesEmailEvent)));
-
+            /*
             duesEmailEvent.emailAddr = treasurerEmail;
             duesEmailEvent.mailSubject = "GRHA Payment Notification";
             duesEmailEvent.htmlMessage = "<h4>GRHA Payment Notification</h4>" + treasurerInfo + paymentInfoStr;
@@ -2156,6 +2162,7 @@ namespace GrhaWeb.Function
                         dataVersion: "1.0",
                         data: BinaryData.FromObjectAsJson(duesEmailEvent)));
             }
+            */
         }
 
 
