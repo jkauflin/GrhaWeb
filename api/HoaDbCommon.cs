@@ -34,6 +34,7 @@ using Azure.Storage.Blobs.Models;
 
 using Azure;
 using Azure.Messaging.EventGrid;
+using Azure.Communication.Email;
 
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -54,6 +55,8 @@ namespace GrhaWeb.Function
         private readonly string databaseId;
         private readonly string? grhaSendEmailEventTopicEndpoint;
         private readonly string? grhaSendEmailEventTopicKey;
+        private readonly string? acsEmailConnStr;  // Your ACS Email connection string from the Azure portal
+        private readonly string? acsEmailSenderAddress;
         private readonly CommonUtil util;
 
         public HoaDbCommon(ILogger logger, IConfiguration configuration)
@@ -65,6 +68,8 @@ namespace GrhaWeb.Function
             databaseId = "hoadb";
             grhaSendEmailEventTopicEndpoint = config["GRHA_SENDMAIL_EVENT_TOPIC_ENDPOINT"];
             grhaSendEmailEventTopicKey = config["GRHA_SENDMAIL_EVENT_TOPIC_KEY"];
+            acsEmailConnStr = config["ACS_EMAIL_CONN_STR"];
+            acsEmailSenderAddress = config["ACS_EMAIL_SENDER_ADDRESS"];
             util = new CommonUtil(log);
         }
         // Common internal function to lookup configuration values
@@ -866,6 +871,12 @@ namespace GrhaWeb.Function
                 foreach (var hoa_comm in response)
                 {
                     returnCnt++;
+
+                    if (returnCnt > 1)
+                    {
+                        // Limit to 5 email sends for testing
+                        return returnCnt;
+                    }
 
                     duesEmailEvent.id = hoa_comm.id;
                     duesEmailEvent.parcelId = hoa_comm.Parcel_ID;
@@ -2136,12 +2147,16 @@ namespace GrhaWeb.Function
             duesEmailEvent.emailAddr = payerEmail;
             duesEmailEvent.mailSubject = "GRHA Payment Confirmation";
             duesEmailEvent.htmlMessage = "<h4>GRHA Payment Confirmation</h4>" + payorInfo + paymentInfoStr;
+            /*
             await eventGridPublisherClient.SendEventAsync(
                 new EventGridEvent(
                     subject: "DuesEmailRequest",
                     eventType: "SendMail",
                     dataVersion: "1.0",
                     data: BinaryData.FromObjectAsJson(duesEmailEvent)));
+            */
+            await sendMailNow(duesEmailEvent);
+            
             /*
             duesEmailEvent.emailAddr = treasurerEmail;
             duesEmailEvent.mailSubject = "GRHA Payment Notification";
@@ -2165,6 +2180,54 @@ namespace GrhaWeb.Function
             */
         }
 
+        private async Task<string> sendMailNow(DuesEmailEvent duesEmailEvent)
+        {
+            string returnMessage = "OK";
+
+            // Create the EmailClient
+            var emailClient = new EmailClient(acsEmailConnStr);
+
+            // Build the email content
+            var emailContent = new EmailContent(duesEmailEvent.mailSubject)
+            {
+                Html = duesEmailEvent.htmlMessage
+            };
+
+            var emailRecipients = new EmailRecipients(
+                to: new List<EmailAddress>
+                {
+                    new EmailAddress("johnkauflin@gmail.com")   // TEST
+                }
+            );
+            //new EmailAddress(duesEmailEvent.emailAddr)
+            //new EmailAddress("johnkauflin@gmail.com", "John TEST")   // TEST
+
+            // Create the message
+            var emailMessage = new EmailMessage(
+                senderAddress: acsEmailSenderAddress, // must be from a verified domain in ACS
+                content: emailContent,
+                recipients: emailRecipients
+            );
+
+            // Send the email and wait until the operation completes
+            EmailSendOperation operation = await emailClient.SendAsync(
+                WaitUntil.Completed,
+                emailMessage
+            );
+
+            // Check the result
+            EmailSendResult result = operation.Value;
+            log.LogWarning($"Email send status: {result.Status.ToString()}, Succeeded = {EmailSendStatus.Succeeded.ToString()}");
+            if (result.Status != EmailSendStatus.Succeeded)
+            {
+                log.LogError("---------- PAYMENT EMAIL SEND FAILED ------------");
+                log.LogError($">>> {duesEmailEvent.parcelId}, id: {duesEmailEvent.id}, email: {duesEmailEvent.emailAddr}");
+                log.LogError($"Email send status: {result.Status.ToString()}");
+                throw new Exception("Payment email send failed");
+            }
+
+            return returnMessage;
+        }
 
     } // public class HoaDbCommon
 } // namespace GrhaWeb.Function
