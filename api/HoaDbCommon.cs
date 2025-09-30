@@ -2147,15 +2147,14 @@ namespace GrhaWeb.Function
             duesEmailEvent.emailAddr = payerEmail;
             duesEmailEvent.mailSubject = "GRHA Payment Confirmation";
             duesEmailEvent.htmlMessage = "<h4>GRHA Payment Confirmation</h4>" + payorInfo + paymentInfoStr;
-            /*
+            
             await eventGridPublisherClient.SendEventAsync(
                 new EventGridEvent(
                     subject: "DuesEmailRequest",
                     eventType: "SendMail",
                     dataVersion: "1.0",
                     data: BinaryData.FromObjectAsJson(duesEmailEvent)));
-            */
-            await sendMailNow(duesEmailEvent);
+            //await sendMailNow(duesEmailEvent);
             
             /*
             duesEmailEvent.emailAddr = treasurerEmail;
