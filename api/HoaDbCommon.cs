@@ -34,7 +34,7 @@ using Azure.Storage.Blobs.Models;
 
 using Azure;
 using Azure.Messaging.EventGrid;
-using Azure.Communication.Email;
+//using Azure.Communication.Email;
 
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
@@ -55,8 +55,8 @@ namespace GrhaWeb.Function
         private readonly string databaseId;
         private readonly string? grhaSendEmailEventTopicEndpoint;
         private readonly string? grhaSendEmailEventTopicKey;
-        private readonly string? acsEmailConnStr;  // Your ACS Email connection string from the Azure portal
-        private readonly string? acsEmailSenderAddress;
+        //private readonly string? acsEmailConnStr;  // Your ACS Email connection string from the Azure portal
+        //private readonly string? acsEmailSenderAddress;
         private readonly CommonUtil util;
 
         public HoaDbCommon(ILogger logger, IConfiguration configuration)
@@ -68,8 +68,8 @@ namespace GrhaWeb.Function
             databaseId = "hoadb";
             grhaSendEmailEventTopicEndpoint = config["GRHA_SENDMAIL_EVENT_TOPIC_ENDPOINT"];
             grhaSendEmailEventTopicKey = config["GRHA_SENDMAIL_EVENT_TOPIC_KEY"];
-            acsEmailConnStr = config["ACS_EMAIL_CONN_STR"];
-            acsEmailSenderAddress = config["ACS_EMAIL_SENDER_ADDRESS"];
+            //acsEmailConnStr = config["ACS_EMAIL_CONN_STR"];
+            //acsEmailSenderAddress = config["ACS_EMAIL_SENDER_ADDRESS"];
             util = new CommonUtil(log);
         }
         // Common internal function to lookup configuration values
@@ -2154,9 +2154,7 @@ namespace GrhaWeb.Function
                     eventType: "SendMail",
                     dataVersion: "1.0",
                     data: BinaryData.FromObjectAsJson(duesEmailEvent)));
-            //await sendMailNow(duesEmailEvent);
             
-            /*
             duesEmailEvent.emailAddr = treasurerEmail;
             duesEmailEvent.mailSubject = "GRHA Payment Notification";
             duesEmailEvent.htmlMessage = "<h4>GRHA Payment Notification</h4>" + treasurerInfo + paymentInfoStr;
@@ -2176,9 +2174,9 @@ namespace GrhaWeb.Function
                         dataVersion: "1.0",
                         data: BinaryData.FromObjectAsJson(duesEmailEvent)));
             }
-            */
         }
 
+        /*
         private async Task<string> sendMailNow(DuesEmailEvent duesEmailEvent)
         {
             string returnMessage = "OK";
@@ -2227,6 +2225,7 @@ namespace GrhaWeb.Function
 
             return returnMessage;
         }
+        */
 
     } // public class HoaDbCommon
 } // namespace GrhaWeb.Function
