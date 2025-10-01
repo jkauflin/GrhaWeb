@@ -24,25 +24,22 @@ Modification History
                 cosmosdb migration (load program has been corrected).
                 Modified the assessments update to choose new owners
 2025-08-21 JJK  Added function to get and update hoa_config values
+2025-09-30 JJK  Added functions to process sales upload, and for recording
+                payments
 ================================================================================*/
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Cosmos;
+using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-
-using Azure;
 using Azure.Messaging.EventGrid;
-//using Azure.Communication.Email;
-
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 
 using GrhaWeb.Function.Model;
-
-//using Microsoft.Extensions.WebEncoders.Testing;
 
 namespace GrhaWeb.Function
 {
@@ -2147,7 +2144,6 @@ namespace GrhaWeb.Function
             duesEmailEvent.emailAddr = payerEmail;
             duesEmailEvent.mailSubject = "GRHA Payment Confirmation";
             duesEmailEvent.htmlMessage = "<h4>GRHA Payment Confirmation</h4>" + payorInfo + paymentInfoStr;
-            
             await eventGridPublisherClient.SendEventAsync(
                 new EventGridEvent(
                     subject: "DuesEmailRequest",
@@ -2176,56 +2172,6 @@ namespace GrhaWeb.Function
             }
         }
 
-        /*
-        private async Task<string> sendMailNow(DuesEmailEvent duesEmailEvent)
-        {
-            string returnMessage = "OK";
-
-            // Create the EmailClient
-            var emailClient = new EmailClient(acsEmailConnStr);
-
-            // Build the email content
-            var emailContent = new EmailContent(duesEmailEvent.mailSubject)
-            {
-                Html = duesEmailEvent.htmlMessage
-            };
-
-            var emailRecipients = new EmailRecipients(
-                to: new List<EmailAddress>
-                {
-                    new EmailAddress("johnkauflin@gmail.com")   // TEST
-                }
-            );
-            //new EmailAddress(duesEmailEvent.emailAddr)
-            //new EmailAddress("johnkauflin@gmail.com", "John TEST")   // TEST
-
-            // Create the message
-            var emailMessage = new EmailMessage(
-                senderAddress: acsEmailSenderAddress, // must be from a verified domain in ACS
-                content: emailContent,
-                recipients: emailRecipients
-            );
-
-            // Send the email and wait until the operation completes
-            EmailSendOperation operation = await emailClient.SendAsync(
-                WaitUntil.Completed,
-                emailMessage
-            );
-
-            // Check the result
-            EmailSendResult result = operation.Value;
-            log.LogWarning($"Email send status: {result.Status.ToString()}, Succeeded = {EmailSendStatus.Succeeded.ToString()}");
-            if (result.Status != EmailSendStatus.Succeeded)
-            {
-                log.LogError("---------- PAYMENT EMAIL SEND FAILED ------------");
-                log.LogError($">>> {duesEmailEvent.parcelId}, id: {duesEmailEvent.id}, email: {duesEmailEvent.emailAddr}");
-                log.LogError($"Email send status: {result.Status.ToString()}");
-                throw new Exception("Payment email send failed");
-            }
-
-            return returnMessage;
-        }
-        */
 
     } // public class HoaDbCommon
 } // namespace GrhaWeb.Function
