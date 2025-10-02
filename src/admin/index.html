@@ -151,9 +151,9 @@
 
 						<div class="row">
 							<div class="col">
-								<div class="mb-2">
-									<label for="Name" class="form-label">Name</label>
-									<input  id="Name" type="text" class="form-control" maxlength="60" required />
+								<div class="mb-2 form-floating">
+									<input  id="Name" name="Name" type="text" class="form-control shadow-none" maxlength="60" required />
+									<label for="Name">Full Name</label>
 									<div class="valid-feedback">
 										Valid
 									</div>
@@ -161,6 +161,21 @@
 										Name is required
 									</div>
 								</div>
+								<div class="mb-2 form-floating">
+									<input  id="PhoneNumber" name="PhoneNumber" type="text" class="form-control shadow-none" pattern="^(\(\d{3}\)\s?|\d{3}-?)\d{3}-?\d{4}$" />
+									<label for="PhoneNumber">Phone Number</label>
+									<!--
+									pattern="[A-Za-z0-9]+"  (letters and numbers only)
+									^\d{10}$
+									-->
+									<div class="valid-feedback">
+										Valid
+									</div>
+									<div class="invalid-feedback">
+										Please enter a valid US phone number
+									</div>
+								</div>
+								<!--
 								<div class="mb-2">
 									<label for="EmailAddress" class="form-label">Public Email address</label>
 									<input  id="EmailAddress" type="email" class="form-control" />
@@ -181,12 +196,19 @@
 										Please provide a valid email address
 									</div>
 								</div>
+								-->
 							</div>
 
 							<div class="col">
-								<div class="mb-2">
-									<label for="Position" class="form-label">Position</label>
-									<input  id="Position" type="text" class="form-control" maxlength="40" required />
+								<div class="mb-2 form-floating">
+									<select id="Position" name="Position" class="form-select shadow-none" required>
+										<option value="Trustee">Trustee</option>
+										<option value="President">President</option>
+										<option value="Vice-President">Vice-President</option>
+										<option value="Secretary">Secretary</option>
+										<option value="Treasurer">Treasurer</option>
+									</select>
+									<label for="Position">Position</label>
 									<div class="valid-feedback">
 										Valid
 									</div>
@@ -194,23 +216,10 @@
 										Position is required
 									</div>
 								</div>
-								<div class="mb-2">
-									<label for="PhoneNumber" class="form-label">Phone Number</label>
-									<!--
-									pattern="[A-Za-z0-9]+"  (letters and numbers only)
-									^\d{10}$
-									-->
-									<input  id="PhoneNumber" type="text" class="form-control" pattern="^(\(\d{3}\)\s?|\d{3}-?)\d{3}-?\d{4}$" />
-									<div class="valid-feedback">
-										Valid
-									</div>
-									<div class="invalid-feedback">
-										Please enter a valid US phone number
-									</div>
-								</div>
-								<div class="mb-2">
-									<label for="ImageUrl" class="form-label">Image URL</label>
-									<input  id="ImageUrl" type="text" class="form-control" />
+
+								<div class="mb-2 form-floating">
+									<input  id="ImageUrl" name="ImageUrl" type="text" class="form-control shadow-none" />
+									<label for="ImageUrl">Image URL</label>
 									<div class="valid-feedback">
 										Valid
 									</div>
@@ -226,7 +235,7 @@
 								<div class="col">
 									<div class="mb-2">
 										<label   for="Description" class="form-label">Description</label>
-										<textarea id="Description" type="text" class="form-control" style="height: 118px"></textarea>
+										<textarea id="Description" type="text" class="form-control" style="height: 170px"></textarea>
 										<div class="valid-feedback">
 											Valid
 										</div>
@@ -235,9 +244,6 @@
 										</div>
 									</div>
 					
-									<!--
-									<button id="BoardUpdateButton" type="button" class="btn btn-primary m-2">Update</button>
-									-->
 									<button type="submit" class="btn btn-primary">Update</button>
 									<div id="BoardMessageDisplay" class="m-2"></div>
 								</div>

@@ -1,7 +1,7 @@
 /*==============================================================================
  * (C) Copyright 2025 John J Kauflin, All rights reserved.
  *----------------------------------------------------------------------------
- * DESCRIPTION:     Javascript code for hoadb web
+ * DESCRIPTION:     Javascript code for GRHA web Admin functions
  *----------------------------------------------------------------------------
  * Modification History
  * 2025-01-09 JJK 	Initial version
@@ -186,8 +186,6 @@ async function queryBoardInfo() {
                     Name
                     Position
                     PhoneNumber
-                    EmailAddress
-                    EmailAddressForward
                     Description
                     ImageUrl
                 }
@@ -297,10 +295,14 @@ async function getTrustee(trusteeId) {
         let trustee = await response.json();
         TrusteeId.value = trustee.id
         Name.value = trustee.name
-        Position.value = trustee.position
+        // Set the Position dropdown to the trustee's current value
+        const positionSelect = document.getElementById("Position");
+        if (positionSelect) {
+            positionSelect.value = trustee.position;
+        }
         PhoneNumber.value = trustee.phoneNumber
-        EmailAddress.value = trustee.emailAddress
-        EmailAddressForward.value = trustee.emailAddressForward
+        //EmailAddress.value = trustee.emailAddress
+        //EmailAddressForward.value = trustee.emailAddressForward
         Description.value = trustee.description
         ImageUrl.value = trustee.imageUrl
     }
@@ -316,8 +318,8 @@ async function updateTrustee(trusteeId) {
         Name: Name.value,
         Position: Position.value,
         PhoneNumber: PhoneNumber.value,
-        EmailAddress: EmailAddress.value,
-        EmailAddressForward: EmailAddressForward.value,
+        //EmailAddress: EmailAddress.value,
+        //EmailAddressForward: EmailAddressForward.value,
         Description: Description.value,
         ImageUrl: ImageUrl.value
     }
