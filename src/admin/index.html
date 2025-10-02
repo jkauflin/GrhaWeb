@@ -45,27 +45,27 @@
 					<h5 class="mt-2 mb-3 fw-bold">File Upload</h5>
 
 					<form id="UploadFileForm" class="needs-validation" novalidate>
-						<div class="mb-2">
-							<label for="DocCategory" class="form-label">Doc Category: </label>
-							<select id="DocCategory" name="DocCategory" class="p-1">
+						<div class="mb-2 form-floating">
+							<select id="DocCategory" name="DocCategory" class="form-control shadow-none">
 								<option value="Quail Call newsletters">Quail Call newsletter</option>
 								<option value="Annual Meetings">Annual Meeting</option>
 								<option value="Governing Docs">Governing Doc</option>
 								<option value="Historical Docs">Historical Doc</option>
 							</select>
+							<label for="DocCategory">Doc Category: </label>
 						</div>
 
-						<div class="mb-2">
-							<label for="DocMonth" class="form-label">Year & Month: </label>
-							<input  id="DocMonth" name="DocMonth" type="month" class="" required>
+						<div class="mb-2 form-floating">
+							<input  id="DocMonth" name="DocMonth" type="month" class="form-control shadow-none" required>
+							<label for="DocMonth">Year & Month: </label>
 						</div>
 
-						<div class="mb-2">
-							<label for="DocFile" class="form-label">PDF document to upload: </label>
-							<input  id="DocFile"  name="DocFile" class="form-control" type="file" accept="application/pdf" required/>
+						<div class="mb-2 form-floating">
+							<input  id="DocFile"  name="DocFile" class="form-control shadow-none" type="file" accept="application/pdf" required/>
+							<label for="DocFile">PDF document to upload: </label>
 						</div>
 
-						<button type="submit" class="btn btn-primary mt-1">Upload Doc</button>
+						<button type="submit" class="btn btn-primary mt-1 shadow-none">Upload Doc</button>
 						<div id="FileUploadMessageDisplay" class="m-2"></div>
 					</form>
 				</div><!-- End of col 1 -->
@@ -73,18 +73,18 @@
 				<div class="col-sm-6 col-lg-6">
 						<h5 class="mt-2 mb-3 fw-bold">Photos Upload</h5>
 						<form id="UploadPhotosForm" class="needs-validation" novalidate>
-							<div class="mb-2">
-								<label for="EventCategory" class="form-label">Event: </label>
-								<select id="EventCategory" name="EventCategory" class="p-1">
+							<div class="mb-2 form-floating">
+								<select id="EventCategory" name="EventCategory" class="form-control shadow-none">
 									<option value="Christmas">Christmas</option>
 									<option value="Halloween">Halloween</option>
 									<option value="Easter">Easter</option>
 								</select>
+								<label for="EventCategory">Event: </label>
 							</div>
 
-							<div class="mb-2">
-								<label for="EventMonth" class="form-label">Year & Month: </label>
-								<input  id="EventMonth" name="EventMonth" type="month" class="" required>
+							<div class="mb-2 form-floating">
+								<input  id="EventMonth" name="EventMonth" type="month" class="form-control shadow-none" required>
+								<label for="EventMonth">Year & Month: </label>
 							</div>
 
 							<div class="row mb-2">
@@ -103,10 +103,10 @@
 									1
 								</div>
 								<div class="col-sm-6">
-									<input  id="PhotoTitle1" name="PhotoTitle1" type="text" class="form-control" maxlength="40" placeholder="Enter description"/>
+									<input  id="PhotoTitle1" name="PhotoTitle1" type="text" class="form-control shadow-none" maxlength="40" placeholder="Enter description"/>
 								</div>
 								<div class="col-sm-5">
-									<input  id="PhotoFile1" name="PhotoFile1" class="form-control" type="file" accept="image/jpeg" />
+									<input  id="PhotoFile1" name="PhotoFile1" class="form-control shadow-none" type="file" accept="image/jpeg" />
 								</div>
 							</div>
 							<div class="row mb-2">
@@ -114,10 +114,10 @@
 									2
 								</div>
 								<div class="col-sm-6">
-									<input  id="PhotoTitle2" name="PhotoTitle2" type="text" class="form-control" maxlength="40" placeholder="Enter description" />
+									<input  id="PhotoTitle2" name="PhotoTitle2" type="text" class="form-control shadow-none" maxlength="40" placeholder="Enter description" />
 								</div>
 								<div class="col-sm-5">
-									<input  id="PhotoFile2" name="PhotoFile2" class="form-control" type="file" accept="image/jpeg" />
+									<input  id="PhotoFile2" name="PhotoFile2" class="form-control shadow-none" type="file" accept="image/jpeg" />
 								</div>
 							</div>
 							<div class="row mb-2">
@@ -125,14 +125,14 @@
 									3
 								</div>
 								<div class="col-sm-6">
-									<input  id="PhotoTitle3" name="PhotoTitle3" type="text" class="form-control" maxlength="40" placeholder="Enter description" />
+									<input  id="PhotoTitle3" name="PhotoTitle3" type="text" class="form-control shadow-none" maxlength="40" placeholder="Enter description" />
 								</div>
 								<div class="col-sm-5">
-									<input  id="PhotoFile3" name="PhotoFile3" class="form-control" type="file" accept="image/jpeg" />
+									<input  id="PhotoFile3" name="PhotoFile3" class="form-control shadow-none" type="file" accept="image/jpeg" />
 								</div>
 							</div>
 
-							<button type="submit" class="btn btn-primary m-2">Upload Photos</button>
+							<button type="submit" class="btn btn-primary m-2 shadow-none">Upload Photos</button>
 							<div id="PhotosUploadMessageDisplay" class="m-2"></div>
 						</form>
 
@@ -175,28 +175,6 @@
 										Please enter a valid US phone number
 									</div>
 								</div>
-								<!--
-								<div class="mb-2">
-									<label for="EmailAddress" class="form-label">Public Email address</label>
-									<input  id="EmailAddress" type="email" class="form-control" />
-									<div class="valid-feedback">
-										Valid
-									</div>
-									<div class="invalid-feedback">
-										Please provide a valid email address
-									</div>
-								</div>
-								<div class="mb-2">
-									<label for="EmailAddressForward" class="form-label">Private Email address</label>
-									<input  id="EmailAddressForward" type="email" class="form-control" />
-									<div class="valid-feedback">
-										Valid
-									</div>
-									<div class="invalid-feedback">
-										Please provide a valid email address
-									</div>
-								</div>
-								-->
 							</div>
 
 							<div class="col">
@@ -231,22 +209,20 @@
 
 						</div>
 						<div class="row">
-							<div class="row">
-								<div class="col">
-									<div class="mb-2">
-										<label   for="Description" class="form-label">Description</label>
-										<textarea id="Description" type="text" class="form-control" style="height: 170px"></textarea>
-										<div class="valid-feedback">
-											Valid
-										</div>
-										<div class="invalid-feedback">
-											Please enter a Description
-										</div>
+							<div class="col">
+								<div class="mb-2 form-floating">
+									<textarea id="Description" name="Description" type="text" class="form-control shadow-none" style="height: 185px"></textarea>
+									<label   for="Description">Description</label>
+									<div class="valid-feedback">
+										Valid
 									</div>
-					
-									<button type="submit" class="btn btn-primary">Update</button>
-									<div id="BoardMessageDisplay" class="m-2"></div>
+									<div class="invalid-feedback">
+										Please enter a Description
+									</div>
 								</div>
+					
+								<button type="submit" class="btn btn-primary">Update</button>
+								<div id="BoardMessageDisplay" class="m-2"></div>
 							</div>
 						</div>
 					</div>
