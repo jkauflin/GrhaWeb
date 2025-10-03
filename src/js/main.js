@@ -32,42 +32,108 @@
  *                  non-mediagallery links
  * 2025-05-10 JJK   Implemented display of Event pictures for selected time
  *                  periods (if they exist)
+ * 2025-10-03 JJK   Added variable sets after document load
+ *                  Implemented re-try for board information
+ *                  And hard-coded email addresses
  *============================================================================*/
 
 import {empty,formatMoney,setCheckbox} from './util.js'
 import {mediaInfo,mediaType,setMediaType,queryMediaInfo,getFilePath,getFileName} from './mg-data-repository.js'
   
-var duesPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("DuesPageNavLink"))
-var duesLinkTile = document.getElementById("DuesLinkTile");
-var contactsPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("ContactsPageNavLink"))
-var contactsLinkTile = document.getElementById("ContactsLinkTile");
-
-var addressInput = document.getElementById("address");
-var messageDisplay = document.getElementById("MessageDisplay")
-
-// Keep track of the state of the navbar collapse (shown or hidden)
-var navbarCollapseShown = false
-var collapsibleNavbar = document.getElementsByClassName("navbar-collapse")[0]
-collapsibleNavbar.addEventListener('hidden.bs.collapse', function () {
-    navbarCollapseShown = false
-})
-collapsibleNavbar.addEventListener('shown.bs.collapse', function () {
-    navbarCollapseShown = true
-})
- 
-// Listen for nav-link clicks
-document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click", function (event) {
-    // Automatically hide the navbar collapse when an item link is clicked (and the collapse is currently shown)
-    if (navbarCollapseShown) {
-        new bootstrap.Collapse(document.getElementsByClassName("navbar-collapse")[0]).hide()
+var duesPageTab
+var duesLinkTile
+var contactsPageTab
+var contactsLinkTile
+var addressInput
+var messageDisplay
+var presidentName
+var presidentPhone
+var presidentEmail
+var treasurerName
+var treasurerPhone
+var treasurerEmail
+var trustees
+var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
+var retryCnt = 0
+const retryMax = 3
+var boardGql = `query {
+    boards (
+        orderBy: { TrusteeId: ASC }
+    ) {
+        items {
+            Name
+            Position
+            PhoneNumber
+            Description
+            ImageUrl
+        }
+    } 
+}`
+const apiQuery = {
+    query: boardGql,
+    variables: {
     }
-}))
+}
 
-duesLinkTile.addEventListener("click", function (event) {
-    duesPageTab.show();
-})
-contactsLinkTile.addEventListener("click", function (event) {
-    contactsPageTab.show();
+document.addEventListener('DOMContentLoaded', () => {
+    // Assign DOM elements after DOM is ready
+    duesPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("DuesPageNavLink"))
+    duesLinkTile = document.getElementById("DuesLinkTile");
+    contactsPageTab = bootstrap.Tab.getOrCreateInstance(document.getElementById("ContactsPageNavLink"))
+    contactsLinkTile = document.getElementById("ContactsLinkTile");
+    addressInput = document.getElementById("address");
+    messageDisplay = document.getElementById("MessageDisplay")
+
+    // Keep track of the state of the navbar collapse (shown or hidden)
+    var navbarCollapseShown = false
+    var collapsibleNavbar = document.getElementsByClassName("navbar-collapse")[0]
+    collapsibleNavbar.addEventListener('hidden.bs.collapse', function () {
+        navbarCollapseShown = false
+    })
+    collapsibleNavbar.addEventListener('shown.bs.collapse', function () {
+        navbarCollapseShown = true
+    })
+    
+    // Listen for nav-link clicks
+    document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click", function (event) {
+        // Automatically hide the navbar collapse when an item link is clicked (and the collapse is currently shown)
+        if (navbarCollapseShown) {
+            new bootstrap.Collapse(document.getElementsByClassName("navbar-collapse")[0]).hide()
+        }
+    }))
+
+    duesLinkTile.addEventListener("click", function (event) {
+        duesPageTab.show();
+    })
+    contactsLinkTile.addEventListener("click", function (event) {
+        contactsPageTab.show();
+    })
+
+    document.getElementById("InputValues").addEventListener("keypress", function(event) {
+        if (event.key === "Enter") {
+            // Cancel the default action, if needed
+            event.preventDefault()
+            fetchPropertiesData()
+        }
+    })
+
+    document.getElementById("DuesSearchButton").addEventListener("click", function () {
+        fetchPropertiesData()
+    })
+
+    presidentName = document.querySelectorAll('.PresidentName')
+    presidentPhone = document.querySelectorAll('.PresidentPhone')
+    presidentEmail = document.querySelectorAll('.PresidentEmail')
+    treasurerName = document.querySelectorAll('.TreasurerName')
+    treasurerPhone = document.querySelectorAll('.TreasurerPhone')
+    treasurerEmail = document.querySelectorAll('.TreasurerEmail')
+    trustees = document.querySelectorAll('.Trustee')
+
+    // Call the function to load Board of Trustees data every time the page is loaded
+    queryBoardInfo()
+
+    // When the page loads, check what month it is and display any Event photos (if they exist)
+    queryEventPhotos()
 })
 
 document.body.addEventListener("click", function (event) {
@@ -76,18 +142,136 @@ document.body.addEventListener("click", function (event) {
     }
 })
 
-document.getElementById("InputValues").addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
-        // Cancel the default action, if needed
-        event.preventDefault()
-        fetchPropertiesData()
+async function queryBoardInfo() {
+    //console.log(">>> query boardGql = "+boardGql)
+    const endpoint = "/data-api/graphql";
+    const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apiQuery)
+    });
+    const result = await response.json();
+    if (result.errors != null) {
+        console.log("Error: "+result.errors[0].message);
+        console.table(result.errors);
+    } else {
+        //console.log("result.data = "+result.data)
+        const maxTrustees = result.data.boards.items.length
+        //console.log("# of trustees = "+maxTrustees)
+        if (maxTrustees < 1) {
+            if (retryCnt < retryMax) {
+                retryCnt++
+                console.log(">>> retry "+retryCnt+", delay = "+retryCnt*1000)
+                setTimeout(queryBoardInfo,retryCnt*1000)
+            }
+        }
+
+        if (maxTrustees > 0) {
+            let i = -1
+            let emailAddr = ""
+            trustees.forEach((cardBody) => {
+                i++
+                emailAddr = ""
+                empty(cardBody)
+                if (i < maxTrustees) {
+                    if (result.data.boards.items[i].Position == "President") {
+                        emailAddr = "president@grha-dayton.org"
+                        presidentName.forEach((element) => {
+                            element.textContent = result.data.boards.items[i].Name
+                        })
+                        presidentPhone.forEach((element) => {
+                            element.textContent = result.data.boards.items[i].PhoneNumber
+                        })
+                        presidentEmail.forEach((element) => {
+                            element.textContent = emailAddr
+                            element.href = "mailto:"+emailAddr+"?subject=GRHA Business"
+                        })
+                    } else if (result.data.boards.items[i].Position == "Treasurer") {
+                        emailAddr = "treasurer@grha-dayton.org"
+                        treasurerName.forEach((element) => {
+                            element.textContent = result.data.boards.items[i].Name
+                        })
+                        treasurerPhone.forEach((element) => {
+                            element.textContent = result.data.boards.items[i].PhoneNumber
+                        })
+                        treasurerEmail.forEach((element) => {
+                            element.textContent = emailAddr
+                            element.href = "mailto:"+emailAddr+"?subject=GRHA Business"
+                        })
+                    } else if (result.data.boards.items[i].Position == "Vice-President") {
+                        emailAddr = "vp@grha-dayton.org"
+                    } else if (result.data.boards.items[i].Position == "Secretary") {
+                        emailAddr = "secretary@grha-dayton.org"
+                    }
+
+                    // Set the information in the Trustee cards
+                    let trusteeImg = ""
+                    if (result.data.boards.items[i].ImageUrl == "") {
+                        trusteeImg = document.createElement('i')
+                        trusteeImg.classList.add('fa','fa-user','fa-5x','float-start','me-3')
+                    } else {
+                        trusteeImg = document.createElement('img')
+                        trusteeImg.classList.add('float-start','rounded','me-3')
+                        trusteeImg.width = "64"
+                        trusteeImg.src = result.data.boards.items[i].ImageUrl
+                    }
+                    let trusteeNamePosition = document.createElement('h6')
+                    trusteeNamePosition.classList.add('fw-bold')
+                    trusteeNamePosition.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
+                    let trusteePhone = document.createElement('b')
+                    trusteePhone.textContent = result.data.boards.items[i].PhoneNumber 
+                    let trusteeEmail = document.createElement('h6')
+                    let trusteeEmailLink = document.createElement('a')
+                    trusteeEmailLink.textContent = emailAddr
+                    trusteeEmailLink.href = "mailto:"+emailAddr+"?subject=GRHA Business"
+
+                    let trusteeDesc = document.createElement('small')
+                    trusteeDesc.textContent = result.data.boards.items[i].Description 
+                    
+                    trusteeEmail.appendChild(trusteeEmailLink)
+                    cardBody.appendChild(trusteeImg)
+                    cardBody.appendChild(trusteeNamePosition)
+                    cardBody.appendChild(trusteePhone)
+                    cardBody.appendChild(trusteeEmail)
+                    cardBody.appendChild(trusteeDesc)
+                }
+            })
+        } // result.data.boards.items.length
     }
-})
+} // async function queryBoardInfo()
 
-document.getElementById("DuesSearchButton").addEventListener("click", function () {
-    fetchPropertiesData()
-})
+async function queryEventPhotos() {
+    setMediaType(1)
+    let currDate = new Date();
+    let tempMonth = currDate.getMonth() + 1
+    let mediaCategory = ""
+    let startDate = ""
 
+    if (tempMonth == 12 || tempMonth == 1) {
+        mediaCategory = "Christmas"
+        if (tempMonth == 12) {
+            startDate = '' + currDate.getFullYear() + "-12-01"
+        } else if (tempMonth == 1 || tempMonth == 2) {
+            startDate = '' + currDate.getFullYear()-1 + "-12-01"
+        }
+    } else if (tempMonth == 3 || tempMonth == 4 || tempMonth == 5) {
+        mediaCategory = "Easter"
+        startDate = '' + currDate.getFullYear() + "-03-01"
+    } else if (tempMonth == 10 || tempMonth == 11) {
+        mediaCategory = "Halloween"
+        startDate = '' + currDate.getFullYear() + "-10-01"
+    }
+
+    if (mediaCategory != "") {
+        let paramData = {
+            MediaFilterMediaType: mediaType, 
+            getMenu: false,
+            eventPhotos: true,
+            MediaFilterCategory: mediaCategory,
+            MediaFilterStartDate: startDate}
+        queryMediaInfo(paramData);
+    }
+}
 
 async function fetchPropertiesData() {
     const endpoint = "/api/GetPropertyList2";
@@ -297,155 +481,3 @@ function formatDuesStatementResults(hoaRec) {
 
 } // End of function formatDuesStatementResults(hoaRec){
 
-var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
-const presidentName = document.querySelectorAll('.PresidentName')
-const presidentPhone = document.querySelectorAll('.PresidentPhone')
-const presidentEmail = document.querySelectorAll('.PresidentEmail')
-const treasurerName = document.querySelectorAll('.TreasurerName')
-const treasurerPhone = document.querySelectorAll('.TreasurerPhone')
-const treasurerEmail = document.querySelectorAll('.TreasurerEmail')
-const trustees = document.querySelectorAll('.Trustee')
-
-// Call the function to load Board of Trustees data every time the page is loaded
-queryBoardInfo()
-async function queryBoardInfo() {
-    let boardGql = `query {
-            boards (
-                orderBy: { TrusteeId: ASC }
-            ) {
-                items {
-                    Name
-                    Position
-                    PhoneNumber
-                    EmailAddress
-                    Description
-                    ImageUrl
-                }
-            }
-        }`
-
-    //console.log(">>> query boardGql = "+boardGql)
-
-    const apiQuery = {
-        query: boardGql,
-        variables: {
-        }
-    }
-
-    const endpoint = "/data-api/graphql";
-    const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(apiQuery)
-    });
-    const result = await response.json();
-    if (result.errors != null) {
-        console.log("Error: "+result.errors[0].message);
-        console.table(result.errors);
-    } else {
-        //console.log("result.data = "+result.data)
-
-        const maxTrustees = result.data.boards.items.length
-        if (maxTrustees > 0) {
-            let i = -1
-            trustees.forEach((cardBody) => {
-                i++
-                empty(cardBody)
-                if (i < maxTrustees) {
-                    if (result.data.boards.items[i].Position == "President") {
-                        presidentName.forEach((element) => {
-                            element.textContent = result.data.boards.items[i].Name
-                        })
-                        presidentPhone.forEach((element) => {
-                            element.textContent = result.data.boards.items[i].PhoneNumber
-                        })
-                        presidentEmail.forEach((element) => {
-                            element.textContent = result.data.boards.items[i].EmailAddress
-                            element.href = "mailto:"+result.data.boards.items[i].EmailAddress+"?subject=GRHA Business"
-                        })
-                    }
-                    if (result.data.boards.items[i].Position == "Treasurer") {
-                        treasurerName.forEach((element) => {
-                            element.textContent = result.data.boards.items[i].Name
-                        })
-                        treasurerPhone.forEach((element) => {
-                            element.textContent = result.data.boards.items[i].PhoneNumber
-                        })
-                        treasurerEmail.forEach((element) => {
-                            element.textContent = result.data.boards.items[i].EmailAddress
-                            element.href = "mailto:"+result.data.boards.items[i].EmailAddress+"?subject=GRHA Business"
-                        })
-                    }
-
-                    // Set the information in the Trustee cards
-                    let trusteeImg = ""
-                    if (result.data.boards.items[i].ImageUrl == "") {
-                        trusteeImg = document.createElement('i')
-                        trusteeImg.classList.add('fa','fa-user','fa-5x','float-start','me-3')
-                    } else {
-                        trusteeImg = document.createElement('img')
-                        trusteeImg.classList.add('float-start','rounded','me-3')
-                        trusteeImg.width = "64"
-                        trusteeImg.src = result.data.boards.items[i].ImageUrl
-                    }
-                    let trusteeNamePosition = document.createElement('h6')
-                    trusteeNamePosition.classList.add('fw-bold')
-                    trusteeNamePosition.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
-                    let trusteePhone = document.createElement('b')
-                    trusteePhone.textContent = result.data.boards.items[i].PhoneNumber 
-                    let trusteeEmail = document.createElement('h6')
-                    //let trusteeEmail = document.createElement('span')
-                    let trusteeEmailLink = document.createElement('a')
-                    trusteeEmailLink.textContent = result.data.boards.items[i].EmailAddress
-                    trusteeEmailLink.href = "mailto:"+result.data.boards.items[i].EmailAddress+"?subject=GRHA Business"
-
-                    let trusteeDesc = document.createElement('small')
-                    trusteeDesc.textContent = result.data.boards.items[i].Description 
-                    
-                    trusteeEmail.appendChild(trusteeEmailLink)
-                    cardBody.appendChild(trusteeImg)
-                    cardBody.appendChild(trusteeNamePosition)
-                    cardBody.appendChild(trusteePhone)
-                    cardBody.appendChild(trusteeEmail)
-                    cardBody.appendChild(trusteeDesc)
-                }
-            })
-        } // result.data.boards.items.length
-    }
-} // async function queryBoardInfo()
-
-
-// When the page loads, check what month it is and display any Event photos (if they exist)
-queryEventPhotos()
-async function queryEventPhotos() {
-    setMediaType(1)
-    let currDate = new Date();
-    let tempMonth = currDate.getMonth() + 1
-    let mediaCategory = ""
-    let startDate = ""
-
-    if (tempMonth == 12 || tempMonth == 1) {
-        mediaCategory = "Christmas"
-        if (tempMonth == 12) {
-            startDate = '' + currDate.getFullYear() + "-12-01"
-        } else if (tempMonth == 1 || tempMonth == 2) {
-            startDate = '' + currDate.getFullYear()-1 + "-12-01"
-        }
-    } else if (tempMonth == 3 || tempMonth == 4 || tempMonth == 5) {
-        mediaCategory = "Easter"
-        startDate = '' + currDate.getFullYear() + "-03-01"
-    } else if (tempMonth == 10 || tempMonth == 11) {
-        mediaCategory = "Halloween"
-        startDate = '' + currDate.getFullYear() + "-10-01"
-    }
-
-    if (mediaCategory != "") {
-        let paramData = {
-            MediaFilterMediaType: mediaType, 
-            getMenu: false,
-            eventPhotos: true,
-            MediaFilterCategory: mediaCategory,
-            MediaFilterStartDate: startDate}
-        queryMediaInfo(paramData);
-    }
-}
