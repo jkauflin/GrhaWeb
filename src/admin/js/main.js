@@ -8,81 +8,124 @@
  * 2025-04-12 JJK   Working on Board maintenance page
  * 2025-04-22 JJK   Implementing new html5/bootstrap input validation logic
  * 2025-05-07 JJK   Added File doc and Photos upload handling
+ * 2025-10-04 JJK   Added WebsiteMessage
 *============================================================================*/
 
 import {empty,showLoadingSpinner} from './util.js';
 
-var TrusteeId = document.getElementById("TrusteeId")
-var Name = document.getElementById("Name")
-var Position = document.getElementById("Position")
-var PhoneNumber = document.getElementById("PhoneNumber")
-var EmailAddress = document.getElementById("EmailAddress")
-var EmailAddressForward = document.getElementById("EmailAddressForward")
-var Description = document.getElementById("Description")
-var ImageUrl = document.getElementById("ImageUrl")
-var BoardMessageDisplay = document.getElementById("BoardMessageDisplay")
+var TrusteeId
+var Name
+var Position
+var PhoneNumber
+var Description
+var ImageUrl
+var WebsiteMessage
+var BoardMessageDisplay
+var trustees
 var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
-const trustees = document.querySelectorAll('.Trustee')
-
-// Keep track of the state of the navbar collapse (shown or hidden)
-var navbarCollapseShown = false;
-var collapsibleNavbar = document.getElementsByClassName("navbar-collapse")[0];
-collapsibleNavbar.addEventListener('hidden.bs.collapse', function () {
-    navbarCollapseShown = false;
-})
-collapsibleNavbar.addEventListener('shown.bs.collapse', function () {
-    navbarCollapseShown = true;
-})
-     
-// Listen for nav-link clicks
-document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click", function (event) {
-    // Automatically hide the navbar collapse when an item link is clicked (and the collapse is currently shown)
-    if (navbarCollapseShown) {
-        new bootstrap.Collapse(document.getElementsByClassName("navbar-collapse")[0]).hide()
-    }
-}))
-
-document.querySelectorAll('.form-control').forEach(input => {
-    input.addEventListener('input', () => {
-        if (input.checkValidity()) {
-          input.classList.add('is-valid')
-          input.classList.remove('is-invalid')
-        } else {
-          input.classList.add('is-invalid')
-          input.classList.remove('is-valid')
+var retryCnt = 0
+const retryMax = 3
+let boardGql = `query {
+    boards (
+            orderBy: { TrusteeId: ASC }
+    ) {
+        items {
+            id
+            Name
+            Position
+            PhoneNumber
+            Description
+            ImageUrl
+            WebsiteMessage
         }
-    })
-})
+    }
+}`
 
+const apiQuery = {
+    query: boardGql,
+    variables: {
+    }
+}
 
-// Handle file upload Form submit/validation
-var DocMonth = document.getElementById("DocMonth")
-var EventMonth = document.getElementById("EventMonth")
+var DocMonth
+var EventMonth
+var FileUploadMessageDisplay
+var uploadFileForm
 var tempDate = new Date();
 var tempMonth = tempDate.getMonth() + 1;
 if (tempDate.getMonth() < 9) {
     tempMonth = '0' + (tempDate.getMonth() + 1);
 }
-DocMonth.value = tempDate.getFullYear() + '-' + tempMonth
-EventMonth.value = tempDate.getFullYear() + '-' + tempMonth
 
-var FileUploadMessageDisplay = document.getElementById("FileUploadMessageDisplay")
-var uploadFileForm = document.getElementById("UploadFileForm")
-uploadFileForm.addEventListener('submit', (event) => {
-    let formValid = uploadFileForm.checkValidity()
-    event.preventDefault()
-    event.stopPropagation()
+document.addEventListener('DOMContentLoaded', () => {
 
-    FileUploadMessageDisplay.textContent = ""
-  
-    if (!formValid) {
-        FileUploadMessageDisplay.textContent = "Form inputs are NOT valid"
-    } else {
-        uploadFile()
-        // Clear file inputs
-    }
+    TrusteeId = document.getElementById("TrusteeId")
+    Name = document.getElementById("Name")
+    Position = document.getElementById("Position")
+    PhoneNumber = document.getElementById("PhoneNumber")
+    Description = document.getElementById("Description")
+    ImageUrl = document.getElementById("ImageUrl")
+    WebsiteMessage = document.getElementById("WebsiteMessage")
+    BoardMessageDisplay = document.getElementById("BoardMessageDisplay")
+    trustees = document.querySelectorAll('.Trustee')
 
-    uploadFileForm.classList.add('was-validated')
+    // Keep track of the state of the navbar collapse (shown or hidden)
+    var navbarCollapseShown = false;
+    var collapsibleNavbar = document.getElementsByClassName("navbar-collapse")[0];
+    collapsibleNavbar.addEventListener('hidden.bs.collapse', function () {
+        navbarCollapseShown = false;
+    })
+    collapsibleNavbar.addEventListener('shown.bs.collapse', function () {
+        navbarCollapseShown = true;
+    })
+        
+    // Listen for nav-link clicks
+    document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click", function (event) {
+        // Automatically hide the navbar collapse when an item link is clicked (and the collapse is currently shown)
+        if (navbarCollapseShown) {
+            new bootstrap.Collapse(document.getElementsByClassName("navbar-collapse")[0]).hide()
+        }
+    }))
+
+    document.querySelectorAll('.form-control').forEach(input => {
+        input.addEventListener('input', () => {
+            if (input.checkValidity()) {
+            input.classList.add('is-valid')
+            input.classList.remove('is-invalid')
+            } else {
+            input.classList.add('is-invalid')
+            input.classList.remove('is-valid')
+            }
+        })
+    })
+
+    // Handle file upload Form submit/validation
+    DocMonth = document.getElementById("DocMonth")
+    EventMonth = document.getElementById("EventMonth")
+    DocMonth.value = tempDate.getFullYear() + '-' + tempMonth
+    EventMonth.value = tempDate.getFullYear() + '-' + tempMonth
+
+    FileUploadMessageDisplay = document.getElementById("FileUploadMessageDisplay")
+    uploadFileForm = document.getElementById("UploadFileForm")
+    uploadFileForm.addEventListener('submit', (event) => {
+        let formValid = uploadFileForm.checkValidity()
+        event.preventDefault()
+        event.stopPropagation()
+
+        FileUploadMessageDisplay.textContent = ""
+    
+        if (!formValid) {
+            FileUploadMessageDisplay.textContent = "Form inputs are NOT valid"
+        } else {
+            uploadFile()
+            // Clear file inputs
+        }
+
+        uploadFileForm.classList.add('was-validated')
+    })
+
+    // Call the function to load Board of Trustees data every time the page is loaded
+    queryBoardInfo()
 })
 
 // Handle the file upload backend server call
@@ -174,31 +217,8 @@ updTrusteeForm.addEventListener('submit', (event) => {
 })
 
 
-// Call the function to load Board of Trustees data every time the page is loaded
-queryBoardInfo()
 async function queryBoardInfo() {
-    let boardGql = `query {
-            boards (
-                orderBy: { TrusteeId: ASC }
-            ) {
-                items {
-                    id
-                    Name
-                    Position
-                    PhoneNumber
-                    Description
-                    ImageUrl
-                }
-            }
-        }`
-
     //console.log(">>> query boardGql = "+boardGql)
-
-    const apiQuery = {
-        query: boardGql,
-        variables: {
-        }
-    }
 
     const endpoint = "/data-api/graphql";
     const response = await fetch(endpoint, {
@@ -212,6 +232,15 @@ async function queryBoardInfo() {
         console.table(result.errors);
     } else {
         const maxTrustees = result.data.boards.items.length
+        //console.log("# of trustees = "+maxTrustees)
+        if (maxTrustees < 1) {
+            if (retryCnt < retryMax) {
+                retryCnt++
+                console.log(">>> retry "+retryCnt+", delay = "+retryCnt*1000)
+                setTimeout(queryBoardInfo,retryCnt*1000)
+            }
+        }
+
         if (maxTrustees > 0) {
             let i = -1
             trustees.forEach((cardBody) => {
@@ -240,22 +269,6 @@ async function queryBoardInfo() {
 
                     cardBody.appendChild(trusteeImg)
                     cardBody.appendChild(trusteeNamePosition)
-                    /*
-                    let trusteePhone = document.createElement('b')
-                    trusteePhone.textContent = result.data.boards.items[i].PhoneNumber 
-                    let trusteeEmail = document.createElement('h6')
-                    trusteeEmail.textContent = "Email: "+result.data.boards.items[i].EmailAddress
-                    let trusteeEmail2 = document.createElement('h6')
-                    trusteeEmail2.textContent = "Private Email: "+result.data.boards.items[i].EmailAddressForward
-
-                    let trusteeDesc = document.createElement('small')
-                    trusteeDesc.textContent = result.data.boards.items[i].Description 
-
-                    cardBody.appendChild(trusteePhone)
-                    cardBody.appendChild(trusteeEmail)
-                    cardBody.appendChild(trusteeEmail2)
-                    cardBody.appendChild(trusteeDesc)
-                    */
                 }
             })
         } // result.data.boards.items.length
@@ -305,6 +318,7 @@ async function getTrustee(trusteeId) {
         //EmailAddressForward.value = trustee.emailAddressForward
         Description.value = trustee.description
         ImageUrl.value = trustee.imageUrl
+        WebsiteMessage.value = trustee.websiteMessage
     }
 }
 
@@ -318,10 +332,9 @@ async function updateTrustee(trusteeId) {
         Name: Name.value,
         Position: Position.value,
         PhoneNumber: PhoneNumber.value,
-        //EmailAddress: EmailAddress.value,
-        //EmailAddressForward: EmailAddressForward.value,
         Description: Description.value,
-        ImageUrl: ImageUrl.value
+        ImageUrl: ImageUrl.value,
+        WebsiteMessage: WebsiteMessage.value
     }
 
     const endpoint = "/api/UpdateTrustee";

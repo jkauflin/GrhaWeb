@@ -32,9 +32,9 @@
  *                  non-mediagallery links
  * 2025-05-10 JJK   Implemented display of Event pictures for selected time
  *                  periods (if they exist)
- * 2025-10-03 JJK   Added variable sets after document load
- *                  Implemented re-try for board information
- *                  And hard-coded email addresses
+ * 2025-10-03 JJK   Added variable sets after document load, and
+ *                  Implemented re-try for board information, 
+ *                  and hard-coded email addresses
  *============================================================================*/
 
 import {empty,formatMoney,setCheckbox} from './util.js'
@@ -49,6 +49,7 @@ var messageDisplay
 var presidentName
 var presidentPhone
 var presidentEmail
+var PresidentWebsiteMessage
 var treasurerName
 var treasurerPhone
 var treasurerEmail
@@ -65,7 +66,8 @@ var boardGql = `query {
             Position
             PhoneNumber
             Description
-            ImageUrl
+            ImageUrl,
+            WebsiteMessage
         }
     } 
 }`
@@ -83,6 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
     contactsLinkTile = document.getElementById("ContactsLinkTile");
     addressInput = document.getElementById("address");
     messageDisplay = document.getElementById("MessageDisplay")
+    PresidentWebsiteMessage = document.getElementById("PresidentWebsiteMessage")
 
     // Keep track of the state of the navbar collapse (shown or hidden)
     var navbarCollapseShown = false
@@ -186,6 +189,8 @@ async function queryBoardInfo() {
                             element.textContent = emailAddr
                             element.href = "mailto:"+emailAddr+"?subject=GRHA Business"
                         })
+                        PresidentWebsiteMessage.innerHTML = result.data.boards.items[i].WebsiteMessage
+
                     } else if (result.data.boards.items[i].Position == "Treasurer") {
                         emailAddr = "treasurer@grha-dayton.org"
                         treasurerName.forEach((element) => {

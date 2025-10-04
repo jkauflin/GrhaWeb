@@ -21,8 +21,7 @@ type Board @model {
     Name: String
     Position: String
     PhoneNumber: String
-    EmailAddress: String
-    EmailAddressForward: String
     Description: String
     ImageUrl: String
+    WebsiteMessage: String
 }

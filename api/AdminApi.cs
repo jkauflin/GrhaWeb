@@ -9,11 +9,8 @@ Modification History
 2025-04-13 JJK  Completed the Board of Trustees maintenance functions
 2025-04-22 JJK  Re-thinking error handling for api calls from javascript fetch
 2025-05-07 JJK  Adding function for handling file uploads
+2025-10-04 JJK  Adding WebsiteMessage to Trustee
 ================================================================================*/
-using System.IO;
-//using System.Text;
-using System.Threading.Tasks;
-
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
