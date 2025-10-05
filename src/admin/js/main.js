@@ -11,7 +11,7 @@
  * 2025-10-04 JJK   Added WebsiteMessage
 *============================================================================*/
 
-import {empty,showLoadingSpinner} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';
 
 var TrusteeId
 var Name
@@ -58,7 +58,6 @@ if (tempDate.getMonth() < 9) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-
     TrusteeId = document.getElementById("TrusteeId")
     Name = document.getElementById("Name")
     Position = document.getElementById("Position")
@@ -128,6 +127,17 @@ document.addEventListener('DOMContentLoaded', () => {
     queryBoardInfo()
 })
 
+
+document.querySelectorAll(".Trustee").forEach(el => el.addEventListener("click", function (event) {
+    //console.log(".Trustee click, classList = "+event.target.classList)
+    //if (event.target && event.target.classList.contains(MediaFilterRequestClass)) {
+    //}
+    const trusteeId = event.target.getAttribute('data-trustee-id')
+    //console.log('Target:', event.target); // The element that was clicked
+    getTrustee(trusteeId)
+}))
+
+
 // Handle the file upload backend server call
 async function uploadFile() {
     FileUploadMessageDisplay.textContent = "Uploading file..."
@@ -188,16 +198,6 @@ async function uploadPhotos() {
     }
 }
 
-
-document.querySelectorAll(".Trustee").forEach(el => el.addEventListener("click", function (event) {
-    //console.log(".Trustee click, classList = "+event.target.classList)
-    //if (event.target && event.target.classList.contains(MediaFilterRequestClass)) {
-    //}
-    const trusteeId = event.target.getAttribute('data-trustee-id')
-    //console.log('Target:', event.target); // The element that was clicked
-    getTrustee(trusteeId)
-}))
-
 var updTrusteeForm = document.getElementById("UpdateTrusteeForm")
 updTrusteeForm.addEventListener('submit', (event) => {
     let formValid = updTrusteeForm.checkValidity()
@@ -216,28 +216,34 @@ updTrusteeForm.addEventListener('submit', (event) => {
     updTrusteeForm.classList.add('was-validated')
 })
 
-
 async function queryBoardInfo() {
     //console.log(">>> query boardGql = "+boardGql)
+    try {
+        const response = await fetch("/data-api/graphql", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(apiQuery)
+        })
+        await checkFetchResponse(response)
+        const result = await response.json()
 
-    const endpoint = "/data-api/graphql";
-    const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(apiQuery)
-    });
-    const result = await response.json();
-    if (result.errors != null) {
-        console.log("Error: "+result.errors[0].message);
-        console.table(result.errors);
-    } else {
+        if (result.errors != null) {
+            console.log("Error: "+result.errors[0].message)
+            console.table(result.errors)
+            BoardMessageDisplay.textContent = "Error fetching Board records - reload page, err = "+result.errors[0].message
+            return
+        }
+
         const maxTrustees = result.data.boards.items.length
-        //console.log("# of trustees = "+maxTrustees)
+        console.log("# of trustees = "+maxTrustees)
         if (maxTrustees < 1) {
             if (retryCnt < retryMax) {
                 retryCnt++
                 console.log(">>> retry "+retryCnt+", delay = "+retryCnt*1000)
                 setTimeout(queryBoardInfo,retryCnt*1000)
+            } else {
+                // Max. reached
+                BoardMessageDisplay.textContent = "Error fetching Board records...reload page"
             }
         }
 
@@ -259,6 +265,9 @@ async function queryBoardInfo() {
                         trusteeImg.src = result.data.boards.items[i].ImageUrl
                     }
 
+                    // >>>>>>>>>>>>>>>>>>>> need to handle this click better - so it's only on the link
+                    //                      and not just the .trustee on the card
+
                     let trusteeNamePosition = document.createElement('h6')
                     let trusteeNameLink = document.createElement('a')
                     //trusteeNameLink.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
@@ -272,8 +281,14 @@ async function queryBoardInfo() {
                 }
             })
         } // result.data.boards.items.length
+
+    } catch (err) {
+        console.error(err)
+        BoardMessageDisplay.textContent = "Error fetching Board records, err = "+err
     }
+
 } // async function queryBoardInfo()
+
 
 // Get the specific Trustee information and display for update
 async function getTrustee(trusteeId) {
