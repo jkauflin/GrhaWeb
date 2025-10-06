@@ -22,6 +22,10 @@ var ImageUrl
 var WebsiteMessage
 var BoardMessageDisplay
 var trustees
+var PhotosUploadMessageDisplay
+var uploadPhotosForm
+var updTrusteeForm
+
 var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
 var retryCnt = 0
 const retryMax = 3
@@ -33,15 +37,12 @@ let boardGql = `query {
             id
             Name
             Position
-            PhoneNumber
-            Description
             ImageUrl
-            WebsiteMessage
         }
     }
 }`
 
-const apiQuery = {
+const boardsApiQuery = {
     query: boardGql,
     variables: {
     }
@@ -123,20 +124,50 @@ document.addEventListener('DOMContentLoaded', () => {
         uploadFileForm.classList.add('was-validated')
     })
 
+    // Handle Photos upload Form submit/validation
+    PhotosUploadMessageDisplay = document.getElementById("PhotosUploadMessageDisplay")
+    uploadPhotosForm = document.getElementById("UploadPhotosForm")
+    uploadPhotosForm.addEventListener('submit', (event) => {
+        let formValid = uploadPhotosForm.checkValidity()
+        event.preventDefault()
+        event.stopPropagation()
+
+        PhotosUploadMessageDisplay.textContent = ""
+    
+        if (!formValid) {
+            PhotosUploadMessageDisplay.textContent = "Form inputs are NOT valid"
+        } else {
+            //let trusteeId = TrusteeId.value
+            //updateTrustee(trusteeId)
+            uploadPhotos()
+            // clear out fields????????????
+        }
+
+        uploadPhotosForm.classList.add('was-validated')
+    })
+
+    updTrusteeForm = document.getElementById("UpdateTrusteeForm")
+    updTrusteeForm.addEventListener('submit', (event) => {
+        let formValid = updTrusteeForm.checkValidity()
+        event.preventDefault()
+        event.stopPropagation()
+
+        BoardMessageDisplay.textContent = ""
+    
+        if (!formValid) {
+            BoardMessageDisplay.textContent = "Form inputs are NOT valid"
+        } else {
+            let trusteeId = TrusteeId.value
+            updateTrustee(trusteeId)
+        }
+
+        updTrusteeForm.classList.add('was-validated')
+    })
+
+
     // Call the function to load Board of Trustees data every time the page is loaded
     queryBoardInfo()
 })
-
-
-document.querySelectorAll(".Trustee").forEach(el => el.addEventListener("click", function (event) {
-    //console.log(".Trustee click, classList = "+event.target.classList)
-    //if (event.target && event.target.classList.contains(MediaFilterRequestClass)) {
-    //}
-    const trusteeId = event.target.getAttribute('data-trustee-id')
-    //console.log('Target:', event.target); // The element that was clicked
-    getTrustee(trusteeId)
-}))
-
 
 // Handle the file upload backend server call
 async function uploadFile() {
@@ -157,27 +188,6 @@ async function uploadFile() {
     }
 }
 
-// Handle Photos upload Form submit/validation
-var PhotosUploadMessageDisplay = document.getElementById("PhotosUploadMessageDisplay")
-var uploadPhotosForm = document.getElementById("UploadPhotosForm")
-uploadPhotosForm.addEventListener('submit', (event) => {
-    let formValid = uploadPhotosForm.checkValidity()
-    event.preventDefault()
-    event.stopPropagation()
-
-    PhotosUploadMessageDisplay.textContent = ""
-  
-    if (!formValid) {
-        PhotosUploadMessageDisplay.textContent = "Form inputs are NOT valid"
-    } else {
-        //let trusteeId = TrusteeId.value
-        //updateTrustee(trusteeId)
-        uploadPhotos()
-        // clear out fields????????????
-    }
-
-    uploadPhotosForm.classList.add('was-validated')
-})
 
 // Handle the file upload backend server call
 async function uploadPhotos() {
@@ -198,31 +208,13 @@ async function uploadPhotos() {
     }
 }
 
-var updTrusteeForm = document.getElementById("UpdateTrusteeForm")
-updTrusteeForm.addEventListener('submit', (event) => {
-    let formValid = updTrusteeForm.checkValidity()
-    event.preventDefault()
-    event.stopPropagation()
-
-    BoardMessageDisplay.textContent = ""
-  
-    if (!formValid) {
-        BoardMessageDisplay.textContent = "Form inputs are NOT valid"
-    } else {
-        let trusteeId = TrusteeId.value
-        updateTrustee(trusteeId)
-    }
-
-    updTrusteeForm.classList.add('was-validated')
-})
-
 async function queryBoardInfo() {
     //console.log(">>> query boardGql = "+boardGql)
     try {
         const response = await fetch("/data-api/graphql", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(apiQuery)
+            body: JSON.stringify(boardsApiQuery)
         })
         await checkFetchResponse(response)
         const result = await response.json()
@@ -234,8 +226,13 @@ async function queryBoardInfo() {
             return
         }
 
-        const maxTrustees = result.data.boards.items.length
-        console.log("# of trustees = "+maxTrustees)
+        let maxTrustees = 0
+        const trusteeCnt = result?.data?.boards?.items?.length;
+        if (trusteeCnt !== undefined) {
+            maxTrustees = trusteeCnt;
+        }
+
+        //console.log("# of trustees = "+maxTrustees)
         if (maxTrustees < 1) {
             if (retryCnt < retryMax) {
                 retryCnt++
@@ -248,38 +245,41 @@ async function queryBoardInfo() {
         }
 
         if (maxTrustees > 0) {
-            let i = -1
+            let i = -1;
             trustees.forEach((cardBody) => {
-                i++
-                empty(cardBody)
+                i++;
+                empty(cardBody);
                 if (i < maxTrustees) {
                     // Set the information in the Trustee cards
-                    let trusteeImg = ""
+                    let trusteeImg = "";
                     if (result.data.boards.items[i].ImageUrl == "") {
-                        trusteeImg = document.createElement('i')
-                        trusteeImg.classList.add('fa','fa-user','fa-4x','float-start','me-3')
+                        trusteeImg = document.createElement('i');
+                        trusteeImg.classList.add('fa','fa-user','fa-4x','float-start','me-3');
                     } else {
-                        trusteeImg = document.createElement('img')
-                        trusteeImg.classList.add('float-start','rounded','me-3')
-                        trusteeImg.width = "64"
-                        trusteeImg.src = result.data.boards.items[i].ImageUrl
+                        trusteeImg = document.createElement('img');
+                        trusteeImg.classList.add('float-start','rounded','me-3');
+                        trusteeImg.width = "64";
+                        trusteeImg.src = result.data.boards.items[i].ImageUrl;
                     }
 
-                    // >>>>>>>>>>>>>>>>>>>> need to handle this click better - so it's only on the link
-                    //                      and not just the .trustee on the card
+                    let trusteeNamePosition = document.createElement('h6');
+                    let trusteeNameLink = document.createElement('a');
+                    let trusteeId = result.data.boards.items[i].id;
+                    trusteeNameLink.textContent = result.data.boards.items[i].Position + " - " + result.data.boards.items[i].Name;
+                    trusteeNameLink.setAttribute('data-trustee-id', trusteeId);
+                    trusteeNameLink.href = "#";
+                    trusteeNameLink.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        //console.log('Trustee link clicked', trusteeId);
+                        getTrustee(trusteeId);
+                    });
+                    trusteeNamePosition.appendChild(trusteeNameLink);
 
-                    let trusteeNamePosition = document.createElement('h6')
-                    let trusteeNameLink = document.createElement('a')
-                    //trusteeNameLink.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
-                    trusteeNameLink.textContent = result.data.boards.items[i].Position + " - " + result.data.boards.items[i].Name
-                    trusteeNameLink.setAttribute('data-trustee-id', result.data.boards.items[i].id)
-                    trusteeNameLink.href = "#"  // # will do all the good link formatting, but will not try to open the link
-                    trusteeNamePosition.appendChild(trusteeNameLink)
-
-                    cardBody.appendChild(trusteeImg)
-                    cardBody.appendChild(trusteeNamePosition)
+                    cardBody.appendChild(trusteeImg);
+                    cardBody.appendChild(trusteeNamePosition);
                 }
-            })
+            });
         } // result.data.boards.items.length
 
     } catch (err) {
@@ -292,7 +292,6 @@ async function queryBoardInfo() {
 
 // Get the specific Trustee information and display for update
 async function getTrustee(trusteeId) {
-    // >>>>> should I pass the display object as one of the parameters - would that have any benefit???
     BoardMessageDisplay.textContent = "Fetching Board information..."
     const endpoint = "/api/GetTrustee";
     const response = await fetch(endpoint, {
