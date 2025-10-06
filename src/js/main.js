@@ -54,9 +54,9 @@ var treasurerName
 var treasurerPhone
 var treasurerEmail
 var trustees
-var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
 var retryCnt = 0
 const retryMax = 3
+
 var boardGql = `query {
     boards (
         orderBy: { TrusteeId: ASC }
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
     queryBoardInfo()
 
     // When the page loads, check what month it is and display any Event photos (if they exist)
-    queryEventPhotos()
+    //queryEventPhotos()
 })
 
 document.body.addEventListener("click", function (event) {
@@ -146,104 +146,126 @@ document.body.addEventListener("click", function (event) {
 })
 
 async function queryBoardInfo() {
-    //console.log(">>> query boardGql = "+boardGql)
-    const endpoint = "/data-api/graphql";
-    const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(apiQuery)
-    });
-    const result = await response.json();
-    if (result.errors != null) {
-        console.log("Error: "+result.errors[0].message);
-        console.table(result.errors);
-    } else {
-        //console.log("result.data = "+result.data)
-        const maxTrustees = result.data.boards.items.length
+    try {
+        const response = await fetch("/api/GetTrusteeList", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+            //body: searchStr.value
+        })
+        await checkFetchResponse(response)
+        // Success
+        const trusteeList = await response.json();
+        /*
+        let maxTrustees = 0
+        const trusteeCnt = result?.data?.boards?.items?.length;
+        if (trusteeCnt !== undefined) {
+            maxTrustees = trusteeCnt;
+        }
+
         //console.log("# of trustees = "+maxTrustees)
         if (maxTrustees < 1) {
             if (retryCnt < retryMax) {
                 retryCnt++
                 console.log(">>> retry "+retryCnt+", delay = "+retryCnt*1000)
                 setTimeout(queryBoardInfo,retryCnt*1000)
+            } else {
+                // Max. reached
+                BoardMessageDisplay.textContent = "Error fetching Board records...reload page"
             }
         }
 
         if (maxTrustees > 0) {
-            let i = -1
-            let emailAddr = ""
-            trustees.forEach((cardBody) => {
-                i++
-                emailAddr = ""
-                empty(cardBody)
-                if (i < maxTrustees) {
-                    if (result.data.boards.items[i].Position == "President") {
-                        emailAddr = "president@grha-dayton.org"
-                        presidentName.forEach((element) => {
-                            element.textContent = result.data.boards.items[i].Name
-                        })
-                        presidentPhone.forEach((element) => {
-                            element.textContent = result.data.boards.items[i].PhoneNumber
-                        })
-                        presidentEmail.forEach((element) => {
-                            element.textContent = emailAddr
-                            element.href = "mailto:"+emailAddr+"?subject=GRHA Business"
-                        })
-                        PresidentWebsiteMessage.innerHTML = result.data.boards.items[i].WebsiteMessage
-
-                    } else if (result.data.boards.items[i].Position == "Treasurer") {
-                        emailAddr = "treasurer@grha-dayton.org"
-                        treasurerName.forEach((element) => {
-                            element.textContent = result.data.boards.items[i].Name
-                        })
-                        treasurerPhone.forEach((element) => {
-                            element.textContent = result.data.boards.items[i].PhoneNumber
-                        })
-                        treasurerEmail.forEach((element) => {
-                            element.textContent = emailAddr
-                            element.href = "mailto:"+emailAddr+"?subject=GRHA Business"
-                        })
-                    } else if (result.data.boards.items[i].Position == "Vice-President") {
-                        emailAddr = "vp@grha-dayton.org"
-                    } else if (result.data.boards.items[i].Position == "Secretary") {
-                        emailAddr = "secretary@grha-dayton.org"
-                    }
-
-                    // Set the information in the Trustee cards
-                    let trusteeImg = ""
-                    if (result.data.boards.items[i].ImageUrl == "") {
-                        trusteeImg = document.createElement('i')
-                        trusteeImg.classList.add('fa','fa-user','fa-5x','float-start','me-3')
-                    } else {
-                        trusteeImg = document.createElement('img')
-                        trusteeImg.classList.add('float-start','rounded','me-3')
-                        trusteeImg.width = "64"
-                        trusteeImg.src = result.data.boards.items[i].ImageUrl
-                    }
-                    let trusteeNamePosition = document.createElement('h6')
-                    trusteeNamePosition.classList.add('fw-bold')
-                    trusteeNamePosition.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
-                    let trusteePhone = document.createElement('b')
-                    trusteePhone.textContent = result.data.boards.items[i].PhoneNumber 
-                    let trusteeEmail = document.createElement('h6')
-                    let trusteeEmailLink = document.createElement('a')
-                    trusteeEmailLink.textContent = emailAddr
-                    trusteeEmailLink.href = "mailto:"+emailAddr+"?subject=GRHA Business"
-
-                    let trusteeDesc = document.createElement('small')
-                    trusteeDesc.textContent = result.data.boards.items[i].Description 
-                    
-                    trusteeEmail.appendChild(trusteeEmailLink)
-                    cardBody.appendChild(trusteeImg)
-                    cardBody.appendChild(trusteeNamePosition)
-                    cardBody.appendChild(trusteePhone)
-                    cardBody.appendChild(trusteeEmail)
-                    cardBody.appendChild(trusteeDesc)
-                }
-            })
-        } // result.data.boards.items.length
+            displayBoardInfo(result.data.boards.items)
+        }
+        */
+        displayBoardInfo(trusteeList)
+    } catch (err) {
+        console.error(err)
     }
+
 } // async function queryBoardInfo()
+
+function displayBoardInfo(trusteeList) {
+    if (trusteeList == null) {
+        return
+    }
+    let maxTrustees = trusteeList.length
+    if (maxTrustees < 1) {
+        return
+    }
+
+    let i = -1
+    let emailAddr = ""
+    trustees.forEach((cardBody) => {
+        i++
+        emailAddr = ""
+        empty(cardBody)
+        if (i < maxTrustees) {
+            if (result.data.boards.items[i].Position == "President") {
+                emailAddr = "president@grha-dayton.org"
+                presidentName.forEach((element) => {
+                    element.textContent = result.data.boards.items[i].Name
+                })
+                presidentPhone.forEach((element) => {
+                    element.textContent = result.data.boards.items[i].PhoneNumber
+                })
+                presidentEmail.forEach((element) => {
+                    element.textContent = emailAddr
+                    element.href = "mailto:"+emailAddr+"?subject=GRHA Business"
+                })
+                PresidentWebsiteMessage.innerHTML = result.data.boards.items[i].WebsiteMessage
+
+            } else if (result.data.boards.items[i].Position == "Treasurer") {
+                emailAddr = "treasurer@grha-dayton.org"
+                treasurerName.forEach((element) => {
+                    element.textContent = result.data.boards.items[i].Name
+                })
+                treasurerPhone.forEach((element) => {
+                    element.textContent = result.data.boards.items[i].PhoneNumber
+                })
+                treasurerEmail.forEach((element) => {
+                    element.textContent = emailAddr
+                    element.href = "mailto:"+emailAddr+"?subject=GRHA Business"
+                })
+            } else if (result.data.boards.items[i].Position == "Vice-President") {
+                emailAddr = "vp@grha-dayton.org"
+            } else if (result.data.boards.items[i].Position == "Secretary") {
+                emailAddr = "secretary@grha-dayton.org"
+            }
+
+            // Set the information in the Trustee cards
+            let trusteeImg = ""
+            if (result.data.boards.items[i].ImageUrl == "") {
+                trusteeImg = document.createElement('i')
+                trusteeImg.classList.add('fa','fa-user','fa-5x','float-start','me-3')
+            } else {
+                trusteeImg = document.createElement('img')
+                trusteeImg.classList.add('float-start','rounded','me-3')
+                trusteeImg.width = "64"
+                trusteeImg.src = result.data.boards.items[i].ImageUrl
+            }
+            let trusteeNamePosition = document.createElement('h6')
+            trusteeNamePosition.classList.add('fw-bold')
+            trusteeNamePosition.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
+            let trusteePhone = document.createElement('b')
+            trusteePhone.textContent = result.data.boards.items[i].PhoneNumber 
+            let trusteeEmail = document.createElement('h6')
+            let trusteeEmailLink = document.createElement('a')
+            trusteeEmailLink.textContent = emailAddr
+            trusteeEmailLink.href = "mailto:"+emailAddr+"?subject=GRHA Business"
+
+            let trusteeDesc = document.createElement('small')
+            trusteeDesc.textContent = result.data.boards.items[i].Description 
+            
+            trusteeEmail.appendChild(trusteeEmailLink)
+            cardBody.appendChild(trusteeImg)
+            cardBody.appendChild(trusteeNamePosition)
+            cardBody.appendChild(trusteePhone)
+            cardBody.appendChild(trusteeEmail)
+            cardBody.appendChild(trusteeDesc)
+        }
+    })
+}
 
 async function queryEventPhotos() {
     setMediaType(1)
@@ -297,6 +319,32 @@ async function fetchPropertiesData() {
         console.error(`Error in Fetch to ${endpoint}, ${err}`)
         messageDisplay.textContent = "Fetch data FAILED - check log"
     }
+
+
+
+    empty(propertyListDisplayTbody)
+    showLoadingSpinner(searchButton)
+    messageDisplay.textContent = "Fetching property list..."
+
+    try {
+        const response = await fetch("/api/GetPropertyList", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: searchStr.value
+        })
+        await checkFetchResponse(response)
+        // Success
+        const hoaPropertyRecList = await response.json();
+        searchButton.innerHTML = searchButtonHTML
+        messageDisplay.textContent = ""
+        displayPropertyList(hoaPropertyRecList)
+
+    } catch (err) {
+        console.error(err)
+        searchButton.innerHTML = searchButtonHTML
+        messageDisplay.textContent = `Error in Fetch: ${err.message}`
+    }
+
 }
     
 function displayPropertyList(hoaPropertyRecList) {
