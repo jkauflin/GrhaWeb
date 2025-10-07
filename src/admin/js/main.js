@@ -9,6 +9,7 @@
  * 2025-04-22 JJK   Implementing new html5/bootstrap input validation logic
  * 2025-05-07 JJK   Added File doc and Photos upload handling
  * 2025-10-04 JJK   Added WebsiteMessage
+ * 2025-10-07 JJK   Re-factored to use new Board load api
 *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';
@@ -29,24 +30,6 @@ var updTrusteeForm
 var photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
 var retryCnt = 0
 const retryMax = 3
-let boardGql = `query {
-    boards (
-            orderBy: { TrusteeId: ASC }
-    ) {
-        items {
-            id
-            Name
-            Position
-            ImageUrl
-        }
-    }
-}`
-
-const boardsApiQuery = {
-    query: boardGql,
-    variables: {
-    }
-}
 
 var DocMonth
 var EventMonth
@@ -164,7 +147,6 @@ document.addEventListener('DOMContentLoaded', () => {
         updTrusteeForm.classList.add('was-validated')
     })
 
-
     // Call the function to load Board of Trustees data every time the page is loaded
     queryBoardInfo()
 })
@@ -188,7 +170,6 @@ async function uploadFile() {
     }
 }
 
-
 // Handle the file upload backend server call
 async function uploadPhotos() {
     PhotosUploadMessageDisplay.textContent = "Uploading photos..."
@@ -209,63 +190,59 @@ async function uploadPhotos() {
 }
 
 async function queryBoardInfo() {
-    //console.log(">>> query boardGql = "+boardGql)
+    showLoadingSpinner(BoardMessageDisplay)
     try {
-        const response = await fetch("/data-api/graphql", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(boardsApiQuery)
+        const response = await fetch("/api/GetTrusteeList", {
+            method: "GET",
+            headers: { "Content-Type": "application/json" }
+            //body: searchStr.value
         })
         await checkFetchResponse(response)
-        const result = await response.json()
-
-        if (result.errors != null) {
-            console.log("Error: "+result.errors[0].message)
-            console.table(result.errors)
-            BoardMessageDisplay.textContent = "Error fetching Board records - reload page, err = "+result.errors[0].message
-            return
-        }
-
-        let maxTrustees = 0
-        const trusteeCnt = result?.data?.boards?.items?.length;
-        if (trusteeCnt !== undefined) {
-            maxTrustees = trusteeCnt;
-        }
-
-        //console.log("# of trustees = "+maxTrustees)
-        if (maxTrustees < 1) {
+        // Success
+        const trusteeList = await response.json();
+        //console.log("# of trustees = "+trusteeList.length)
+        if (trusteeList.length == 0) {
             if (retryCnt < retryMax) {
                 retryCnt++
-                console.log(">>> retry "+retryCnt+", delay = "+retryCnt*1000)
+                //console.log(">>> retry "+retryCnt+", delay = "+retryCnt*1000)
                 setTimeout(queryBoardInfo,retryCnt*1000)
             } else {
                 // Max. reached
-                BoardMessageDisplay.textContent = "Error fetching Board records...reload page"
+                BoardMessageDisplay.innerHTML = "<b>Problem loading info...please refresh the page</b>"
             }
+        } else {
+            empty(BoardMessageDisplay)
+            displayBoardInfo(trusteeList)
         }
 
-        if (maxTrustees > 0) {
-            let i = -1;
-            trustees.forEach((cardBody) => {
-                i++;
-                empty(cardBody);
-                if (i < maxTrustees) {
+    } catch (err) {
+        console.error(err)
+    }
+
+} // async function queryBoardInfo()
+
+function displayBoardInfo(trusteeList) {
+    let i = -1;
+    trustees.forEach((cardBody) => {
+        i++;
+        empty(cardBody);
+        if (i < trusteeList.length) {
                     // Set the information in the Trustee cards
                     let trusteeImg = "";
-                    if (result.data.boards.items[i].ImageUrl == "") {
+                    if (trusteeList[i].imageUrl == "") {
                         trusteeImg = document.createElement('i');
                         trusteeImg.classList.add('fa','fa-user','fa-4x','float-start','me-3');
                     } else {
                         trusteeImg = document.createElement('img');
                         trusteeImg.classList.add('float-start','rounded','me-3');
                         trusteeImg.width = "64";
-                        trusteeImg.src = result.data.boards.items[i].ImageUrl;
+                        trusteeImg.src = trusteeList[i].imageUrl;
                     }
 
                     let trusteeNamePosition = document.createElement('h6');
                     let trusteeNameLink = document.createElement('a');
-                    let trusteeId = result.data.boards.items[i].id;
-                    trusteeNameLink.textContent = result.data.boards.items[i].Position + " - " + result.data.boards.items[i].Name;
+                    let trusteeId = trusteeList[i].id;
+                    trusteeNameLink.textContent = trusteeList[i].position + " - " + trusteeList[i].name;
                     trusteeNameLink.setAttribute('data-trustee-id', trusteeId);
                     trusteeNameLink.href = "#";
                     trusteeNameLink.addEventListener('click', function(event) {
@@ -278,17 +255,9 @@ async function queryBoardInfo() {
 
                     cardBody.appendChild(trusteeImg);
                     cardBody.appendChild(trusteeNamePosition);
-                }
-            });
-        } // result.data.boards.items.length
-
-    } catch (err) {
-        console.error(err)
-        BoardMessageDisplay.textContent = "Error fetching Board records, err = "+err
-    }
-
-} // async function queryBoardInfo()
-
+        }
+    })
+}
 
 // Get the specific Trustee information and display for update
 async function getTrustee(trusteeId) {

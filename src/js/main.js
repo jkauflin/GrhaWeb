@@ -37,7 +37,7 @@
  *                  and hard-coded email addresses
  *============================================================================*/
 
-import {empty,formatMoney,setCheckbox,checkFetchResponse} from './util.js'
+import {empty,showLoadingSpinner,formatMoney,setCheckbox,checkFetchResponse} from './util.js'
 import {mediaInfo,mediaType,setMediaType,queryMediaInfo,getFilePath,getFileName} from './mg-data-repository.js'
   
 var duesPageTab
@@ -49,6 +49,7 @@ var messageDisplay
 var presidentName
 var presidentPhone
 var presidentEmail
+var BoardMessageDisplay
 var PresidentWebsiteMessage
 var treasurerName
 var treasurerPhone
@@ -65,6 +66,7 @@ document.addEventListener('DOMContentLoaded', () => {
     contactsLinkTile = document.getElementById("ContactsLinkTile");
     addressInput = document.getElementById("address");
     messageDisplay = document.getElementById("MessageDisplay")
+    BoardMessageDisplay = document.getElementById("BoardMessageDisplay")
     PresidentWebsiteMessage = document.getElementById("PresidentWebsiteMessage")
 
     // Keep track of the state of the navbar collapse (shown or hidden)
@@ -126,6 +128,7 @@ document.body.addEventListener("click", function (event) {
 })
 
 async function queryBoardInfo() {
+    showLoadingSpinner(BoardMessageDisplay)
     try {
         const response = await fetch("/api/GetTrusteeList", {
             method: "GET",
@@ -135,30 +138,21 @@ async function queryBoardInfo() {
         await checkFetchResponse(response)
         // Success
         const trusteeList = await response.json();
-        /*
-        let maxTrustees = 0
-        const trusteeCnt = result?.data?.boards?.items?.length;
-        if (trusteeCnt !== undefined) {
-            maxTrustees = trusteeCnt;
-        }
-
-        //console.log("# of trustees = "+maxTrustees)
-        if (maxTrustees < 1) {
+        //console.log("# of trustees = "+trusteeList.length)
+        if (trusteeList.length == 0) {
             if (retryCnt < retryMax) {
                 retryCnt++
-                console.log(">>> retry "+retryCnt+", delay = "+retryCnt*1000)
+                //console.log(">>> retry "+retryCnt+", delay = "+retryCnt*1000)
                 setTimeout(queryBoardInfo,retryCnt*1000)
             } else {
                 // Max. reached
-                BoardMessageDisplay.textContent = "Error fetching Board records...reload page"
+                BoardMessageDisplay.innerHTML = "<b>Problem loading info...please refresh the page</b>"
             }
+        } else {
+            empty(BoardMessageDisplay)
+            displayBoardInfo(trusteeList)
         }
 
-        if (maxTrustees > 0) {
-            displayBoardInfo(result.data.boards.items)
-        }
-        */
-        displayBoardInfo(trusteeList)
     } catch (err) {
         console.error(err)
     }
@@ -166,21 +160,13 @@ async function queryBoardInfo() {
 } // async function queryBoardInfo()
 
 function displayBoardInfo(trusteeList) {
-    if (trusteeList == null) {
-        return
-    }
-    let maxTrustees = trusteeList.length
-    if (maxTrustees < 1) {
-        return
-    }
-
     let i = -1
     let emailAddr = ""
     trustees.forEach((cardBody) => {
         i++
         emailAddr = ""
         empty(cardBody)
-        if (i < maxTrustees) {
+        if (i < trusteeList.length) {
             if (trusteeList[i].position == "President") {
                 emailAddr = "president@grha-dayton.org"
                 presidentName.forEach((element) => {
@@ -299,32 +285,6 @@ async function fetchPropertiesData() {
         console.error(`Error in Fetch to ${endpoint}, ${err}`)
         messageDisplay.textContent = "Fetch data FAILED - check log"
     }
-
-
-
-    empty(propertyListDisplayTbody)
-    showLoadingSpinner(searchButton)
-    messageDisplay.textContent = "Fetching property list..."
-
-    try {
-        const response = await fetch("/api/GetPropertyList", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: searchStr.value
-        })
-        await checkFetchResponse(response)
-        // Success
-        const hoaPropertyRecList = await response.json();
-        searchButton.innerHTML = searchButtonHTML
-        messageDisplay.textContent = ""
-        displayPropertyList(hoaPropertyRecList)
-
-    } catch (err) {
-        console.error(err)
-        searchButton.innerHTML = searchButtonHTML
-        messageDisplay.textContent = `Error in Fetch: ${err.message}`
-    }
-
 }
     
 function displayPropertyList(hoaPropertyRecList) {

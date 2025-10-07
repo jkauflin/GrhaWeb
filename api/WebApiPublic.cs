@@ -85,17 +85,20 @@ namespace GrhaWeb.Function
         public async Task<IActionResult> GetTrusteeList(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequestData req)
         {
-            // always return a list, even if empty (and empty list even if exception?)
+            List<Trustee> trusteeList = new List<Trustee>();
 
             try
             {
-                var trusteeList = await hoaDbCommon.GetTrusteeListDB();
-                return new OkObjectResult(trusteeList);
+                trusteeList = await hoaDbCommon.GetTrusteeListDB();
             }
             catch (Exception ex)
             {
-                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+                log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
+                // Just return empty list on exception (to let the caller do retry or show error)
+                //return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
+
+            return new OkObjectResult(trusteeList);
         }
 
     } // public static class WebApi
