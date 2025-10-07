@@ -32,7 +32,7 @@ namespace GrhaWeb.Function
             log = logger;
             config = configuration;
             util = new CommonUtil(log);
-            hoaDbCommon = new HoaDbCommon(log,config);
+            hoaDbCommon = new HoaDbCommon(log, config);
         }
 
         // Public access for website Dues page
@@ -41,12 +41,14 @@ namespace GrhaWeb.Function
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
             List<HoaProperty2> hoaProperty2List = new List<HoaProperty2>();
-            try {
+            try
+            {
                 // Get the content string from the HTTP request body
                 string searchAddress = await new StreamReader(req.Body).ReadToEndAsync();
                 hoaProperty2List = await hoaDbCommon.GetPropertyList2(searchAddress);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
 
@@ -63,12 +65,14 @@ namespace GrhaWeb.Function
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
         {
             HoaRec2 hoaRec2 = new HoaRec2();
-            try {
+            try
+            {
                 // Get the content string from the HTTP request body
                 string parcelId = await new StreamReader(req.Body).ReadToEndAsync();
                 hoaRec2 = await hoaDbCommon.GetHoaRec2DB(parcelId);
             }
-            catch (Exception ex) {
+            catch (Exception ex)
+            {
                 log.LogError($"Exception, message: {ex.Message} {ex.StackTrace}");
                 return new BadRequestObjectResult($"Exception, message = {ex.Message}");
             }
@@ -76,7 +80,24 @@ namespace GrhaWeb.Function
             return new OkObjectResult(hoaRec2);
         }
 
-    } // public static class WebApi
+        // Public access for website Dues page
+        [Function("GetTrusteeList")]
+        public async Task<IActionResult> GetTrusteeList(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequestData req)
+        {
+            // always return a list, even if empty (and empty list even if exception?)
 
-}
+            try
+            {
+                var trusteeList = await hoaDbCommon.GetTrusteeListDB();
+                return new OkObjectResult(trusteeList);
+            }
+            catch (Exception ex)
+            {
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+            }
+        }
+
+    } // public static class WebApi
+} // namespace GrhaWeb.Function
 

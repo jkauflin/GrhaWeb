@@ -1134,6 +1134,32 @@ namespace GrhaWeb.Function
             );
         }
 
+        public async Task<List<Trustee>> GetTrusteeListDB()
+        {
+            //------------------------------------------------------------------------------------------------------------------
+            // Query the NoSQL container to get values
+            //------------------------------------------------------------------------------------------------------------------
+            string databaseId = "hoadb";
+            string containerId = "BoardOfTrustees";
+            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+            Database db = cosmosClient.GetDatabase(databaseId);
+            Container container = db.GetContainer(containerId);
+
+            List<Trustee> trusteeList = new List<Trustee>();
+
+            var queryDefinition = new QueryDefinition("SELECT * FROM c ORDER BY c.TrusteeId ");
+            var feed = container.GetItemQueryIterator<Trustee>(queryDefinition);
+            while (feed.HasMoreResults)
+            {
+                var response = await feed.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    trusteeList.Add(item);
+                }
+            }
+
+            return trusteeList;
+        }
 
         public async Task<Trustee> GetTrusteeById(string trusteeId)
         {

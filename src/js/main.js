@@ -37,7 +37,7 @@
  *                  and hard-coded email addresses
  *============================================================================*/
 
-import {empty,formatMoney,setCheckbox} from './util.js'
+import {empty,formatMoney,setCheckbox,checkFetchResponse} from './util.js'
 import {mediaInfo,mediaType,setMediaType,queryMediaInfo,getFilePath,getFileName} from './mg-data-repository.js'
   
 var duesPageTab
@@ -56,26 +56,6 @@ var treasurerEmail
 var trustees
 var retryCnt = 0
 const retryMax = 3
-
-var boardGql = `query {
-    boards (
-        orderBy: { TrusteeId: ASC }
-    ) {
-        items {
-            Name
-            Position
-            PhoneNumber
-            Description
-            ImageUrl,
-            WebsiteMessage
-        }
-    } 
-}`
-const apiQuery = {
-    query: boardGql,
-    variables: {
-    }
-}
 
 document.addEventListener('DOMContentLoaded', () => {
     // Assign DOM elements after DOM is ready
@@ -201,61 +181,61 @@ function displayBoardInfo(trusteeList) {
         emailAddr = ""
         empty(cardBody)
         if (i < maxTrustees) {
-            if (result.data.boards.items[i].Position == "President") {
+            if (trusteeList[i].position == "President") {
                 emailAddr = "president@grha-dayton.org"
                 presidentName.forEach((element) => {
-                    element.textContent = result.data.boards.items[i].Name
+                    element.textContent = trusteeList[i].name
                 })
                 presidentPhone.forEach((element) => {
-                    element.textContent = result.data.boards.items[i].PhoneNumber
+                    element.textContent = trusteeList[i].phoneNumber
                 })
                 presidentEmail.forEach((element) => {
                     element.textContent = emailAddr
                     element.href = "mailto:"+emailAddr+"?subject=GRHA Business"
                 })
-                PresidentWebsiteMessage.innerHTML = result.data.boards.items[i].WebsiteMessage
+                PresidentWebsiteMessage.innerHTML = trusteeList[i].websiteMessage
 
-            } else if (result.data.boards.items[i].Position == "Treasurer") {
+            } else if (trusteeList[i].position == "Treasurer") {
                 emailAddr = "treasurer@grha-dayton.org"
                 treasurerName.forEach((element) => {
-                    element.textContent = result.data.boards.items[i].Name
+                    element.textContent = trusteeList[i].name
                 })
                 treasurerPhone.forEach((element) => {
-                    element.textContent = result.data.boards.items[i].PhoneNumber
+                    element.textContent = trusteeList[i].phoneNumber
                 })
                 treasurerEmail.forEach((element) => {
                     element.textContent = emailAddr
                     element.href = "mailto:"+emailAddr+"?subject=GRHA Business"
                 })
-            } else if (result.data.boards.items[i].Position == "Vice-President") {
+            } else if (trusteeList[i].position == "Vice-President") {
                 emailAddr = "vp@grha-dayton.org"
-            } else if (result.data.boards.items[i].Position == "Secretary") {
+            } else if (trusteeList[i].position == "Secretary") {
                 emailAddr = "secretary@grha-dayton.org"
             }
 
             // Set the information in the Trustee cards
             let trusteeImg = ""
-            if (result.data.boards.items[i].ImageUrl == "") {
+            if (trusteeList[i].imageUrl == "") {
                 trusteeImg = document.createElement('i')
                 trusteeImg.classList.add('fa','fa-user','fa-5x','float-start','me-3')
             } else {
                 trusteeImg = document.createElement('img')
                 trusteeImg.classList.add('float-start','rounded','me-3')
                 trusteeImg.width = "64"
-                trusteeImg.src = result.data.boards.items[i].ImageUrl
+                trusteeImg.src = trusteeList[i].imageUrl
             }
             let trusteeNamePosition = document.createElement('h6')
             trusteeNamePosition.classList.add('fw-bold')
-            trusteeNamePosition.textContent = result.data.boards.items[i].Name + " - " + result.data.boards.items[i].Position
+            trusteeNamePosition.textContent = trusteeList[i].name + " - " + trusteeList[i].position
             let trusteePhone = document.createElement('b')
-            trusteePhone.textContent = result.data.boards.items[i].PhoneNumber 
+            trusteePhone.textContent = trusteeList[i].phoneNumber 
             let trusteeEmail = document.createElement('h6')
             let trusteeEmailLink = document.createElement('a')
             trusteeEmailLink.textContent = emailAddr
             trusteeEmailLink.href = "mailto:"+emailAddr+"?subject=GRHA Business"
 
             let trusteeDesc = document.createElement('small')
-            trusteeDesc.textContent = result.data.boards.items[i].Description 
+            trusteeDesc.textContent = trusteeList[i].description 
             
             trusteeEmail.appendChild(trusteeEmailLink)
             cardBody.appendChild(trusteeImg)
