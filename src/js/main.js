@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     queryBoardInfo()
 
     // When the page loads, check what month it is and display any Event photos (if they exist)
-    queryEventPhotos()
+    //queryEventPhotos()
 })
 
 document.body.addEventListener("click", function (event) {

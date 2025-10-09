@@ -2213,7 +2213,7 @@ public class HoaDbCommon
             string category = paramData.ContainsKey("MediaFilterCategory") ? (paramData["MediaFilterCategory"]?.ToString() ?? "") : "";
             string startDate = paramData.ContainsKey("MediaFilterStartDate") ? (paramData["MediaFilterStartDate"]?.ToString() ?? "") : "";
             //int maxRows = paramData.ContainsKey("maxRows") ? Convert.ToInt32(paramData["maxRows"]) : 200;
-            int maxRows = paramData.ContainsKey("maxRows") ? Convert.ToInt32(paramData["maxRows"]) : 10;
+            int maxRows = 2;
 
             // Build SQL query
             string sql = "SELECT * FROM c WHERE c.MediaTypeId = @mediaTypeId";
@@ -2231,8 +2231,8 @@ public class HoaDbCommon
                     sql += " AND c.MediaDateTimeVal >= @startDateVal";
                 }
             }
-            sql += " ORDER BY c.MediaDateTime DESC OFFSET 0 LIMIT @maxRows";
             */
+            sql += " ORDER BY c.MediaDateTime DESC OFFSET 0 LIMIT @maxRows";
 
             var queryDef = new QueryDefinition(sql)
                 .WithParameter("@mediaTypeId", mediaTypeId)
@@ -2257,6 +2257,7 @@ public class HoaDbCommon
                 foreach (var item in response)
                 {
                     mediaList.Add(item);
+                    log.LogWarning($">>> {item.Name}, MediaDateTime: {item.MediaDateTime}, CategoryTags: {item.CategoryTags}");    
                 }
             }
 

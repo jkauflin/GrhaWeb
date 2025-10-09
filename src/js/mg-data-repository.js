@@ -25,7 +25,7 @@ Modification History
 2025-10-07 JJK  Refactored to use new API endpoint instead of GraphQL
 ================================================================================*/
 
-import {empty,showLoadingSpinner,addDays,getDateInt} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,addDays,getDateInt} from './util.js';
 import {createMediaPage,displayCurrFileList,updateAdminMessage} from './mg-create-pages.js';
 export let mediaInfo = {
     filterList: [],
@@ -102,6 +102,9 @@ export async function queryMediaInfo(paramData) {
         body: JSON.stringify(paramData)
     });
     const result = await response.json();
+
+
+
     if (result.errors != null) {
         console.log("Error: " + result.errors[0].message);
         console.table(result.errors);
