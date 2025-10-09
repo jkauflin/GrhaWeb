@@ -22,6 +22,7 @@ Modification History
 2024-12-20 JJK  Got the Photos query working for GRHA
 2024-12-30 JJK  Working on Docs and filter options
 2025-05-10 JJK  Adding a Year-Month filter
+2025-10-07 JJK  Refactored to use new API endpoint instead of GraphQL
 ================================================================================*/
 
 import {empty,showLoadingSpinner,addDays,getDateInt} from './util.js';
@@ -85,6 +86,61 @@ export function getFileName(index) {
 //------------------------------------------------------------------------------------------------------------
 // Query the database for menu and file information and store in js variables
 //------------------------------------------------------------------------------------------------------------
+export async function queryMediaInfo(paramData) {
+    getMenu = paramData.getMenu;
+    let eventPhotos = paramData.eventPhotos;
+
+    // Set a default start date and reset menu/album name
+    mediaInfo.startDate = "1972-01-01";
+    mediaInfo.menuOrAlbumName = "";
+
+    // Call the new API endpoint instead of GraphQL
+    const endpoint = "/api/GetMediaInfo";
+    const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(paramData)
+    });
+    const result = await response.json();
+    if (result.errors != null) {
+        console.log("Error: " + result.errors[0].message);
+        console.table(result.errors);
+    } else {
+        // Expect result to be an array of MediaInfo objects
+        mediaInfo.fileList.length = 0;
+        mediaInfo.fileList = result.mediaList || [];
+        mediaInfo.filterList = [];
+
+        if (mediaInfo.fileList.length > 0) {
+            mediaInfo.startDate = mediaInfo.fileList[0].MediaDateTime.substring(0, 10);
+            // Set the filter list elements
+            let lastMediaDateTime = mediaInfo.fileList[mediaInfo.fileList.length - 1].MediaDateTime;
+            if (mediaType == 1 && mediaInfo.fileList.length > 50) {
+                let filterRec = {
+                    filterName: "Next",
+                    startDate: lastMediaDateTime
+                };
+                mediaInfo.filterList.push(filterRec);
+            }
+        }
+
+        let mti = mediaType - 1;
+        mediaTypeDesc = mediaTypeData[mti].MediaTypeDesc;
+        categoryList.length = 0;
+        if (mediaTypeData[mti].Category != null) {
+            for (let i = 0; i < mediaTypeData[mti].Category.length; i++) {
+                categoryList.push(mediaTypeData[mti].Category[i].CategoryName);
+            }
+        }
+        contentDesc = mediaTypeDesc + " - " + queryCategory;
+        if (eventPhotos) {
+            createEventPhotos();
+        } else {
+            createMediaPage();
+        }
+    }
+}
+/*
 export async function queryMediaInfo(paramData) {
     //console.log("--------------------------------------------------------------------")
     //console.log("$$$$$ in the QueryMediaInfo, mediaType = "+mediaType)
@@ -202,52 +258,6 @@ export async function queryMediaInfo(paramData) {
                 mediaInfo.filterList.push(filterRec)
             }
 
-            /*
-            let prevYear = parseInt(mediaInfo.startDate.substring(0,4))-1
-            let filterRec = {
-                filterName: "Prev Year",
-                startDate: prevYear.toString()+"-01-01"
-            }
-            mediaInfo.filterList.push(filterRec)
-        
-            filterRec = {
-                filterName: "Next",
-                startDate: lastMediaDateTime
-            }
-            mediaInfo.filterList.push(filterRec)
-            console.log("Next, startDate: lastMediaDateTime = "+lastMediaDateTime)
-            */
-
-            //if ($param->MediaFilterMediaType == 1 && !$albumKeyExists && $cnt > 50) {
-            /*
-            if (mediaType == 1 && albumQuery == "" && mediaInfo.fileList.length > 50) {
-                filterRec = {
-                    filterName: "Winter",
-                    startDate: currYear+"-01-01"
-                }
-                mediaInfo.filterList.push(filterRec)
-                filterRec = {
-                    filterName: "Spring",
-                    startDate: currYear+"-04-01"
-                }
-                mediaInfo.filterList.push(filterRec)
-                filterRec = {
-                    filterName: "Summer",
-                    startDate: currYear+"-07-01"
-                }
-                mediaInfo.filterList.push(filterRec)
-                filterRec = {
-                    filterName: "Fall",
-                    startDate: currYear+"-10-01"
-                }
-                mediaInfo.filterList.push(filterRec)
-                filterRec = {
-                    filterName: "Winter",
-                    startDate: currYear+"-12-01"
-                }
-                mediaInfo.filterList.push(filterRec)
-            }
-            */
 
         } // if (mediaInfo.fileList.length > 0) {
 
@@ -277,6 +287,7 @@ export async function queryMediaInfo(paramData) {
         }
     }
 }
+*/
 
 function createEventPhotos() {
     var eventPhotosDiv = document.getElementById("EventPhotos")

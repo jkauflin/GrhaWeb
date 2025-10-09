@@ -38,7 +38,7 @@
  *============================================================================*/
 
 import {empty,showLoadingSpinner,formatMoney,setCheckbox,checkFetchResponse} from './util.js'
-import {mediaInfo,mediaType,setMediaType,queryMediaInfo,getFilePath,getFileName} from './mg-data-repository.js'
+import {mediaType,setMediaType,queryMediaInfo} from './mg-data-repository.js'
   
 var duesPageTab
 var duesLinkTile
@@ -118,7 +118,7 @@ document.addEventListener('DOMContentLoaded', () => {
     queryBoardInfo()
 
     // When the page loads, check what month it is and display any Event photos (if they exist)
-    //queryEventPhotos()
+    queryEventPhotos()
 })
 
 document.body.addEventListener("click", function (event) {
@@ -133,7 +133,6 @@ async function queryBoardInfo() {
         const response = await fetch("/api/GetTrusteeList", {
             method: "GET",
             headers: { "Content-Type": "application/json" }
-            //body: searchStr.value
         })
         await checkFetchResponse(response)
         // Success
@@ -405,7 +404,6 @@ function formatDuesStatementResults(hoaRec) {
             payDuesInstructions.classList.add("mb-3")
             payDuesInstructions.innerHTML = hoaRec.paymentInstructions
         }
-
 
         let duesStatementCalculationTable = document.getElementById("DuesStatementCalculationTable")
         tbody = duesStatementCalculationTable.getElementsByTagName("tbody")[0]

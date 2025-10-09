@@ -101,6 +101,27 @@ namespace GrhaWeb.Function
             return new OkObjectResult(trusteeList);
         }
 
+        // Public API for media info queries
+        [Function("GetMediaInfo")]
+        public async Task<IActionResult> GetMediaInfo(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req)
+        {
+            try
+            {
+                string body = await new StreamReader(req.Body).ReadToEndAsync();
+                // paramData is a JSON object with filter params
+                var paramData = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(body);
+                var mediaList = await hoaDbCommon.GetMediaInfoDB(paramData);
+                return new OkObjectResult(mediaList);
+                //return new OkObjectResult(new { mediaList });
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Exception in GetMediaInfo: {ex.Message} {ex.StackTrace}");
+                return new BadRequestObjectResult($"Exception, message = {ex.Message}");
+            }
+        }
+
     } // public static class WebApi
 } // namespace GrhaWeb.Function
 
