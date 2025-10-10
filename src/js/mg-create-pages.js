@@ -269,8 +269,9 @@ thumbnailContainer.addEventListener("click", function (event) {
         let currYear = ""
         for (let index in mediaInfo.fileList) {
             let fi = mediaInfo.fileList[index]
+            //fi = Object.fromEntries(Object.entries(fi).map(([k, v]) => [k.charAt(0).toLowerCase() + k.slice(1), v]))
 
-            //console.log("fi.MediaDateTime = " + fi.MediaDateTime);
+            //console.log("fi.mediaDateTime = " + fi.mediaDateTime);
             //let prevYear = parseInt(mediaInfo.startDate.substring(0,4))-1
 
 
@@ -287,7 +288,7 @@ thumbnailContainer.addEventListener("click", function (event) {
             // Display thumbnail according to media type (and add event links for lightbox and edit)
             //-------------------------------------------------------------------------------------------------------------------
             if (mediaType == 1) {
-                currYear = fi.MediaDateTime.substring(0,4)
+                currYear = fi.mediaDateTime.substring(0,4)
                 if (currYear != prevYear) {
 
                     //<div class="clearfix">...</div>
@@ -412,7 +413,7 @@ thumbnailContainer.addEventListener("click", function (event) {
             if (mediaType == 1 && mediaInfo.fileList.length > 50) {
                 let buttonTop = document.createElement("button")
                 buttonTop.setAttribute('type',"button")
-                buttonTop.setAttribute('role',"button")
+                a.textContent = getFileName(index)
                 buttonTop.classList.add('btn','btn-primary','btn-sm','shadow-none','me-2','my-2')
                 buttonTop.textContent = "Top"
                 thumbnailRow3Col1.appendChild(buttonTop)

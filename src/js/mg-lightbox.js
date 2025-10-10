@@ -9,9 +9,7 @@ Modification History
                 tracking clicks on the whole body and looking for a class
 ================================================================================*/
 import {empty,showLoadingSpinner} from './util.js';
-import {mediaInfo,mediaType,mediaTypeDesc,setMediaType,
-    getFilePath,getFileName
-} from './mg-data-repository.js'
+import {mediaInfo,mediaType,mediaTypeDesc,setMediaType,getFilePath,getFileName} from './mg-data-repository.js'
 
 const mediaLightbox = new bootstrap.Modal(document.getElementById('MediaLightbox'))
 var mediaLightboxBody = document.getElementById("MediaLightboxBody")
@@ -103,6 +101,8 @@ function addImgToModal(index) {
 
 function lightboxNextImg(index) {
     if (index < mediaInfo.fileList.length-1) {
+        // If you use fi = mediaInfo.fileList[index] elsewhere, use camelCase property names (e.g., fi.title, fi.name, etc.)
+        // If you use fi = mediaInfo.fileList[index] elsewhere, convert keys to lowercase as needed
         addImgToModal(index+1)
     }            
 }

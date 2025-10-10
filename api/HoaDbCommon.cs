@@ -2202,18 +2202,27 @@ public class HoaDbCommon
     // Query Cosmos DB for MediaInfo records based on paramData
     public async Task<List<MediaInfo>> GetMediaInfoDB(Dictionary<string, object> paramData)
     {
-            string databaseId = "hoadb";
-            string containerId = "MediaInfoDoc";
+        string databaseId = "hoadb";
+        string containerId = "MediaInfoDoc";
             CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
+
+            /*
+            MediaFilterMediaType: mediaType, 
+            eventPhotos: true,
+            MediaFilterCategory: mediaCategory,
+            MediaFilterStartDate: startDate,
+            maxRows: 6
+            */
+
+            log.LogWarning($">>> GetMediaInfoDB paramData: {Newtonsoft.Json.JsonConvert.SerializeObject(paramData)}");
 
             // Extract filter params
             int mediaTypeId = paramData.ContainsKey("MediaTypeId") ? Convert.ToInt32(paramData["MediaTypeId"]) : 1;
             string category = paramData.ContainsKey("MediaFilterCategory") ? (paramData["MediaFilterCategory"]?.ToString() ?? "") : "";
             string startDate = paramData.ContainsKey("MediaFilterStartDate") ? (paramData["MediaFilterStartDate"]?.ToString() ?? "") : "";
-            //int maxRows = paramData.ContainsKey("maxRows") ? Convert.ToInt32(paramData["maxRows"]) : 200;
-            int maxRows = 2;
+            int maxRows = paramData.ContainsKey("maxRows") ? Convert.ToInt32(paramData["maxRows"]) : 100;
 
             // Build SQL query
             string sql = "SELECT * FROM c WHERE c.MediaTypeId = @mediaTypeId";
@@ -2221,7 +2230,6 @@ public class HoaDbCommon
             {
                 sql += " AND CONTAINS(c.CategoryTags, @category)";
             }
-            /*
             if (!string.IsNullOrEmpty(startDate))
             {
                 // Expecting startDate as yyyy-MM-dd or yyyy-MM-ddTHH:mm:ss
@@ -2231,7 +2239,6 @@ public class HoaDbCommon
                     sql += " AND c.MediaDateTimeVal >= @startDateVal";
                 }
             }
-            */
             sql += " ORDER BY c.MediaDateTime DESC OFFSET 0 LIMIT @maxRows";
 
             var queryDef = new QueryDefinition(sql)
@@ -2239,29 +2246,175 @@ public class HoaDbCommon
                 .WithParameter("@maxRows", maxRows);
             if (!string.IsNullOrEmpty(category) && category != "ALL" && category != "0")
                 queryDef = queryDef.WithParameter("@category", category);
-            /*
             if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out DateTime dt2))
             {
                 long dtVal = long.Parse(dt2.ToString("yyyyMMddHH"));
                 queryDef = queryDef.WithParameter("@startDateVal", dtVal);
             }
-            */
 
-            var mediaList = new List<MediaInfo>();
+
+/*
+export async function queryMediaInfo(paramData) {
+    //console.log("--------------------------------------------------------------------")
+    //console.log("$$$$$ in the QueryMediaInfo, mediaType = "+mediaType)
+
+    getMenu = paramData.getMenu
+    let eventPhotos = paramData.eventPhotos
+
+    // Set a default start date of 60 days back from current date
+    mediaInfo.startDate = "1972-01-01"
+    mediaInfo.menuOrAlbumName = ""
+
+    //let maxRows = 150
+    let maxRows = 200
+    let mti = mediaType - 1
+    defaultCategory = mediaTypeData[mti].Category[0].CategoryName
+    queryCategory = defaultCategory
+
+    let categoryQuery = ""
+    if (paramData.MediaFilterCategory != null && paramData.MediaFilterCategory != '' &&
+        paramData.MediaFilterCategory != 'ALL' && paramData.MediaFilterCategory != '0') {
+        if (paramData.MediaFilterCategory == 'DEFAULT') {
+            if (defaultCategory != 'ALL') {
+                categoryQuery = `{ CategoryTags: {contains: "${defaultCategory}"} }`
+            }
+        } else {
+            categoryQuery = `{ CategoryTags: {contains: "${paramData.MediaFilterCategory}"} }`
+            // Save the parameters from the laste query
+            queryCategory = paramData.MediaFilterCategory
+        }
+        //console.log(">>> categoryQuery = "+categoryQuery)
+    }
+
+    let startDateQuery = ""
+    //console.log("paramData.MediaFilterStartDate = "+paramData.MediaFilterStartDate)
+	if (paramData.MediaFilterStartDate != null && paramData.MediaFilterStartDate != '') {
+		if (paramData.MediaFilterStartDate == "DEFAULT") {
+			paramData.MediaFilterStartDate = mediaInfo.startDate
+		} else {
+            //startDateQuery = `{ MediaFileTime: { gte: 2023010108 } }`
+            startDateQuery = `{ MediaDateTimeVal: { gte: ${getDateInt(paramData.MediaFilterStartDate)} } }`
+        }
+        //console.log("      int MediaFilterStartDate = "+getDateInt(paramData.MediaFilterStartDate))
+	}
+
+    if (!eventPhotos) {
+        if (paramData.MediaFilterCategory != prevCategory) {
+            prevCategory = paramData.MediaFilterCategory
+            startDateQuery = ""
+        }
+    }
+
+    let orderByQuery = "orderBy: { MediaDateTime: ASC },"
+    if (mediaType == 4) {
+        orderByQuery = "orderBy: { MediaDateTime: DESC },"
+    }
+
+    let gql = `query {
+            books (
+                filter: { 
+                    and: [ 
+                        { MediaTypeId: { eq: ${mediaType} } }
+                        ${categoryQuery}
+                        ${startDateQuery}
+                    ] 
+                },
+                ${orderByQuery}
+                first: ${maxRows}
+            ) {
+                items {
+                    Name
+                    MediaDateTime
+                    Title
+                }
+            }
+        }`
+
+    //console.log(">>> query gql = "+gql)
+
+    const apiQuery = {
+        query: gql,
+        variables: {
+        }
+    }
+
+    const endpoint = "/data-api/graphql";
+    const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(apiQuery)
+    })
+    const result = await response.json()
+    if (result.errors != null) {
+        console.log("Error: "+result.errors[0].message);
+        console.table(result.errors);
+    } else {
+        //console.log("result.data = "+result.data)
+        //console.log("# result items = "+result.data.books.items.length)
+        mediaInfo.fileList.length = 0
+        mediaInfo.fileList = result.data.books.items
+        mediaInfo.filterList = []
+
+        if (mediaInfo.fileList.length > 0) {
+            mediaInfo.startDate = mediaInfo.fileList[0].MediaDateTime.substring(0,10)
+            //mediaInfo.menuOrAlbumName = "dt = "+mediaInfo.fileList[0].MediaDateTime
+
+            // Set the filter list elements
+            let currYear = mediaInfo.startDate.substring(0,4)
+            let lastMediaDateTime = mediaInfo.fileList[result.data.books.items.length-1].MediaDateTime
+
+            if (mediaType == 1 && mediaInfo.fileList.length > 50) {
+                let filterRec = {
+                    filterName: "Next",
+                    startDate: lastMediaDateTime
+                }
+                mediaInfo.filterList.push(filterRec)
+            }
+
+
+        } // if (mediaInfo.fileList.length > 0) {
+
+        let mti = mediaType - 1
+        mediaTypeDesc = mediaTypeData[mti].MediaTypeDesc
+
+        // Clear array before setting with values
+        categoryList.length = 0
+
+        let cnt = 0;
+        if (mediaTypeData[mti].Category != null) {
+            let category = null
+            for (let i = 0; i < mediaTypeData[mti].Category.length; i++) {
+                category = mediaTypeData[mti].Category[i]
+                categoryList.push(category.CategoryName)
+                cnt++
+            }
+        }
+
+        contentDesc = mediaTypeDesc + " - " + queryCategory
+
+        if (eventPhotos) {
+            // create the display for the event photos
+            createEventPhotos()
+        } else {
+            createMediaPage()
+        }
+    }
+}
+*/
+
+            var mediaInfoList = new List<MediaInfo>();
             var feed = container.GetItemQueryIterator<MediaInfo>(queryDef);
             while (feed.HasMoreResults)
             {
-                //var response = await feed.ReadNextAsync();
-                //mediaList.AddRange(response);
                 var response = await feed.ReadNextAsync();
                 foreach (var item in response)
                 {
-                    mediaList.Add(item);
+                    mediaInfoList.Add(item);
                     log.LogWarning($">>> {item.Name}, MediaDateTime: {item.MediaDateTime}, CategoryTags: {item.CategoryTags}");    
                 }
             }
 
-            return mediaList;
+            return mediaInfoList;
         }
 
 

@@ -35,7 +35,6 @@ export let mediaInfo = {
 export let mediaType = 1
 export let mediaTypeDesc = "Photos"
 export let contentDesc = ""
-export var getMenu = false
 
 export var queryCategory = ""
 
@@ -56,25 +55,24 @@ export function setMediaType(inMediaType) {
 export function getFilePath(index,descMod="",fullPath=false) {
     // descMod could be "Thumbs" or "Smaller"
     let fi = mediaInfo.fileList[index]
-
     if (mediaType == 3) {
-        return musicUri + fi.Name
+        return musicUri + fi.name
     } else if (mediaType == 4) {
-        return docsUri + fi.Name
+        return docsUri + fi.name
     } else {
         if (descMod == "Thumbs") {
-            return thumbsUri + fi.Name
+            return thumbsUri + fi.name
         } else {
-            return photosUri + fi.Name
+            return photosUri + fi.name
         }
     }
 }
 
 export function getFileName(index) {
     let fi = mediaInfo.fileList[index]
-    let fileNameNoExt = fi.Name
-    if (mediaType == 3 && fi.Title != '') {
-        fileNameNoExt = fi.Title
+    let fileNameNoExt = fi.name
+    if (mediaType == 3 && fi.title != '') {
+        fileNameNoExt = fi.title
     }
     let periodPos = fileNameNoExt.indexOf(".");
     if (periodPos >= 0) {
@@ -87,37 +85,30 @@ export function getFileName(index) {
 // Query the database for menu and file information and store in js variables
 //------------------------------------------------------------------------------------------------------------
 export async function queryMediaInfo(paramData) {
-    getMenu = paramData.getMenu;
     let eventPhotos = paramData.eventPhotos;
 
     // Set a default start date and reset menu/album name
     mediaInfo.startDate = "1972-01-01";
     mediaInfo.menuOrAlbumName = "";
 
-    // Call the new API endpoint instead of GraphQL
-    const endpoint = "/api/GetMediaInfo";
-    const response = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paramData)
-    });
-    const result = await response.json();
-
-
-
-    if (result.errors != null) {
-        console.log("Error: " + result.errors[0].message);
-        console.table(result.errors);
-    } else {
+    //showLoadingSpinner(BoardMessageDisplay)
+    try {
+        const response = await fetch("/api/GetMediaInfo", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(paramData)
+        })
+        await checkFetchResponse(response)
+        // Success
         // Expect result to be an array of MediaInfo objects
-        mediaInfo.fileList.length = 0;
-        mediaInfo.fileList = result.mediaList || [];
-        mediaInfo.filterList = [];
+        mediaInfo.fileList.length = 0
+        mediaInfo.fileList = await response.json()
+        mediaInfo.filterList = []
 
         if (mediaInfo.fileList.length > 0) {
-            mediaInfo.startDate = mediaInfo.fileList[0].MediaDateTime.substring(0, 10);
+            mediaInfo.startDate = mediaInfo.fileList[0].mediaDateTime.substring(0, 10);
             // Set the filter list elements
-            let lastMediaDateTime = mediaInfo.fileList[mediaInfo.fileList.length - 1].MediaDateTime;
+            let lastMediaDateTime = mediaInfo.fileList[mediaInfo.fileList.length - 1].mediaDateTime;
             if (mediaType == 1 && mediaInfo.fileList.length > 50) {
                 let filterRec = {
                     filterName: "Next",
@@ -128,7 +119,7 @@ export async function queryMediaInfo(paramData) {
         }
 
         let mti = mediaType - 1;
-        mediaTypeDesc = mediaTypeData[mti].MediaTypeDesc;
+        mediaTypeDesc = mediaTypeData[mti].mediaTypeDesc;
         categoryList.length = 0;
         if (mediaTypeData[mti].Category != null) {
             for (let i = 0; i < mediaTypeData[mti].Category.length; i++) {
@@ -139,10 +130,13 @@ export async function queryMediaInfo(paramData) {
         if (eventPhotos) {
             createEventPhotos();
         } else {
-            createMediaPage();
+            createMediaPage();  // Need to adjust 1st character of field names to lower case because of JS JSON conversion rules
         }
+    } catch (err) {
+        console.error(err)
     }
 }
+
 /*
 export async function queryMediaInfo(paramData) {
     //console.log("--------------------------------------------------------------------")
@@ -309,11 +303,11 @@ function createEventPhotos() {
         let titleExists = false
         for (let index in mediaInfo.fileList) {
             let fi = mediaInfo.fileList[index]
-            if (fi.Title != "") {
+            if (fi.title != "") {
                 titleExists = true
                 let li = document.createElement("li")
-                li.textContent = fi.Title
-                //console.log("title = "+fi.Title)
+                li.textContent = fi.title
+                //console.log("title = "+fi.title)
                 ul.appendChild(li)
             }
         }

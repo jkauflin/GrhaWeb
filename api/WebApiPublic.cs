@@ -113,7 +113,6 @@ namespace GrhaWeb.Function
                 var paramData = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(body);
                 var mediaList = await hoaDbCommon.GetMediaInfoDB(paramData);
                 return new OkObjectResult(mediaList);
-                //return new OkObjectResult(new { mediaList });
             }
             catch (Exception ex)
             {

@@ -35,6 +35,7 @@
  * 2025-10-03 JJK   Added variable sets after document load, and
  *                  Implemented re-try for board information, 
  *                  and hard-coded email addresses
+ * 2025-10-08 JJK   Checking media info load for homepage event photos
  *============================================================================*/
 
 import {empty,showLoadingSpinner,formatMoney,setCheckbox,checkFetchResponse} from './util.js'
@@ -56,7 +57,7 @@ var treasurerPhone
 var treasurerEmail
 var trustees
 var retryCnt = 0
-const retryMax = 3
+const retryMax = 4
 
 document.addEventListener('DOMContentLoaded', () => {
     // Assign DOM elements after DOM is ready
@@ -117,8 +118,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // Call the function to load Board of Trustees data every time the page is loaded
     queryBoardInfo()
 
-    // When the page loads, check what month it is and display any Event photos (if they exist)
-    //queryEventPhotos()
 })
 
 document.body.addEventListener("click", function (event) {
@@ -138,6 +137,7 @@ async function queryBoardInfo() {
         // Success
         const trusteeList = await response.json();
         //console.log("# of trustees = "+trusteeList.length)
+        empty(BoardMessageDisplay)
         if (trusteeList.length == 0) {
             if (retryCnt < retryMax) {
                 retryCnt++
@@ -148,8 +148,9 @@ async function queryBoardInfo() {
                 BoardMessageDisplay.innerHTML = "<b>Problem loading info...please refresh the page</b>"
             }
         } else {
-            empty(BoardMessageDisplay)
             displayBoardInfo(trusteeList)
+            // When the page loads, check what month it is and display any Event photos (if they exist)
+            queryEventPhotos()
         }
 
     } catch (err) {
@@ -254,13 +255,20 @@ async function queryEventPhotos() {
         startDate = '' + currDate.getFullYear() + "-10-01"
     }
 
+
+    // TESTING - force Christmas
+    mediaCategory = "Christmas"
+    startDate = '' + currDate.getFullYear()-1 + "-12-01"
+
+
     if (mediaCategory != "") {
         let paramData = {
             MediaFilterMediaType: mediaType, 
-            getMenu: false,
             eventPhotos: true,
             MediaFilterCategory: mediaCategory,
-            MediaFilterStartDate: startDate}
+            MediaFilterStartDate: startDate,
+            maxRows: 6
+        }
         queryMediaInfo(paramData);
     }
 }
