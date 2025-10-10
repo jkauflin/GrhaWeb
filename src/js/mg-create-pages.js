@@ -63,7 +63,6 @@ thumbnailContainer.addEventListener("click", function (event) {
 
         let paramData = {
             MediaFilterMediaType: mediaType, 
-            getMenu: false,
             MediaFilterCategory:  event.target.getAttribute('data-category'),
             MediaFilterStartDate: event.target.getAttribute('data-startDate')}
 
@@ -91,7 +90,6 @@ thumbnailContainer.addEventListener("click", function (event) {
 
         let paramData = {
             MediaFilterMediaType: mediaType, 
-            getMenu: false,
             MediaFilterCategory:  mediaFilterCategory.value,
             MediaFilterStartDate: mediaFilterStartDate.value}
 

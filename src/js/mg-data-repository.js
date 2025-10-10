@@ -22,7 +22,7 @@ Modification History
 2024-12-20 JJK  Got the Photos query working for GRHA
 2024-12-30 JJK  Working on Docs and filter options
 2025-05-10 JJK  Adding a Year-Month filter
-2025-10-07 JJK  Refactored to use new API endpoint instead of GraphQL
+2025-10-07 JJK  Refactored to use new function API endpoint instead of GraphQL
 ================================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,addDays,getDateInt} from './util.js';
@@ -87,9 +87,24 @@ export function getFileName(index) {
 export async function queryMediaInfo(paramData) {
     let eventPhotos = paramData.eventPhotos;
 
-    // Set a default start date and reset menu/album name
+    // Set a default start date
     mediaInfo.startDate = "1972-01-01";
-    mediaInfo.menuOrAlbumName = "";
+
+    if (paramData.MediaFilterCategory == "DEFAULT"){
+        // Get the default category for this media type
+        let mti = parseInt(paramData.MediaTypeId) - 1
+        if (mti >= 0 && mti < mediaTypeData.Count) {
+            paramData.MediaFilterCategory = mediaTypeData[mti].Category[0].CategoryName;
+        } else {
+            paramData.MediaFilterCategory = "ALL";
+        }
+    }
+
+	if (paramData.MediaFilterStartDate != null && paramData.MediaFilterStartDate != '') {
+		if (paramData.MediaFilterStartDate == "DEFAULT") {
+			paramData.MediaFilterStartDate = mediaInfo.startDate
+		}
+    }
 
     //showLoadingSpinner(BoardMessageDisplay)
     try {

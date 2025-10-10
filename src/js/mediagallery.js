@@ -163,45 +163,10 @@ document.querySelectorAll("."+MediaPageLinkClass).forEach(el => el.addEventListe
         // >>>>>>>>>>>>>>>>>>>>>>>> this is the START of things <<<<<<<<<<<<<<<<<<<
         let paramData = {
             MediaFilterMediaType: mediaType, 
-            getMenu: true,
             MediaFilterCategory: mediaCategory,
             MediaFilterStartDate: "DEFAULT"}
     
         queryMediaInfo(paramData);
     }
 }))
-
-
-// >>>>>>>>>>>>>> probably don't need this if not implementing an "album" concept (keep for example of passing mediagallery query on url line???)
-    // If there is a data-dir parameter, build and display the page
-    var paramName = 'albumKey';
-    // Look for parameters on the url
-    var results = new RegExp('[\?&]' + paramName + '=([^&#]*)').exec(window.location.search);
-    if (results != null) {
-        let albumKey = results[1] || 0;
-        //console.log(">>>>> mediaURI albumKey = " + albumKey);
-        albumKey = decodeURIComponent(albumKey);
-        setMediaType(1)
-
-        // Clear the parameters from the url
-        //window.history.replaceState({}, document.title, "/home/");
-        window.history.replaceState({}, document.title, "/");
-
-        let paramData = {
-            MediaFilterMediaType: mediaType, 
-            getMenu: true,
-            MediaFilterAlbumKey: albumKey
-        }
-
-        queryMediaInfo(paramData);
-
-        // Get the target tab based on the the MediaType specified, and use the new Bootstrap v5.2 js for showing the tab
-        // the link ('a') with the correct MediaType, within the ".navbar-nav" list
-        let targetTabElement = document.querySelector(`.navbar-nav a[data-MediaType="${mediaType}"]`);
-
-        // If the target tab element is found, create a Tab object and call the show() method
-        if (typeof targetTabElement !== "undefined" && targetTabElement !== null) {
-            bootstrap.Tab.getOrCreateInstance(targetTabElement).show();
-        }
-    }
 
