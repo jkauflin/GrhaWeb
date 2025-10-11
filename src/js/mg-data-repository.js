@@ -87,9 +87,6 @@ export function getFileName(index) {
 export async function queryMediaInfo(paramData) {
     let eventPhotos = paramData.eventPhotos;
 
-    // Set a default start date
-    mediaInfo.startDate = "1972-01-01";
-
     if (paramData.MediaFilterCategory == "DEFAULT"){
         // Get the default category for this media type
         let mti = parseInt(paramData.MediaTypeId) - 1
@@ -100,9 +97,17 @@ export async function queryMediaInfo(paramData) {
         }
     }
 
+    //..............................................................................
+    // Set a default start date
+    mediaInfo.startDate = "1972-01-01";
+    // >>>>> remember this gets set after the query and is used for the NEXT query
+    // need the DEFAULT values to be set for the "first" query
+
 	if (paramData.MediaFilterStartDate != null && paramData.MediaFilterStartDate != '') {
 		if (paramData.MediaFilterStartDate == "DEFAULT") {
+            // Adjust this logic for the different types 
 			paramData.MediaFilterStartDate = mediaInfo.startDate
+
 		}
     }
 
@@ -115,6 +120,9 @@ export async function queryMediaInfo(paramData) {
         })
         await checkFetchResponse(response)
         // Success
+
+        // Should there be some kind of retry for certain failures?
+
         // Expect result to be an array of MediaInfo objects
         mediaInfo.fileList.length = 0
         mediaInfo.fileList = await response.json()

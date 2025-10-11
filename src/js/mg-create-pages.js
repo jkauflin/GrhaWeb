@@ -10,6 +10,7 @@ Modification History
                 for queries.  Also, removing Admin functions to make this just
                 the presentation functions with no edit
 2025-01-05 JJK  Added handling of doc class to return PDF data
+2025-10-10 JJK  Modified to handle new filterList data from API query
 ================================================================================*/
 import {empty,showLoadingSpinner} from './util.js';
 import {mediaInfo,mediaType,queryCategory,categoryList,contentDesc,queryMediaInfo,getFilePath,getFileName} from './mg-data-repository.js'
@@ -64,7 +65,8 @@ thumbnailContainer.addEventListener("click", function (event) {
         let paramData = {
             MediaFilterMediaType: mediaType, 
             MediaFilterCategory:  event.target.getAttribute('data-category'),
-            MediaFilterStartDate: event.target.getAttribute('data-startDate')}
+            MediaFilterStartDate: event.target.getAttribute('data-startDate')
+        }
 
         queryMediaInfo(paramData);
 
@@ -97,14 +99,6 @@ thumbnailContainer.addEventListener("click", function (event) {
         // After query has retreived data, it will kick off the display page create
     }
 
-    var nonAlphaNumericSpaceCharsStr = "[\x01-\x1F\x21-\x2F\x3A-\x40\x5B-\x60\x7B-\x7F]";
-    // "g" global so it does more than 1 substitution
-    var regexNonAlphaNumericSpaceChars = new RegExp(nonAlphaNumericSpaceCharsStr, "g");
-    function cleanInputStr(inStr) {
-        // Remove all NON-alphanumeric or space characters
-        return inStr.replace(regexNonAlphaNumericSpaceChars, '');
-    }
-    
     //------------------------------------------------------------------------------------------------------------
     // Dynamically create the DOM elements to add to the Media Page div (either regular display or EDIT mode)
     //------------------------------------------------------------------------------------------------------------
@@ -408,6 +402,7 @@ thumbnailContainer.addEventListener("click", function (event) {
                     thumbnailRow3Col1.appendChild(button2)
                 }
             }
+            /*
             if (mediaType == 1 && mediaInfo.fileList.length > 50) {
                 let buttonTop = document.createElement("button")
                 buttonTop.setAttribute('type',"button")
@@ -419,6 +414,7 @@ thumbnailContainer.addEventListener("click", function (event) {
                     window.scrollTo(0, 0)
                 });
             }
+            */
         }
 
         // Add the Menu or Album name as row 0 (if it is non-blank)
