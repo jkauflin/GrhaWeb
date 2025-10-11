@@ -10,7 +10,7 @@ Modification History
                 for queries.  Also, removing Admin functions to make this just
                 the presentation functions with no edit
 2025-01-05 JJK  Added handling of doc class to return PDF data
-2025-10-10 JJK  Modified to handle new filterList data from API query
+2025-10-10 JJK  Modified to handle new file list data from API query
 ================================================================================*/
 import {empty,showLoadingSpinner} from './util.js';
 import {mediaInfo,mediaType,queryCategory,categoryList,contentDesc,queryMediaInfo,getFilePath,getFileName} from './mg-data-repository.js'
@@ -78,7 +78,6 @@ thumbnailContainer.addEventListener("click", function (event) {
             displayElementInLightbox(index)
         }
     }
-    
 })
 
 
@@ -148,7 +147,6 @@ thumbnailContainer.addEventListener("click", function (event) {
         filterRow1Col2.classList.add('col-sm-4','col-md-3')
         filterRow1.appendChild(filterRow1Col2)
 
-
         //-----------------------------------------------------------------------------
         let filterRow1Col3 = document.createElement("div")
         filterRow1Col3.classList.add('col-1')
@@ -189,8 +187,6 @@ thumbnailContainer.addEventListener("click", function (event) {
         });
         filterRow2Col1.appendChild(mediaFilterCategory);
         filterRow2.appendChild(filterRow2Col1)
-
-
 
         /*
 <div class="dropdown">
@@ -261,11 +257,8 @@ thumbnailContainer.addEventListener("click", function (event) {
         let currYear = ""
         for (let index in mediaInfo.fileList) {
             let fi = mediaInfo.fileList[index]
-            //fi = Object.fromEntries(Object.entries(fi).map(([k, v]) => [k.charAt(0).toLowerCase() + k.slice(1), v]))
-
             //console.log("fi.mediaDateTime = " + fi.mediaDateTime);
             //let prevYear = parseInt(mediaInfo.startDate.substring(0,4))-1
-
 
             // Create a Card to hold the thumbnail of the media object
             let thumb = document.createElement("div")
@@ -306,7 +299,6 @@ thumbnailContainer.addEventListener("click", function (event) {
                 img.classList.add('rounded','float-start','mt-2','me-2',imgThumbnailClass)
                 img.setAttribute('onerror', "this.onerror=null; this.remove()")
                 img.src = getFilePath(index,"Thumbs")
-                //img.src = getFilePath(index,"Smaller")
                 img.setAttribute('data-index', index)
                 img.height = 110
 
@@ -319,13 +311,6 @@ thumbnailContainer.addEventListener("click", function (event) {
                 thumbnailRow2Col1.appendChild(thumb)
 
             } else if (mediaType == 4) {
-                // DOCS
-                    
-                //console.log("PDF file = " + fi.Name + ", filePath = " + filePath);
-
-                //const endpoint = "/api/DownloadPDF";
-                //a.href = endpoint
-
                 docFiles = true
                 let a = document.createElement("a")
                 a.href = getFilePath(index)
@@ -338,7 +323,6 @@ thumbnailContainer.addEventListener("click", function (event) {
                 tr.classList.add("smalltext")
                 tr.appendChild(td);
                 doclistTbody.appendChild(tr)
-
             }
         } //   for (let index in mediaInfo.fileList) {
         
@@ -402,11 +386,9 @@ thumbnailContainer.addEventListener("click", function (event) {
                     thumbnailRow3Col1.appendChild(button2)
                 }
             }
-            /*
             if (mediaType == 1 && mediaInfo.fileList.length > 50) {
                 let buttonTop = document.createElement("button")
                 buttonTop.setAttribute('type',"button")
-                a.textContent = getFileName(index)
                 buttonTop.classList.add('btn','btn-primary','btn-sm','shadow-none','me-2','my-2')
                 buttonTop.textContent = "Top"
                 thumbnailRow3Col1.appendChild(buttonTop)
@@ -414,7 +396,6 @@ thumbnailContainer.addEventListener("click", function (event) {
                     window.scrollTo(0, 0)
                 });
             }
-            */
         }
 
         // Add the Menu or Album name as row 0 (if it is non-blank)

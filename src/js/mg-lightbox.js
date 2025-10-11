@@ -49,8 +49,6 @@ function addImgToModal(index) {
     lightboxImg = document.createElement("img");
     lightboxImg.setAttribute('onerror', "this.onerror=null; this.remove()")
     lightboxImg.classList.add(lightboxImgClass,'float-start')
-    //lightboxImg.src = getFilePath(index)
-    //console.log("smaller path = "+getFilePath(index,"Smaller"))
     lightboxImg.src = getFilePath(index,"Smaller")
     lightboxImg.setAttribute('data-index', index)
     if (window.innerHeight > window.innerWidth) {
@@ -90,7 +88,6 @@ function addImgToModal(index) {
     mediaLightboxBody.appendChild(aRight)
 
     let closeButton = document.createElement("button")
-    //closeButton.classList.add('btn','btn-close','float-start','shadow-none','mt-2','me-2')
     closeButton.classList.add('btn','btn-close','float-start','shadow-none','mt-2','me-2')
     closeButton.setAttribute('type',"button")
     closeButton.setAttribute('role',"button")
@@ -101,8 +98,6 @@ function addImgToModal(index) {
 
 function lightboxNextImg(index) {
     if (index < mediaInfo.fileList.length-1) {
-        // If you use fi = mediaInfo.fileList[index] elsewhere, use camelCase property names (e.g., fi.title, fi.name, etc.)
-        // If you use fi = mediaInfo.fileList[index] elsewhere, convert keys to lowercase as needed
         addImgToModal(index+1)
     }            
 }

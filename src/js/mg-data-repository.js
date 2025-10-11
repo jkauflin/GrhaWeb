@@ -22,7 +22,7 @@ Modification History
 2024-12-20 JJK  Got the Photos query working for GRHA
 2024-12-30 JJK  Working on Docs and filter options
 2025-05-10 JJK  Adding a Year-Month filter
-2025-10-07 JJK  Refactored to use new function API endpoint instead of GraphQL
+2025-10-07 JJK  Refactored to use new function API endpoint instead of data-api 
 ================================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,addDays,getDateInt} from './util.js';
@@ -36,9 +36,9 @@ export let mediaType = 1
 export let mediaTypeDesc = "Photos"
 export let contentDesc = ""
 
-export var queryCategory = ""
+export let queryCategory = ""
 
-export var categoryList = []
+export let categoryList = []
 let defaultCategory = ""
 let prevCategory = ""
 
@@ -128,6 +128,7 @@ export async function queryMediaInfo(paramData) {
         mediaInfo.fileList = await response.json()
         mediaInfo.filterList = []
 
+        // After the query list returns, set Filter buttons as needed
         if (mediaInfo.fileList.length > 0) {
             mediaInfo.startDate = mediaInfo.fileList[0].mediaDateTime.substring(0, 10);
             // Set the filter list elements
@@ -142,7 +143,7 @@ export async function queryMediaInfo(paramData) {
         }
 
         let mti = mediaType - 1;
-        mediaTypeDesc = mediaTypeData[mti].mediaTypeDesc;
+        mediaTypeDesc = mediaTypeData[mti].MediaTypeDesc;
         categoryList.length = 0;
         if (mediaTypeData[mti].Category != null) {
             for (let i = 0; i < mediaTypeData[mti].Category.length; i++) {
@@ -153,7 +154,7 @@ export async function queryMediaInfo(paramData) {
         if (eventPhotos) {
             createEventPhotos();
         } else {
-            createMediaPage();  // Need to adjust 1st character of field names to lower case because of JS JSON conversion rules
+            createMediaPage();
         }
     } catch (err) {
         console.error(err)

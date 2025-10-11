@@ -2224,12 +2224,19 @@ public class HoaDbCommon
             string startDate = paramData.ContainsKey("MediaFilterStartDate") ? (paramData["MediaFilterStartDate"]?.ToString() ?? "") : "";
             int maxRows = paramData.ContainsKey("maxRows") ? Convert.ToInt32(paramData["maxRows"]) : 100;
 
+            // Request options: MaxItemCount controls page size (not total rows)
+            QueryRequestOptions queryRequestOptions = new QueryRequestOptions
+            {
+                PartitionKey = new PartitionKey(mediaTypeId),
+                MaxItemCount = maxRows // each page will return up to rowMax items
+            };
 
             // Build SQL query
-            string sql = "SELECT * FROM c WHERE c.MediaTypeId = @mediaTypeId";
+            string sql = "SELECT TOP @maxRows * FROM c ";
+            
             if (!string.IsNullOrEmpty(category) && category != "ALL" && category != "0")
             {
-                sql += " AND CONTAINS(c.CategoryTags, @category)";
+                sql += " WHERE CONTAINS(c.CategoryTags, @category)";
             }
             if (!string.IsNullOrEmpty(startDate))
             {
@@ -2237,38 +2244,42 @@ public class HoaDbCommon
                 if (DateTime.TryParse(startDate, out DateTime dt))
                 {
                     long dtVal = long.Parse(dt.ToString("yyyyMMddHH"));
-                    sql += " AND c.MediaDateTimeVal >= @startDateVal";
+                    //sql += " AND c.MediaDateTimeVal >= @startDateVal";
                 }
             }
-            if (mediaTypeId == 4)
-            {
-                // Show the Docs in descending order (newest first)
-                sql += " ORDER BY c.MediaDateTime DESC OFFSET 0 LIMIT @maxRows";
-            } else
-            {
-                sql += " ORDER BY c.MediaDateTime OFFSET 0 LIMIT @maxRows";
-            }
+            sql += " ORDER BY c.MediaDateTime DESC ";
 
+            log.LogWarning($"*** maxRows: {maxRows}, SQL: {sql}");
             var queryDef = new QueryDefinition(sql)
-                .WithParameter("@mediaTypeId", mediaTypeId)
                 .WithParameter("@maxRows", maxRows);
+            //.WithParameter("@mediaTypeId", mediaTypeId)
             if (!string.IsNullOrEmpty(category) && category != "ALL" && category != "0")
                 queryDef = queryDef.WithParameter("@category", category);
+            /*                
             if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out DateTime dt2))
             {
                 long dtVal = long.Parse(dt2.ToString("yyyyMMddHH"));
                 queryDef = queryDef.WithParameter("@startDateVal", dtVal);
             }
+            */
 
             var mediaInfoList = new List<MediaInfo>();
-            var feed = container.GetItemQueryIterator<MediaInfo>(queryDef);
+            var feed = container.GetItemQueryIterator<MediaInfo>(
+                queryDef,
+                requestOptions: queryRequestOptions);
+
+            int pageCnt = 0;
+            int rowCnt = 0;
             while (feed.HasMoreResults)
             {
+                pageCnt++;
+                log.LogWarning($"------- Reading page {pageCnt} ...");
                 var response = await feed.ReadNextAsync();
                 foreach (var item in response)
                 {
+                    rowCnt++;
                     mediaInfoList.Add(item);
-                    log.LogWarning($">>> {item.Name}, MediaDateTime: {item.MediaDateTime}, CategoryTags: {item.CategoryTags}");    
+                    log.LogWarning($">>> {rowCnt} {item.Name}, MediaDateTime: {item.MediaDateTime}, CategoryTags: {item.CategoryTags}");    
                 }
             }
 
