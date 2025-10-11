@@ -2208,35 +2208,29 @@ public class HoaDbCommon
             Database db = cosmosClient.GetDatabase(databaseId);
             Container container = db.GetContainer(containerId);
 
-            /*
-            MediaFilterMediaType: mediaType, 
-            eventPhotos: true,
-            MediaFilterCategory: mediaCategory,
-            MediaFilterStartDate: startDate,
-            maxRows: 6
-            */
-
+            log.LogWarning("-------------------------------------------------------------------------------------------------------------------------------------------");
             log.LogWarning($">>> GetMediaInfoDB paramData: {Newtonsoft.Json.JsonConvert.SerializeObject(paramData)}");
 
             // Extract filter params
             int mediaTypeId = paramData.ContainsKey("MediaTypeId") ? Convert.ToInt32(paramData["MediaTypeId"]) : 1;
             string category = paramData.ContainsKey("MediaFilterCategory") ? (paramData["MediaFilterCategory"]?.ToString() ?? "") : "";
             string startDate = paramData.ContainsKey("MediaFilterStartDate") ? (paramData["MediaFilterStartDate"]?.ToString() ?? "") : "";
-            int maxRows = paramData.ContainsKey("maxRows") ? Convert.ToInt32(paramData["maxRows"]) : 100;
+            int maxRows = paramData.ContainsKey("maxRows") ? Convert.ToInt32(paramData["maxRows"]) : 300;
 
             // Request options: MaxItemCount controls page size (not total rows)
             QueryRequestOptions queryRequestOptions = new QueryRequestOptions
             {
                 PartitionKey = new PartitionKey(mediaTypeId),
-                MaxItemCount = maxRows // each page will return up to rowMax items
+                MaxItemCount = maxRows // Page Count - each page will return up to rowMax items
             };
 
             // Build SQL query
-            string sql = "SELECT TOP @maxRows * FROM c ";
+            string sql = "SELECT TOP @maxRows * FROM c WHERE c.MediaTypeId = @mediaTypeId";
             
             if (!string.IsNullOrEmpty(category) && category != "ALL" && category != "0")
             {
-                sql += " WHERE CONTAINS(c.CategoryTags, @category)";
+                sql += " AND CONTAINS(c.CategoryTags, @category)";
+                log.LogWarning($">>> Adding category filter: {category}");
             }
             if (!string.IsNullOrEmpty(startDate))
             {
@@ -2244,24 +2238,26 @@ public class HoaDbCommon
                 if (DateTime.TryParse(startDate, out DateTime dt))
                 {
                     long dtVal = long.Parse(dt.ToString("yyyyMMddHH"));
-                    //sql += " AND c.MediaDateTimeVal >= @startDateVal";
+                    sql += " AND c.MediaDateTimeVal >= @startDateVal";
+                    log.LogWarning($">>> Adding startDate filter: {startDate} ({dtVal})");
                 }
             }
-            sql += " ORDER BY c.MediaDateTime DESC ";
+            sql += " ORDER BY c.MediaDateTimeVal DESC ";
 
             log.LogWarning($"*** maxRows: {maxRows}, SQL: {sql}");
             var queryDef = new QueryDefinition(sql)
-                .WithParameter("@maxRows", maxRows);
-            //.WithParameter("@mediaTypeId", mediaTypeId)
+                .WithParameter("@maxRows", maxRows)
+                .WithParameter("@mediaTypeId", mediaTypeId);
+
             if (!string.IsNullOrEmpty(category) && category != "ALL" && category != "0")
+            {
                 queryDef = queryDef.WithParameter("@category", category);
-            /*                
+            }
             if (!string.IsNullOrEmpty(startDate) && DateTime.TryParse(startDate, out DateTime dt2))
             {
                 long dtVal = long.Parse(dt2.ToString("yyyyMMddHH"));
                 queryDef = queryDef.WithParameter("@startDateVal", dtVal);
             }
-            */
 
             var mediaInfoList = new List<MediaInfo>();
             var feed = container.GetItemQueryIterator<MediaInfo>(
@@ -2273,7 +2269,7 @@ public class HoaDbCommon
             while (feed.HasMoreResults)
             {
                 pageCnt++;
-                log.LogWarning($"------- Reading page {pageCnt} ...");
+                //log.LogWarning($"------- Reading page {pageCnt} ...");
                 var response = await feed.ReadNextAsync();
                 foreach (var item in response)
                 {

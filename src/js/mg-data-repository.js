@@ -87,27 +87,41 @@ export function getFileName(index) {
 export async function queryMediaInfo(paramData) {
     let eventPhotos = paramData.eventPhotos;
 
-    if (paramData.MediaFilterCategory == "DEFAULT"){
-        // Get the default category for this media type
-        let mti = parseInt(paramData.MediaTypeId) - 1
-        if (mti >= 0 && mti < mediaTypeData.Count) {
-            paramData.MediaFilterCategory = mediaTypeData[mti].Category[0].CategoryName;
-        } else {
-            paramData.MediaFilterCategory = "ALL";
+    // Load the category list for the selected media type
+    let mti = mediaType - 1;
+    mediaTypeDesc = mediaTypeData[mti].MediaTypeDesc;
+    categoryList.length = 0;
+    if (mediaTypeData[mti].Category != null) {
+        for (let i = 0; i < mediaTypeData[mti].Category.length; i++) {
+            categoryList.push(mediaTypeData[mti].Category[i].CategoryName);
         }
     }
 
+    // Set these for the createMediaPage function
+    defaultCategory = mediaTypeData[mti].Category[0].CategoryName
+
+    if (paramData.MediaFilterCategory == null || paramData.MediaFilterCategory == '' || paramData.MediaFilterCategory == '0' || paramData.MediaFilterCategory == 'DEFAULT') {
+        paramData.MediaFilterCategory = defaultCategory
+    }
+
+    // Save the parameters from the laste query
+    queryCategory = paramData.MediaFilterCategory
+
+
     //..............................................................................
     // Set a default start date
-    mediaInfo.startDate = "1972-01-01";
+    //mediaInfo.startDate = "1972-01-01";
+    mediaInfo.startDate = "";
     // >>>>> remember this gets set after the query and is used for the NEXT query
     // need the DEFAULT values to be set for the "first" query
+
+	paramData.MediaFilterStartDate = ""
 
 	if (paramData.MediaFilterStartDate != null && paramData.MediaFilterStartDate != '') {
 		if (paramData.MediaFilterStartDate == "DEFAULT") {
             // Adjust this logic for the different types 
-			paramData.MediaFilterStartDate = mediaInfo.startDate
-
+			//paramData.MediaFilterStartDate = mediaInfo.startDate
+			paramData.MediaFilterStartDate = ""
 		}
     }
 
@@ -129,6 +143,7 @@ export async function queryMediaInfo(paramData) {
         mediaInfo.filterList = []
 
         // After the query list returns, set Filter buttons as needed
+        /*
         if (mediaInfo.fileList.length > 0) {
             mediaInfo.startDate = mediaInfo.fileList[0].mediaDateTime.substring(0, 10);
             // Set the filter list elements
@@ -141,15 +156,9 @@ export async function queryMediaInfo(paramData) {
                 mediaInfo.filterList.push(filterRec);
             }
         }
+        */
 
-        let mti = mediaType - 1;
-        mediaTypeDesc = mediaTypeData[mti].MediaTypeDesc;
-        categoryList.length = 0;
-        if (mediaTypeData[mti].Category != null) {
-            for (let i = 0; i < mediaTypeData[mti].Category.length; i++) {
-                categoryList.push(mediaTypeData[mti].Category[i].CategoryName);
-            }
-        }
+        
         contentDesc = mediaTypeDesc + " - " + queryCategory;
         if (eventPhotos) {
             createEventPhotos();
@@ -340,8 +349,8 @@ function createEventPhotos() {
         }
 
         for (let index in mediaInfo.fileList) {
-            let img = document.createElement("img");
-            img.classList.add('me-1')
+            let img = document.createElement("img")
+            img.classList.add('mt-1','me-1')
             img.setAttribute('onerror', "this.onerror=null; this.remove()")
             img.src = getFilePath(index)
             img.style.width = "30%"
@@ -413,19 +422,19 @@ var mediaTypeData = [
     MediaTypeDesc: "Docs",
     Category: [
         {
-            CategoryName: "Governing Docs",
-            Menu: [
-            ]        },
-        {
-            CategoryName: "Historical Docs",
-            Menu: [
-            ]        },
-        {
             CategoryName: "Quail Call newsletters",
             Menu: [
             ]        },
         {
+            CategoryName: "Governing Docs",
+            Menu: [
+            ]        },
+        {
             CategoryName: "Annual Meetings",
+            Menu: [
+            ]        },
+        {
+            CategoryName: "Historical Docs",
             Menu: [
             ]        }
     ]

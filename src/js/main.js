@@ -255,11 +255,9 @@ async function queryEventPhotos() {
         startDate = '' + currDate.getFullYear() + "-10-01"
     }
 
-
     // TESTING - force Christmas
-    mediaCategory = "Christmas"
-    startDate = '' + currDate.getFullYear()-1 + "-12-01"
-
+    //mediaCategory = "Christmas"
+    //startDate = "2020-12-01"
 
     if (mediaCategory != "") {
         let paramData = {

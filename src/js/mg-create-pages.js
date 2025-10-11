@@ -339,6 +339,7 @@ thumbnailContainer.addEventListener("click", function (event) {
         //----------------------------------------------------------------------------------------------------
         // If there is a filter request list, create Filter Request buttons with the start date
         //----------------------------------------------------------------------------------------------------
+        /*
         let buttonMax = 20
         if (window.innerHeight > window.innerWidth) {
             buttonMax = 4
@@ -397,6 +398,7 @@ thumbnailContainer.addEventListener("click", function (event) {
                 });
             }
         }
+        */
 
         // Add the Menu or Album name as row 0 (if it is non-blank)
         if (mediaInfo.menuOrAlbumName != null && mediaInfo.menuOrAlbumName != "") {
