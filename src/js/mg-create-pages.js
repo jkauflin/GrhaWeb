@@ -65,8 +65,9 @@ thumbnailContainer.addEventListener("click", function (event) {
         let paramData = {
             MediaFilterMediaType: mediaType, 
             MediaFilterCategory:  event.target.getAttribute('data-category'),
-            MediaFilterStartDate: event.target.getAttribute('data-startDate')
+            MediaFilterStartDate: ""
         }
+            //MediaFilterStartDate: event.target.getAttribute('data-startDate')
 
         queryMediaInfo(paramData);
 
@@ -92,7 +93,8 @@ thumbnailContainer.addEventListener("click", function (event) {
         let paramData = {
             MediaFilterMediaType: mediaType, 
             MediaFilterCategory:  mediaFilterCategory.value,
-            MediaFilterStartDate: mediaFilterStartDate.value}
+            MediaFilterStartDate: ""}
+            //MediaFilterStartDate: mediaFilterStartDate.value}
 
         queryMediaInfo(paramData);
         // After query has retreived data, it will kick off the display page create

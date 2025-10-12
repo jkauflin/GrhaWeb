@@ -48,6 +48,11 @@ let docsUri = "https://grhawebstorage.blob.core.windows.net/docs/"
 let photosUri = "https://grhawebstorage.blob.core.windows.net/photos/"
 let thumbsUri = "https://grhawebstorage.blob.core.windows.net/thumbs/"
 
+var MediaPageMessage
+document.addEventListener('DOMContentLoaded', () => {
+    MediaPageMessage = document.getElementById("MediaPageMessage")
+})
+
 export function setMediaType(inMediaType) {
     mediaType = parseInt(inMediaType)
 }
@@ -87,6 +92,10 @@ export function getFileName(index) {
 export async function queryMediaInfo(paramData) {
     let eventPhotos = paramData.eventPhotos;
 
+    if (paramData.MediaFilterMediaType != null && paramData.MediaFilterMediaType != '') {
+        setMediaType(parseInt(paramData.MediaFilterMediaType))
+    }
+
     // Load the category list for the selected media type
     let mti = mediaType - 1;
     mediaTypeDesc = mediaTypeData[mti].MediaTypeDesc;
@@ -107,15 +116,12 @@ export async function queryMediaInfo(paramData) {
     // Save the parameters from the laste query
     queryCategory = paramData.MediaFilterCategory
 
-
     //..............................................................................
     // Set a default start date
     //mediaInfo.startDate = "1972-01-01";
     mediaInfo.startDate = "";
     // >>>>> remember this gets set after the query and is used for the NEXT query
     // need the DEFAULT values to be set for the "first" query
-
-	paramData.MediaFilterStartDate = ""
 
 	if (paramData.MediaFilterStartDate != null && paramData.MediaFilterStartDate != '') {
 		if (paramData.MediaFilterStartDate == "DEFAULT") {
@@ -125,7 +131,7 @@ export async function queryMediaInfo(paramData) {
 		}
     }
 
-    //showLoadingSpinner(BoardMessageDisplay)
+    showLoadingSpinner(MediaPageMessage)
     try {
         const response = await fetch("/api/GetMediaInfo", {
             method: "POST",
@@ -134,7 +140,7 @@ export async function queryMediaInfo(paramData) {
         })
         await checkFetchResponse(response)
         // Success
-
+        
         // Should there be some kind of retry for certain failures?
 
         // Expect result to be an array of MediaInfo objects
@@ -143,9 +149,9 @@ export async function queryMediaInfo(paramData) {
         mediaInfo.filterList = []
 
         // After the query list returns, set Filter buttons as needed
-        /*
         if (mediaInfo.fileList.length > 0) {
             mediaInfo.startDate = mediaInfo.fileList[0].mediaDateTime.substring(0, 10);
+            /*
             // Set the filter list elements
             let lastMediaDateTime = mediaInfo.fileList[mediaInfo.fileList.length - 1].mediaDateTime;
             if (mediaType == 1 && mediaInfo.fileList.length > 50) {
@@ -155,9 +161,8 @@ export async function queryMediaInfo(paramData) {
                 };
                 mediaInfo.filterList.push(filterRec);
             }
+            */
         }
-        */
-
         
         contentDesc = mediaTypeDesc + " - " + queryCategory;
         if (eventPhotos) {
@@ -165,8 +170,10 @@ export async function queryMediaInfo(paramData) {
         } else {
             createMediaPage();
         }
+        MediaPageMessage.textContent = ""
     } catch (err) {
         console.error(err)
+        MediaPageMessage.textContent = "Error getting media information: " + err.message
     }
 }
 
@@ -368,6 +375,9 @@ var mediaTypeData = [
     MediaTypeDesc: "Photos",
     Category: [
         {
+            CategoryName: "ALL"
+        },
+        {
             CategoryName: "Misc",
             Menu: [
             ]
@@ -396,9 +406,6 @@ var mediaTypeData = [
             CategoryName: "Meetings",
             Menu: [
             ]
-        },
-        {
-            CategoryName: "ALL"
         }
     ]
 },

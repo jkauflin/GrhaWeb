@@ -2204,19 +2204,20 @@ public class HoaDbCommon
     {
         string databaseId = "hoadb";
         string containerId = "MediaInfoDoc";
-            CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
-            Database db = cosmosClient.GetDatabase(databaseId);
-            Container container = db.GetContainer(containerId);
+        CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
+        Database db = cosmosClient.GetDatabase(databaseId);
+        Container container = db.GetContainer(containerId);
 
-            log.LogWarning("-------------------------------------------------------------------------------------------------------------------------------------------");
-            log.LogWarning($">>> GetMediaInfoDB paramData: {Newtonsoft.Json.JsonConvert.SerializeObject(paramData)}");
+        //log.LogWarning("-------------------------------------------------------------------------------------------------------------------------------------------");
+        //log.LogWarning($">>> GetMediaInfoDB paramData: {Newtonsoft.Json.JsonConvert.SerializeObject(paramData)}");
 
-            // Extract filter params
-            int mediaTypeId = paramData.ContainsKey("MediaTypeId") ? Convert.ToInt32(paramData["MediaTypeId"]) : 1;
-            string category = paramData.ContainsKey("MediaFilterCategory") ? (paramData["MediaFilterCategory"]?.ToString() ?? "") : "";
-            string startDate = paramData.ContainsKey("MediaFilterStartDate") ? (paramData["MediaFilterStartDate"]?.ToString() ?? "") : "";
-            int maxRows = paramData.ContainsKey("maxRows") ? Convert.ToInt32(paramData["maxRows"]) : 300;
+        //int mediaTypeId = paramData.ContainsKey("MediaTypeId") ? Convert.ToInt32(paramData["MediaTypeId"]) : 1;
+        int mediaTypeId = paramData.ContainsKey("MediaFilterMediaType") ? Convert.ToInt32(paramData["MediaFilterMediaType"]) : 1;
+        string category = paramData.ContainsKey("MediaFilterCategory") ? (paramData["MediaFilterCategory"]?.ToString() ?? "") : "";
+        string startDate = paramData.ContainsKey("MediaFilterStartDate") ? (paramData["MediaFilterStartDate"]?.ToString() ?? "") : "";
+        int maxRows = paramData.ContainsKey("maxRows") ? Convert.ToInt32(paramData["maxRows"]) : 300;
 
+            //log.LogWarning($">>> Filter params: MediaTypeId: {mediaTypeId}, Category: {category}, StartDate: {startDate}, maxRows: {maxRows}");
             // Request options: MaxItemCount controls page size (not total rows)
             QueryRequestOptions queryRequestOptions = new QueryRequestOptions
             {
@@ -2226,7 +2227,6 @@ public class HoaDbCommon
 
             // Build SQL query
             string sql = "SELECT TOP @maxRows * FROM c WHERE c.MediaTypeId = @mediaTypeId";
-            
             if (!string.IsNullOrEmpty(category) && category != "ALL" && category != "0")
             {
                 sql += " AND CONTAINS(c.CategoryTags, @category)";
@@ -2243,8 +2243,8 @@ public class HoaDbCommon
                 }
             }
             sql += " ORDER BY c.MediaDateTimeVal DESC ";
+            //log.LogWarning($"*** maxRows: {maxRows}, SQL: {sql}");
 
-            log.LogWarning($"*** maxRows: {maxRows}, SQL: {sql}");
             var queryDef = new QueryDefinition(sql)
                 .WithParameter("@maxRows", maxRows)
                 .WithParameter("@mediaTypeId", mediaTypeId);
@@ -2275,12 +2275,12 @@ public class HoaDbCommon
                 {
                     rowCnt++;
                     mediaInfoList.Add(item);
-                    log.LogWarning($">>> {rowCnt} {item.Name}, MediaDateTime: {item.MediaDateTime}, CategoryTags: {item.CategoryTags}");    
+                    //log.LogWarning($">>> {rowCnt} {item.Name}, MediaDateTime: {item.MediaDateTime}, CategoryTags: {item.CategoryTags}");    
                 }
             }
 
-            return mediaInfoList;
-        }
+        return mediaInfoList;
+    }
 
 
 } // public class HoaDbCommon
