@@ -10,7 +10,6 @@ This project is an azure static web application for a homeowners association.  I
 - `/api/HoaDbCommon.cs`: Contains common code for the HOA database API.
 - `/src/admin`: Contains the source code for the admin page.
 - `/src/hoadb`: Contains the source code for the database page for the treasurer.
-- `/swa-db-connections`: Contains the source code for the database connections and configurations for the static web app data-api.
 
 ## Libraries and Frameworks
 
@@ -27,7 +26,6 @@ The backend is written using:
 - Uses Azure Functions Timer triggers for scheduled tasks.
 - Used Azure Event Grid for queued processing tasks such as sending emails.
 - Cosmos DB for data storage.
-- Built-in GraphQL for azure swa data-api queries.
 - Azure storage for file uploads and static content.
 
 Local development uses:
@@ -40,8 +38,8 @@ Local development uses:
 - Use proper indentation (4 spaces).
 - Use camelCase for variable and function names with lowercase first letter to match JavaScript conventions and JSON transformations.
 - Add new functions to WebApi.cs and HoaDbCommon.cs as needed but put them at the bottom of the class in the file.
-- Use async/await for asynchronous operations in C#.
-- Use try/catch blocks for error handling in C#, but not in HoaDbCommon.cs which should throw exceptions to be caught in WebApi.cs.
+- Use async/await for asynchronous operations in C#
+- Use try/catch blocks for error handling in C# but not in HoaDbCommon.cs which should throw exceptions to be caught in WebApi.cs.
 - Use comments to explain complex logic and document functions.
 
 ## UI guidelines
