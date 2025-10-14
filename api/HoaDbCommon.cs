@@ -718,7 +718,8 @@ public class HoaDbCommon
             else
             {
                 queryDefinition = new QueryDefinition(
-                    "SELECT * FROM c WHERE c.Email = 1 ORDER BY c.CreateTs DESC OFFSET 0 LIMIT 400");
+                    "SELECT TOP 400 * FROM c WHERE c.Email = 1 ORDER BY c.CreateTs DESC ");
+                    //"SELECT * FROM c WHERE c.Email = 1 ORDER BY c.CreateTs DESC OFFSET 0 LIMIT 400");
             }
         }
         else
@@ -910,7 +911,7 @@ public class HoaDbCommon
         //Container configContainer = db.GetContainer("hoa_config");
         Container container = db.GetContainer(containerId);
         //var queryDefinition = new QueryDefinition("SELECT * FROM c ORDER BY c.CreateTimestamp DESC OFFSET 0 LIMIT 200 ");
-        var queryDefinition = new QueryDefinition("SELECT * FROM c ORDER BY c.LastChangedTs DESC OFFSET 0 LIMIT 200 ");
+        var queryDefinition = new QueryDefinition("SELECT TOP 200 * FROM c ORDER BY c.LastChangedTs DESC ");
         var feed = container.GetItemQueryIterator<hoa_sales>(queryDefinition);
         int cnt = 0;
         while (feed.HasMoreResults)
@@ -1690,7 +1691,7 @@ public class HoaDbCommon
         }
 
         int maxOwnerID = 0;
-        queryDefinition = new QueryDefinition("SELECT * FROM c ORDER BY c.OwnerID DESC OFFSET 0 LIMIT 1 ");
+        queryDefinition = new QueryDefinition("SELECT TOP 1 * FROM c ORDER BY c.OwnerID DESC ");
         var feed = container.GetItemQueryIterator<hoa_owners>(queryDefinition);
         while (feed.HasMoreResults)
         {

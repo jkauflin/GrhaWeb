@@ -76,27 +76,22 @@ import {} from './reports.js';
 import {} from './config.js';
 import {} from './admin.js';
 
-// Keep track of the state of the navbar collapse (shown or hidden)
-var navbarCollapseShown = false;
-var collapsibleNavbar = document.getElementsByClassName("navbar-collapse")[0];
-collapsibleNavbar.addEventListener('hidden.bs.collapse', function () {
-    navbarCollapseShown = false;
+document.addEventListener('DOMContentLoaded', () => {
+    // Keep track of the state of the navbar collapse (shown or hidden)
+    var navbarCollapseShown = false;
+    var collapsibleNavbar = document.getElementsByClassName("navbar-collapse")[0];
+    collapsibleNavbar.addEventListener('hidden.bs.collapse', function () {
+        navbarCollapseShown = false;
+    })
+    collapsibleNavbar.addEventListener('shown.bs.collapse', function () {
+        navbarCollapseShown = true;
+    })
+        
+    // Listen for nav-link clicks
+    document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click", function (event) {
+        // Automatically hide the navbar collapse when an item link is clicked (and the collapse is currently shown)
+        if (navbarCollapseShown) {
+            new bootstrap.Collapse(document.getElementsByClassName("navbar-collapse")[0]).hide()
+        }
+    }))
 })
-collapsibleNavbar.addEventListener('shown.bs.collapse', function () {
-    navbarCollapseShown = true;
-})
-     
-// Listen for nav-link clicks
-document.querySelectorAll("a.nav-link").forEach(el => el.addEventListener("click", function (event) {
-    // Automatically hide the navbar collapse when an item link is clicked (and the collapse is currently shown)
-    if (navbarCollapseShown) {
-        new bootstrap.Collapse(document.getElementsByClassName("navbar-collapse")[0]).hide()
-    }
-}))
-    
-// 8/9/2020 Focus on the first non-readonly input field when a modal pops up
-/* >>>>> find out if we still need this
-$document.on('shown.bs.modal', function (e) {
-    $('input:visible:enabled:not([readonly]):first', e.target).focus(); 
-});
-*/

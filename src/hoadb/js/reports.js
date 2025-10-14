@@ -37,6 +37,7 @@
  * 					(which looks up sales record values and puts them
  * 					into the Owner Update modal)
  * 2025-08-16 JJK   Working on Reports for Sales, Dues Counts, and Dues letters
+ * 2025-10-14 JJK   Changing to just 1 Dues Letter (combining 1st and 2nd)
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatDateMonth,formatMoney,setTD,setCheckbox,csvFilter,setBoolText} from './util.js';
@@ -48,6 +49,7 @@ var csvContent;
 var ReportListTbody
 var ReportsMessageDisplay
 var ReportHeader
+var ReportRecCnt
 var ReportDownloadLinks
 //var LogDuesLetterSend
 //var LogWelcomeLetters
@@ -57,6 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	ReportListTbody = document.getElementById("ReportListTbody")
 	ReportsMessageDisplay = document.getElementById("ReportsMessageDisplay")
 	ReportHeader = document.getElementById("ReportHeader")
+	ReportRecCnt = document.getElementById("ReportRecCnt")
 	ReportDownloadLinks = document.getElementById("ReportDownloadLinks")
 	//LogDuesLetterSend = document.getElementById("LogDuesLetterSend")
 	//LogWelcomeLetters = document.getElementById("LogWelcomeLetters")
@@ -71,10 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	document.getElementById("UnpaidDuesRankingReport").addEventListener("click", function (event) {
 		_reportRequest(event)
 	})
-	document.getElementById("Duesletter1Report").addEventListener("click", function (event) {
-		_reportRequest(event)
-	})
-	document.getElementById("Duesletter2Report").addEventListener("click", function (event) {
+	document.getElementById("DuesletterReport").addEventListener("click", function (event) {
 		_reportRequest(event)
 	})
 })
@@ -419,6 +419,7 @@ function _duesRank(hoaRecList, reportName, reportTitle) {
 	// Table header
 	tr = document.createElement('tr');
 	tr.classList.add('small');
+	th = document.createElement("th"); th.textContent = "Rec"; tr.appendChild(th);
 	th = document.createElement("th"); th.textContent = "Parcel"; tr.appendChild(th);
 	th = document.createElement("th"); th.textContent = "Location"; tr.appendChild(th);
 	th = document.createElement("th"); th.textContent = "Total Due"; tr.appendChild(th);
@@ -437,14 +438,15 @@ function _duesRank(hoaRecList, reportName, reportTitle) {
 
 			tr = document.createElement('tr');
 			tr.classList.add('small');
+			td = document.createElement("td"); td.textContent = unpaidDuesCnt; tr.appendChild(td);
 			td = document.createElement("td"); td.textContent = hoaRec.property.parcel_ID; tr.appendChild(td);
 			td = document.createElement("td"); td.textContent = hoaRec.property.parcel_Location; tr.appendChild(td);
-			td = document.createElement("td"); td.textContent = hoaRec.totalDue; tr.appendChild(td);
+			td = document.createElement("td"); td.textContent = formatMoney(hoaRec.totalDue); tr.appendChild(td);
 			tbody.appendChild(tr);
 
             csvLine = csvFilter(hoaRec.property.parcel_ID);
             csvLine += ',' + csvFilter(hoaRec.property.parcel_Location);
-            csvLine += ',' + csvFilter(hoaRec.totalDue);
+            csvLine += ',' + csvFilter(formatMoney(hoaRec.totalDue));
             csvContent += csvLine + '\n';
         }
 	})
@@ -460,8 +462,7 @@ function _duesRank(hoaRecList, reportName, reportTitle) {
 	button.appendChild(i)
 	button.innerHTML = '<i class="fa fa-download me-1"></i> Download CSV'
 	ReportDownloadLinks.appendChild(button);
-
-    //$ReportRecCnt.html("Unpaid Dues Ranking, total = " + unpaidDuesCnt);
+	ReportRecCnt.textContent = "Unpaid Dues Ranking, total = " + unpaidDuesCnt
 }
 
 function _formatReportList(hoaRecList, reportName, reportTitle) {
@@ -557,7 +558,7 @@ function _formatReportList(hoaRecList, reportName, reportTitle) {
 			td = document.createElement("td"); td.textContent = hoaRec.property.property_Zip; tr.appendChild(td);
 		}
 
-		td = document.createElement("td"); td.textContent = hoaRec.totalDue; tr.appendChild(td);
+		td = document.createElement("td"); td.textContent = formatMoney(hoaRec.totalDue); tr.appendChild(td);
 		tbody.appendChild(tr);
 
         csvLine = csvFilter(recCnt);
@@ -585,7 +586,7 @@ function _formatReportList(hoaRecList, reportName, reportTitle) {
         } else {
             csvLine += ',' + csvFilter(hoaRec.assessmentsList[0].duesAmt);
         }
-        csvLine += ',' + csvFilter(hoaRec.totalDue);
+        csvLine += ',' + csvFilter(formatMoney(hoaRec.totalDue));
         csvLine += ',' + csvFilter(setBoolText(hoaRec.assessmentsList[0].Paid));
         csvLine += ',' + csvFilter(setBoolText(hoaRec.assessmentsList[0].NonCollectible));
         csvLine += ',' + csvFilter(hoaRec.assessmentsList[0].dateDue);
@@ -609,6 +610,8 @@ function _formatReportList(hoaRecList, reportName, reportTitle) {
 	button.appendChild(i)
 	button.innerHTML = '<i class="fa fa-download me-1"></i> Download CSV'
 	ReportDownloadLinks.appendChild(button);
+
+	ReportRecCnt.textContent = "Unpaid Dues mailing list, total = "+recCnt
 
 
 } // function formatReportList(reportName,reportList){
