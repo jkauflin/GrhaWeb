@@ -5,12 +5,21 @@ DESCRIPTION:  Common utility functions for Web API's
 --------------------------------------------------------------------------------
 Modification History
 2024-08-28 JJK  Initial version (converted from older PHP code)
+2024-11-01 JJK - Updated Total Due logic according to changes specified by GRHA Board and new Treasurer
+    Remove the restriction of an Open Lien to adding the interest on the unpaid assessment - it will now start adding
+    interest when unpaid and past the DUE DATE.
+    In addition, a $10 a month late fee will be added to any unpaid assessments
 2024-11-04 JJK  Finished stringToMoney and CalcCompoundInterest
 2024-11-20 JJK  Added CalcTotalDues as a common function for doing the 
                 calculation of total dues (& fees) based on Assessments
 2025-08-17 JJK  Added a better version of stringToMoney that allows for currency symbols, 
                 thousands separators, and decimal points
 2025-08-27 JJK  Added IsValidEmail to check email addresses
+2025-10-15 JJK  Updated CalcTotalDues to use the assessmentRec.StopInterestCalc
+                flag to determine calculation of ALL interest and late fees
+                (if set, they will not be added to the total due)
+                *** And there will be a function to set this flag for all
+                un-PAID assessments (for properties that are engaged in a payment plan)
 ================================================================================*/
 
 using System.Net.Mail;
@@ -137,19 +146,27 @@ namespace GrhaWeb.Function
                     //          FY > 2024
                     //          if months > 10, use 10 ($100) - show a LATE FEE for every unpaid assessment
                     //================================================================================================================================
-                    //if ($hoaAssessmentRec->Lien && $hoaAssessmentRec->Disposition == 'Open') {
+                    // If not PAID and past the due date, then add interest and late fees
                     if (duesDue)
                     {
                         // Assume that if past due, there will be interest and fees (so can't just pay the curr year due)
                         onlyCurrYearDue = false;
+
                         // If still calculating interest dynamically calculate the compound interest (else just use the value from the assessment record)
                         if (assessmentRec.StopInterestCalc != 1)
                         {
+                            // if still calculating interest dynamically, calculate the compound interest
+                            // (else just use the value from the assessment record)
                             assessmentRec.AssessmentInterest = CalcCompoundInterest(duesAmt, dateDue);
+
+
+                            // move the Fee calc here?
+
                         }
 
                         totalDue += assessmentRec.AssessmentInterest;
 
+                        // only show this if there is interest to show??? (> 0.00)
                         totalDuesCalcRec = new TotalDuesCalcRec();
                         totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + tempDateDue + ")";
                         totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
@@ -181,6 +198,7 @@ namespace GrhaWeb.Function
 
                 } // if (assessmentRec.Paid != 1 && assessmentRec.NonCollectible != 1) {
 
+
                 // If the Assessment was Paid but the interest was not, then add the interest to the total
                 if (assessmentRec.Paid == 1 && assessmentRec.InterestNotPaid == 1)
                 {
@@ -199,6 +217,7 @@ namespace GrhaWeb.Function
                     totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
                     totalDuesCalcList.Add(totalDuesCalcRec);
                 } //  if (assessmentRec.Paid == 1 && assessmentRec.InterestNotPaid == 1) {
+
 
                 // If there is an Open Lien (not Paid, Released, or Closed)
                 dispositionStr = assessmentRec.Disposition ?? "";
