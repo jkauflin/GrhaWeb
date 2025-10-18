@@ -159,9 +159,29 @@ namespace GrhaWeb.Function
                             // (else just use the value from the assessment record)
                             assessmentRec.AssessmentInterest = CalcCompoundInterest(duesAmt, dateDue);
 
-
                             // move the Fee calc here?
 
+                            // Calculate monthly late fees (starting in November 2024 for the FY 2025)
+                            if (assessmentRec.FY > 2024)
+                            {
+                                // number of months between the due date and current date
+                                monthsApart = ((currDate.Year - dateDue.Year) * 12) + currDate.Month - dateDue.Month;
+                                // Ensure the number of months is non-negative
+                                monthsApart = Math.Abs(monthsApart);
+                                if (monthsApart > 10)
+                                {
+                                    monthsApart = 10;
+                                }
+
+                                totalLateFees = 10.00m * monthsApart;
+                                totalDue += totalLateFees;
+
+                                prevFY = assessmentRec.FY - 1;
+                                totalDuesCalcRec = new TotalDuesCalcRec();
+                                totalDuesCalcRec.calcDesc = "$10 a Month late fee on FY " + assessmentRec.FY.ToString() + " Assessment (since " + prevFY.ToString() + "-10-31)";
+                                totalDuesCalcRec.calcValue = totalLateFees.ToString();
+                                totalDuesCalcList.Add(totalDuesCalcRec);
+                            }
                         }
 
                         totalDue += assessmentRec.AssessmentInterest;
@@ -171,28 +191,6 @@ namespace GrhaWeb.Function
                         totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + tempDateDue + ")";
                         totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
                         totalDuesCalcList.Add(totalDuesCalcRec);
-
-                        // Calculate monthly late fees (starting in November 2024 for the FY 2025)
-                        if (assessmentRec.FY > 2024)
-                        {
-                            // number of months between the due date and current date
-                            monthsApart = ((currDate.Year - dateDue.Year) * 12) + currDate.Month - dateDue.Month;
-                            // Ensure the number of months is non-negative
-                            monthsApart = Math.Abs(monthsApart);
-                            if (monthsApart > 10)
-                            {
-                                monthsApart = 10;
-                            }
-
-                            totalLateFees = 10.00m * monthsApart;
-                            totalDue += totalLateFees;
-
-                            prevFY = assessmentRec.FY - 1;
-                            totalDuesCalcRec = new TotalDuesCalcRec();
-                            totalDuesCalcRec.calcDesc = "$10 a Month late fee on FY " + assessmentRec.FY.ToString() + " Assessment (since " + prevFY.ToString() + "-10-31)";
-                            totalDuesCalcRec.calcValue = totalLateFees.ToString();
-                            totalDuesCalcList.Add(totalDuesCalcRec);
-                        }
 
                     } // if (duesDue) {
 
