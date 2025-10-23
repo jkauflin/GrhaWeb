@@ -515,7 +515,7 @@ function _formatReportList(hoaRecList, reportName, reportTitle) {
     csvLine += ',' + "Paid"
     csvLine += ',' + "NonCollectible"
     csvLine += ',' + "DateDue"
-    csvLine += ',' + "UseEmail"
+    //csvLine += ',' + "UseEmail"
     csvLine += ',' + "FiscalYearPrev"
     csvLine += ',' + "DateDue2"
     csvLine += ',' + "NoticeDate"
@@ -590,7 +590,7 @@ function _formatReportList(hoaRecList, reportName, reportTitle) {
         csvLine += ',' + csvFilter(setBoolText(hoaRec.assessmentsList[0].Paid));
         csvLine += ',' + csvFilter(setBoolText(hoaRec.assessmentsList[0].NonCollectible));
         csvLine += ',' + csvFilter(hoaRec.assessmentsList[0].dateDue);
-        csvLine += ',' + csvFilter(hoaRec.property.useEmail);
+        //csvLine += ',' + csvFilter(hoaRec.property.useEmail);
         csvLine += ',' + csvFilter(reportYear-1);
         csvLine += ',' + csvFilter(DateDue2);
         csvLine += ',' + csvFilter(noticeDate);

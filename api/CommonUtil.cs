@@ -174,23 +174,27 @@ namespace GrhaWeb.Function
                                 }
 
                                 totalLateFees = 10.00m * monthsApart;
-                                totalDue += totalLateFees;
 
-                                prevFY = assessmentRec.FY - 1;
-                                totalDuesCalcRec = new TotalDuesCalcRec();
-                                totalDuesCalcRec.calcDesc = "$10 a Month late fee on FY " + assessmentRec.FY.ToString() + " Assessment (since " + prevFY.ToString() + "-10-31)";
-                                totalDuesCalcRec.calcValue = totalLateFees.ToString();
-                                totalDuesCalcList.Add(totalDuesCalcRec);
+                                if (totalLateFees > 0.00m)
+                                {
+                                    totalDue += totalLateFees;
+                                    prevFY = assessmentRec.FY - 1;
+                                    totalDuesCalcRec = new TotalDuesCalcRec();
+                                    totalDuesCalcRec.calcDesc = "$10 a Month late fee on FY " + assessmentRec.FY.ToString() + " Assessment (since " + prevFY.ToString() + "-10-31)";
+                                    totalDuesCalcRec.calcValue = totalLateFees.ToString();
+                                    totalDuesCalcList.Add(totalDuesCalcRec);
+                                }
                             }
                         }
 
-                        totalDue += assessmentRec.AssessmentInterest;
-
-                        // only show this if there is interest to show??? (> 0.00)
-                        totalDuesCalcRec = new TotalDuesCalcRec();
-                        totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + tempDateDue + ")";
-                        totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
-                        totalDuesCalcList.Add(totalDuesCalcRec);
+                        if (assessmentRec.AssessmentInterest > 0.00m)
+                        {
+                            totalDue += assessmentRec.AssessmentInterest;
+                            totalDuesCalcRec = new TotalDuesCalcRec();
+                            totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + tempDateDue + ")";
+                            totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
+                            totalDuesCalcList.Add(totalDuesCalcRec);
+                        }
 
                     } // if (duesDue) {
 

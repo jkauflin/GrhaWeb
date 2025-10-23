@@ -79,9 +79,11 @@
 										<tr class="small"><th class="d-none d-md-table-cell">State: </th><td id="Property_State" class="d-none d-md-table-cell"></td></tr>
 										<tr class="small"><th class="d-none d-md-table-cell">Zip Code: </th><td id="Property_Zip" class="d-none d-md-table-cell"></td></tr>
 										<tr class="small"><th>Total Due: </th><td id="TotalDue"></td></tr>
+										<!--
 										<tr  class="small"><th>Use Email: </th><td>
 											<input id="UseEmail" name="UseEmail" class="form-check-input shadow-none" type="checkbox">
 										</td></tr>
+										-->
 										<tr  class="small"><th>Comments: </th><td>
 											<textarea id="Comments" name="Comments" class="form-control shadow-none" rows="2"></textarea>
 										</td></tr>
@@ -476,6 +478,10 @@
 							</button>
 							<div id="UpdateAssessmentMessageDisplay" class="m-2"></div>
 							<div class="mb-2">
+							    <input  id="assStopInterestCalc" name="StopInterestCalc" type="checkbox" class="form-check-input shadow-none" >
+                            	<label for="assStopInterestCalc"><b>Stop ALL Interest & Fee Calcs</b></label>
+							</div>
+							<div class="mb-2">
 								<input id="assLien" name="Lien" class="form-check-input shadow-none" type="checkbox" />
 								<label for="assLien" class="form-label">Lien</label>
 							</div>
@@ -519,10 +525,6 @@
 							<div class="mb-2 form-floating">
 							    <input  id="assAmountPaid" name="AmountPaid" type="number" step="0.01" min="0" class="form-control shadow-none" >
                             	<label for="assAmountPaid">AmountPaid</label>
-							</div>
-							<div class="mb-2">
-							    <input  id="assStopInterestCalc" name="StopInterestCalc" type="checkbox" class="form-check-input shadow-none" >
-                            	<label for="assStopInterestCalc">Stop Interest Calc</label>
 							</div>
 							<div class="mb-2 form-floating">
 							    <input  id="assFilingFeeInterest" name="FilingFeeInterest" type="number" step="0.01" min="0" class="form-control shadow-none" >

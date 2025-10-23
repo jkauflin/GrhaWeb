@@ -1527,7 +1527,7 @@ public class HoaDbCommon
                 PatchOperation.Replace("/LastChangedTs", LastChangedTs)
             };
 
-        AddPatchField(patchOperations, formFields, "UseEmail", "Bool");
+        //AddPatchField(patchOperations, formFields, "UseEmail", "Bool");
         AddPatchField(patchOperations, formFields, "Comments");
 
         // Convert the list to an array

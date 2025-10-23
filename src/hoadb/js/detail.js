@@ -75,7 +75,7 @@ var Property_City
 var Property_State
 var Property_Zip
 var TotalDue
-var UseEmail
+//var UseEmail
 var Comments
 var updParcel_ID
 var updParcelLocation
@@ -153,7 +153,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Property_State = document.getElementById("Property_State")
     Property_Zip = document.getElementById("Property_Zip")
     TotalDue = document.getElementById("TotalDue")
-    UseEmail = document.getElementById("UseEmail")
+    //UseEmail = document.getElementById("UseEmail")
     Comments = document.getElementById("Comments")
     updParcel_ID = document.getElementById("updParcel_ID")
     updParcelLocation = document.getElementById("updParcelLocation")
@@ -537,6 +537,12 @@ async function updateAssessment() {
         // Success
         let assessmentRec = await response.json()
         AssessmentUpdateModal.hide()
+
+
+        await getHoaRec(assessmentRec.parcel_ID)
+        messageDisplay.textContent = "Assessment updated sucessfully"
+
+        /*
         // Replace the record in the assessments list
         let assessmentFound = false
         for (let index in hoaRec.assessmentsList) {
@@ -553,6 +559,7 @@ async function updateAssessment() {
             displayDetailAssessments()
             messageDisplay.textContent = "Assessment updated sucessfully"
         }
+        */
     } catch (err) {
         console.error(err)
         UpdateAssessmentMessageDisplay.textContent = `Error in Fetch: ${err.message}`
@@ -669,7 +676,7 @@ async function getHoaRec(parcelId) {
     Property_State.textContent = ""
     Property_Zip.textContent = ""
     TotalDue.textContent = ""
-    UseEmail.checked = false
+    //UseEmail.checked = false
     Comments.value = ""
 
     // Clear out the display tables for Owner and Assessment lists
@@ -717,7 +724,7 @@ function displayDetail() {
     Property_State.textContent = hoaRec.property.property_State
     Property_Zip.textContent = hoaRec.property.property_Zip
     TotalDue.textContent = "$"+hoaRec.totalDue
-    UseEmail.checked = hoaRec.property.useEmail
+    //UseEmail.checked = hoaRec.property.useEmail
     Comments.value = hoaRec.property.comments
 
     displayDetailOwners()
