@@ -62,7 +62,7 @@ public class HoaDbCommon
         log = logger;
         config = configuration;
         apiCosmosDbConnStr = config["API_COSMOS_DB_CONN_STR"];
-        apiStorageConnStr = config["API_STORAGE_CONN_STR"];
+        apiStorageConnStr = config["AzureWebJobsStorage"];
         databaseId = "hoadb";
         grhaSendEmailEventTopicEndpoint = config["GRHA_SENDMAIL_EVENT_TOPIC_ENDPOINT"];
         grhaSendEmailEventTopicKey = config["GRHA_SENDMAIL_EVENT_TOPIC_KEY"];
