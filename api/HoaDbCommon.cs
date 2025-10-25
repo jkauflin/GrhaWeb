@@ -755,13 +755,12 @@ public class HoaDbCommon
 
         // Get a list of the parcels that have dues owed
         var hoaRecList = await GetHoaRecListDB(duesOwed, skipEmail, currYearPaid, currYearUnpaid, testEmail);
+        
         string containerId = "hoa_communications";
         CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
         Database db = cosmosClient.GetDatabase(databaseId);
         Container container = db.GetContainer(containerId);
-        //Container configContainer = db.GetContainer("hoa_config");
         DateTime currDateTime = DateTime.Now;
-        //string LastChangedTs = currDateTime.ToString("o");
 
         // Get list of parcels that owe dues and have a valid email address
         //int cnt = 0;
@@ -796,14 +795,14 @@ public class HoaDbCommon
             foreach (var emailAddr in hoaRec.emailAddrList)
             {
                 returnCnt++;
-                //log.LogWarning($"{returnCnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue}, email = {emailAddr}");
-
-                if (returnCnt > 5)
+                /*
+                log.LogWarning($"{returnCnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue}, email = {emailAddr}");
+                // >>>>>>>>>>>>>>>>>>>>>>> Limit for testing <<<<<<<<<<<<<<<<<<<<<<<
+                if (returnCnt > 10)
                 {
-                    // Limit to 5 new email records for testing
                     return returnCnt;
                 }
-
+                */
                 commId = Guid.NewGuid().ToString();
 
                 // Create a metadata object from the media file information
@@ -828,6 +827,8 @@ public class HoaDbCommon
                 await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
 
                 // >>>>> maybe future logic to check if there already a 'N' record for this parcel/email
+                // or delete existing 'N' records for this parcel/email before inserting new one <<<<<
+                // delete the whole set if creating a new list
             }
         }
         return returnCnt;
@@ -870,13 +871,6 @@ public class HoaDbCommon
             foreach (var hoa_comm in response)
             {
                 returnCnt++;
-
-                if (returnCnt > 1)
-                {
-                    // Limit to 5 email sends for testing
-                    return returnCnt;
-                }
-
                 duesEmailEvent.id = hoa_comm.id;
                 duesEmailEvent.parcelId = hoa_comm.Parcel_ID;
                 duesEmailEvent.emailAddr = hoa_comm.EmailAddr;
