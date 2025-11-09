@@ -21,6 +21,7 @@ Modification History
                 *** And there will be a function to set this flag for all
                 un-PAID assessments (for properties that are engaged in a payment plan)
 2025-11-09 JJK - Removed the cap of 10 months on late fees - they will now accrue until paid.
+                 And modified the interest calc and late fees to start from the actual due date + 1 month (as per Roy)
 ================================================================================*/
 
 using System.Net.Mail;
@@ -107,12 +108,9 @@ namespace GrhaWeb.Function
             {
                 cnt++;
                 string tempDateDue = assessmentRec.DateDue.Split(' ')[0];
-                //     "DateDue": "10/1/2006 0:00:00",
-                dateDue = DateTime.Parse(tempDateDue);
-
-//currentDate.AddMonths(1);
-
-
+                // Parse the text due date and add one month before we start calculating interest and late fees
+                dateDue = DateTime.Parse(tempDateDue).AddMonths(1);
+                var calcDateDue = dateDue.ToString("MM/dd/yyyy");
                 duesDue = false;
 
                 // If NOT PAID (and still able to be collected)
@@ -192,7 +190,7 @@ namespace GrhaWeb.Function
                                     totalDue += totalLateFees;
                                     prevFY = assessmentRec.FY - 1;
                                     totalDuesCalcRec = new TotalDuesCalcRec();
-                                    totalDuesCalcRec.calcDesc = "$10 a Month late fee on FY " + assessmentRec.FY.ToString() + " Assessment (since " + prevFY.ToString() + "-10-31)";
+                                    totalDuesCalcRec.calcDesc = "$10 a Month late fee on FY " + assessmentRec.FY.ToString() + " Assessment (since " + calcDateDue + ")";
                                     totalDuesCalcRec.calcValue = totalLateFees.ToString();
                                     totalDuesCalcList.Add(totalDuesCalcRec);
                                 }
@@ -203,7 +201,7 @@ namespace GrhaWeb.Function
                         {
                             totalDue += assessmentRec.AssessmentInterest;
                             totalDuesCalcRec = new TotalDuesCalcRec();
-                            totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + tempDateDue + ")";
+                            totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + calcDateDue + ")";
                             totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
                             totalDuesCalcList.Add(totalDuesCalcRec);
                         }
@@ -227,7 +225,7 @@ namespace GrhaWeb.Function
                     totalDue += assessmentRec.AssessmentInterest;
 
                     totalDuesCalcRec = new TotalDuesCalcRec();
-                    totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + tempDateDue + ")";
+                    totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + calcDateDue + ")";
                     totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
                     totalDuesCalcList.Add(totalDuesCalcRec);
                 } //  if (assessmentRec.Paid == 1 && assessmentRec.InterestNotPaid == 1) {

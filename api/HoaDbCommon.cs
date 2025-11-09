@@ -328,28 +328,27 @@ public class HoaDbCommon
                 {
                     continue;
                 }
-                /*
-                if (item.DateDue is null)
+
+                if (String.IsNullOrEmpty(item.DateDue))
                 {
                     dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
                 }
                 else
                 {
-                    dateDue = DateTime.Parse(item.DateDue);
+                    var tempDateDue = item.DateDue.Split(' ')[0];
+                    dateDue = DateTime.Parse(tempDateDue);
                 }
-                */
-                dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
+                // Reformat the due date to yyyy-MM-dd for consistency
                 item.DateDue = dateDue.ToString("yyyy-MM-dd");
-                // If you don't need the DateTime object, you can do it in 1 line
-                //item.DateDue = DateTime.Parse(item.DateDue).ToString("yyyy-MM-dd");
 
                 if (item.Paid == 1)
                 {
-                    if (string.IsNullOrWhiteSpace(item.DatePaid))
+                    if (string.IsNullOrEmpty(item.DatePaid))
                     {
                         item.DatePaid = item.DateDue;
                     }
-                    dateTime = DateTime.Parse(item.DatePaid);
+                    var tempDatePaid = item.DatePaid.Split(' ')[0];
+                    dateTime = DateTime.Parse(tempDatePaid);
                     item.DatePaid = dateTime.ToString("yyyy-MM-dd");
                 }
 
