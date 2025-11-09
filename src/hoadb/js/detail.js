@@ -283,30 +283,29 @@ document.addEventListener('DOMContentLoaded', () => {
     PrintModalButton.addEventListener("click", function () {
         printModal()
     })
-})
 
-// Respond to any clicks in the document and check for specific classes to respond to
-// (Do it dynamically because elements with classes will be added to the DOM dynamically)
-document.body.addEventListener('click', function (event) {
-    //console.log("event.target.classList = "+event.target.classList)
-    // Check for specific classes
-    if (event.target && event.target.classList.contains("DetailDisplay")) {
-        event.preventDefault();
-        messageDisplay.textContent = ""
-        getHoaRec(event.target.dataset.parcelId)
-    } else if (event.target && event.target.classList.contains("OwnerUpdate")) {
-        event.preventDefault();
-        //console.log(">>> event.target.dataset.parcelId = "+event.target.dataset.parcelId)
-        //console.log(">>> event.target.dataset.ownerId = "+event.target.dataset.ownerId)
-        UpdateOwnerMessageDisplay.textContent = ""
-        formatUpdateOwner(event.target.dataset.parcelId, event.target.dataset.ownerId)
-    } else if (event.target && event.target.classList.contains("AssessmentUpdate")) {
-        event.preventDefault();
-        UpdateAssessmentMessageDisplay.textContent = ""
-        formatUpdateAssessment(event.target.dataset.parcelId, event.target.dataset.ownerId, event.target.dataset.assessmentId, event.target.dataset.fy)
-    }
+    // Respond to any clicks in the document and check for specific classes to respond to
+    // (Do it dynamically because elements with classes will be added to the DOM dynamically)
+    document.body.addEventListener('click', function (event) {
+        //console.log("event.target.classList = "+event.target.classList)
+        // Check for specific classes
+        if (event.target && event.target.classList.contains("DetailDisplay")) {
+            event.preventDefault();
+            messageDisplay.textContent = ""
+            getHoaRec(event.target.dataset.parcelId)
+        } else if (event.target && event.target.classList.contains("OwnerUpdate")) {
+            event.preventDefault();
+            //console.log(">>> event.target.dataset.parcelId = "+event.target.dataset.parcelId)
+            //console.log(">>> event.target.dataset.ownerId = "+event.target.dataset.ownerId)
+            UpdateOwnerMessageDisplay.textContent = ""
+            formatUpdateOwner(event.target.dataset.parcelId, event.target.dataset.ownerId)
+        } else if (event.target && event.target.classList.contains("AssessmentUpdate")) {
+            event.preventDefault();
+            UpdateAssessmentMessageDisplay.textContent = ""
+            formatUpdateAssessment(event.target.dataset.parcelId, event.target.dataset.ownerId, event.target.dataset.assessmentId, event.target.dataset.fy)
+        }
+    })
 })
-
 
 export async function formatUpdateOwnerSale(parcelId,saleDate) {
     await getHoaRec(parcelId)

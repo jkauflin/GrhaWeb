@@ -69,14 +69,14 @@ document.addEventListener('DOMContentLoaded', () => {
 			getConfigList();
 		});
 	}
-})
 
-document.body.addEventListener("click", async function (event) {
-	if (event.target.classList.contains("EditConfig")) {
-		event.preventDefault()
-		const configName = event.target.dataset.configname
-		formatUpdateConfig(configName)
-	}
+	document.body.addEventListener("click", async function (event) {
+		if (event.target.classList.contains("EditConfig")) {
+			event.preventDefault()
+			const configName = event.target.dataset.configname
+			formatUpdateConfig(configName)
+		}
+	})
 })
 
 async function getConfigList() {

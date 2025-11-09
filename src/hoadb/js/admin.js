@@ -169,26 +169,26 @@ document.addEventListener('DOMContentLoaded', () => {
 			}
 		});
 	}
-})
 
-document.body.addEventListener("click", async function (event) {
-	if (event.target.classList.contains("ShowDuesNoticeEmails")) {
-		event.preventDefault()
-		getDuesNoticeEmails()
-	} else if (event.target.classList.contains("CreateDuesNoticeEmails")) {
-		event.preventDefault()
-		createDuesNoticeEmails()
-	} else if (event.target.classList.contains("CheckDuesNoticeEmails")) {
-		event.preventDefault()
-		let sentStatus="N"
-		getDuesNoticeEmails(sentStatus)
-	} else if (event.target.classList.contains("SendDuesNoticeEmails")) {
-		event.preventDefault()
-		sendDuesNoticeEmails()
-	} else if (event.target.classList.contains("TestDuesNoticeEmails")) {
-		event.preventDefault()
-		//sendDuesNoticeEmails()
-	}
+	document.body.addEventListener("click", async function (event) {
+		if (event.target.classList.contains("ShowDuesNoticeEmails")) {
+			event.preventDefault()
+			getDuesNoticeEmails()
+		} else if (event.target.classList.contains("CreateDuesNoticeEmails")) {
+			event.preventDefault()
+			createDuesNoticeEmails()
+		} else if (event.target.classList.contains("CheckDuesNoticeEmails")) {
+			event.preventDefault()
+			let sentStatus="N"
+			getDuesNoticeEmails(sentStatus)
+		} else if (event.target.classList.contains("SendDuesNoticeEmails")) {
+			event.preventDefault()
+			sendDuesNoticeEmails()
+		} else if (event.target.classList.contains("TestDuesNoticeEmails")) {
+			event.preventDefault()
+			//sendDuesNoticeEmails()
+		}
+	})
 })
 
 async function createDuesNoticeEmails() {

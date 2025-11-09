@@ -25,33 +25,39 @@ import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
-var searchStr = document.getElementById("searchStr")
-var searchButton = document.getElementById("SearchButton")
-var propertyListDisplayTbody = document.getElementById("PropertyListDisplayTbody")
-var messageDisplay = document.getElementById("SearchMessageDisplay")
-var isTouchDevice = 'ontouchstart' in document.documentElement;
+var searchStr
+var searchButton
+var propertyListDisplayTbody
+var messageDisplay
+var isTouchDevice
+const searchButtonHTML = '<i class="fa fa-search me-1"></i> Search'
 
-var searchButtonHTML = '<i class="fa fa-search me-1"></i> Search'
-searchButton.innerHTML = searchButtonHTML
+document.addEventListener('DOMContentLoaded', () => {
+    searchStr = document.getElementById("searchStr")
+    searchButton = document.getElementById("SearchButton")
+    propertyListDisplayTbody = document.getElementById("PropertyListDisplayTbody")
+    messageDisplay = document.getElementById("SearchMessageDisplay")
+    isTouchDevice = 'ontouchstart' in document.documentElement;
+    searchButton.innerHTML = searchButtonHTML
+
+    searchButton.addEventListener("click", function () {
+        getHoaPropertiesList()
+    })
+
+    if (!isTouchDevice) {
+        searchStr.addEventListener("keypress", function(event) {
+            // If the user presses the "Enter" key on the keyboard
+            if (event.key === "Enter") {
+            // Cancel the default action, if needed
+            event.preventDefault()
+            getHoaPropertiesList()
+            }
+        })
+    }
+})
 
 //=================================================================================================================
 // Bind events
-
-searchButton.addEventListener("click", function () {
-    getHoaPropertiesList()
-})
-
-if (!isTouchDevice) {
-    searchStr.addEventListener("keypress", function(event) {
-        // If the user presses the "Enter" key on the keyboard
-        if (event.key === "Enter") {
-          // Cancel the default action, if needed
-          event.preventDefault()
-          getHoaPropertiesList()
-        }
-    })
-}
-
 async function getHoaPropertiesList() {
     // Create a parameters object to send via JSON in the POST request
     empty(propertyListDisplayTbody)

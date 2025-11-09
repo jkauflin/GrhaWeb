@@ -33,14 +33,18 @@
 
 //=================================================================================================================
 // Variables cached from the DOM
-
-var spanSpinner = document.createElement("span")
-spanSpinner.classList.add("spinner-grow","spinner-grow-sm","me-2")
-spanSpinner.setAttribute("aria-hidden","true")
-var spanSpinnerStatus = document.createElement("span")
-spanSpinnerStatus.setAttribute("role","status")
-spanSpinnerStatus.textContent = "Loading..."
+var spanSpinner
+var spanSpinnerStatus
     
+document.addEventListener('DOMContentLoaded', () => {
+    spanSpinner = document.createElement("span")
+    spanSpinner.classList.add("spinner-grow","spinner-grow-sm","me-2")
+    spanSpinner.setAttribute("aria-hidden","true")
+    spanSpinnerStatus = document.createElement("span")
+    spanSpinnerStatus.setAttribute("role","status")
+    spanSpinnerStatus.textContent = "Loading..."
+})
+
 //=================================================================================================================
 // Module methods
 export function showLoadingSpinner(buttonElement) {

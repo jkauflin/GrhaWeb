@@ -20,6 +20,7 @@ Modification History
                 (if set, they will not be added to the total due)
                 *** And there will be a function to set this flag for all
                 un-PAID assessments (for properties that are engaged in a payment plan)
+2025-11-09 JJK - Removed the cap of 10 months on late fees - they will now accrue until paid.
 ================================================================================*/
 
 using System.Net.Mail;
@@ -106,7 +107,12 @@ namespace GrhaWeb.Function
             {
                 cnt++;
                 string tempDateDue = assessmentRec.DateDue.Split(' ')[0];
+                //     "DateDue": "10/1/2006 0:00:00",
                 dateDue = DateTime.Parse(tempDateDue);
+
+//currentDate.AddMonths(1);
+
+
                 duesDue = false;
 
                 // If NOT PAID (and still able to be collected)
@@ -145,6 +151,9 @@ namespace GrhaWeb.Function
                     //          *** Starting on 11/1/2024, Do it for every unpaid assessment (per year) for number of months from 11/1/FY-1
                     //          FY > 2024
                     //          if months > 10, use 10 ($100) - show a LATE FEE for every unpaid assessment
+                    // 
+                    // 2025-11-09 JJK - Removed the cap of 10 months on late fees - they will now accrue until paid.
+                    //                  Modified the interest calc 
                     //================================================================================================================================
                     // If not PAID and past the due date, then add interest and late fees
                     if (duesDue)
@@ -168,10 +177,13 @@ namespace GrhaWeb.Function
                                 monthsApart = ((currDate.Year - dateDue.Year) * 12) + currDate.Month - dateDue.Month;
                                 // Ensure the number of months is non-negative
                                 monthsApart = Math.Abs(monthsApart);
+                                /*
+                                // Cap the late fees at 10 months ($100)
                                 if (monthsApart > 10)
                                 {
                                     monthsApart = 10;
                                 }
+                                */
 
                                 totalLateFees = 10.00m * monthsApart;
 

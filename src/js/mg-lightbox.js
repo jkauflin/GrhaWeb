@@ -11,10 +11,16 @@ Modification History
 import {empty,showLoadingSpinner} from './util.js';
 import {mediaInfo,mediaType,mediaTypeDesc,setMediaType,getFilePath,getFileName} from './mg-data-repository.js'
 
-const mediaLightbox = new bootstrap.Modal(document.getElementById('MediaLightbox'))
-var mediaLightboxBody = document.getElementById("MediaLightboxBody")
-var lightboxImg = document.createElement("img");
+var mediaLightbox
+var mediaLightboxBody
+var lightboxImg
 const lightboxImgClass = "mg-lb-img"
+
+document.addEventListener('DOMContentLoaded', () => {
+    mediaLightbox = new bootstrap.Modal(document.getElementById('MediaLightbox'))
+    mediaLightboxBody = document.getElementById("MediaLightboxBody")
+    lightboxImg = document.createElement("img");
+})
 
 export function displayElementInLightbox(index) {
     addImgToModal(index)

@@ -25,8 +25,8 @@ Modification History
 2025-10-07 JJK  Refactored to use new function API endpoint instead of data-api 
 ================================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse,addDays,getDateInt} from './util.js';
-import {createMediaPage,displayCurrFileList,updateAdminMessage} from './mg-create-pages.js';
+import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';
+import {createMediaPage} from './mg-create-pages.js';
 export let mediaInfo = {
     filterList: [],
     fileList: [],

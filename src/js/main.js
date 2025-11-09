@@ -39,6 +39,7 @@
  *============================================================================*/
 
 import {empty,showLoadingSpinner,formatMoney,setCheckbox,checkFetchResponse} from './util.js'
+import {} from './mediagallery.js'
 import {mediaType,setMediaType,queryMediaInfo} from './mg-data-repository.js'
   
 var duesPageTab
@@ -118,12 +119,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Call the function to load Board of Trustees data every time the page is loaded
     queryBoardInfo()
 
-})
-
-document.body.addEventListener("click", function (event) {
-    if (event.target && event.target.classList.contains("DuesStatement")) {
-        getDuesStatement(event.target);
-    }
+    document.body.addEventListener("click", function (event) {
+        if (event.target && event.target.classList.contains("DuesStatement")) {
+            getDuesStatement(event.target);
+        }
+    })
 })
 
 async function queryBoardInfo() {
@@ -289,15 +289,15 @@ async function fetchPropertiesData() {
 }
     
 function displayPropertyList(hoaPropertyRecList) {
-        let propertyListDisplay = document.getElementById("PropertyListDisplay")
-        let tbody = propertyListDisplay.getElementsByTagName("tbody")[0]
-        empty(tbody)
+    let propertyListDisplay = document.getElementById("PropertyListDisplay")
+    let tbody = propertyListDisplay.getElementsByTagName("tbody")[0]
+    empty(tbody)
 
-        if (hoaPropertyRecList == null || hoaPropertyRecList.length == 0) {
+    if (hoaPropertyRecList == null || hoaPropertyRecList.length == 0) {
             let tr = document.createElement('tr')
             tr.textContent = "No records found - try different search parameters"
             tbody.appendChild(tr)
-        } else {
+    } else {
             let tr = document.createElement('tr')
             // Append the header elements
             let th = document.createElement("th"); th.textContent = "Row"; tr.appendChild(th)
@@ -326,7 +326,7 @@ function displayPropertyList(hoaPropertyRecList) {
                 tr.appendChild(td)
                 tbody.appendChild(tr)
             }
-        }
+    }
 }
 
 async function getDuesStatement(element) {
@@ -347,7 +347,7 @@ async function getDuesStatement(element) {
         new bootstrap.Modal(document.getElementById('duesStatementModal')).show();
     } catch (err) {
         console.error(`Error in Fetch to ${endpoint}, ${err}`)
-        document.getElementById("MessageDisplay").textContent = "Fetch data FAILED - check log"
+        messageDisplay.textContent = "Fetch data FAILED - check log"
     }
 }
 

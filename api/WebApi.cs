@@ -37,14 +37,6 @@ using PaypalServerSdk.Standard.Controllers;
 using PaypalServerSdk.Standard.Http.Response;
 using PaypalServerSdk.Standard.Models;
 
-/*
-using PaypalServerSdk.Standard;
-using PaypalServerSdk.Standard.Authentication;
-using PaypalServerSdk.Standard.Controllers;
-using PaypalServerSdk.Standard.Http.Response;
-using PaypalServerSdk.Standard.Models;
-*/
-
 using GrhaWeb.Function.Model;
 
 namespace GrhaWeb.Function

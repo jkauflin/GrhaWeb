@@ -265,7 +265,5 @@ namespace GrhaWeb.Function
             return new OkObjectResult(returnMessage);
         }
 
-
     } // public static class AdminApi
-
 } // namespace GrhaWeb.Function

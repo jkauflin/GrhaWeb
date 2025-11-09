@@ -74,8 +74,9 @@ public class HoaDbCommon
     private async Task<string> getConfigVal(Container container, string configName)
     {
         string configVal = "";
-        string sql = $"SELECT * FROM c WHERE c.ConfigName = '{configName}' ";
-        var feed = container.GetItemQueryIterator<hoa_config>(sql);
+        var queryDefinition = new QueryDefinition("SELECT * FROM c WHERE c.ConfigName = @configName ")
+            .WithParameter("@configName", configName);
+        var feed = container.GetItemQueryIterator<hoa_config>(queryDefinition);
         while (feed.HasMoreResults)
         {
             var response = await feed.ReadNextAsync();
@@ -91,25 +92,25 @@ public class HoaDbCommon
     {
         // Construct the query from the parameters
         searchStr = searchStr.Trim().ToUpper();
-        string sql = $"SELECT * FROM c WHERE "
-                    + $"CONTAINS(UPPER(c.Parcel_ID),'{searchStr}') "
-                    + $"OR CONTAINS(UPPER(c.LotNo),'{searchStr}') "
-                    + $"OR CONTAINS(UPPER(c.Parcel_Location),'{searchStr}') "
-                    + $"OR CONTAINS(UPPER(CONCAT(c.Owner_Name1,' ',c.Owner_Name2,' ',c.Mailing_Name)),'{searchStr}') "
-                    + $"ORDER BY c.id";
+        var queryDefinition = new QueryDefinition("SELECT * FROM c WHERE "
+            + "CONTAINS(UPPER(c.Parcel_ID),@searchStr) "
+            + "OR CONTAINS(UPPER(c.LotNo),@searchStr) "
+            + "OR CONTAINS(UPPER(c.Parcel_Location),@searchStr) "
+            + "OR CONTAINS(UPPER(CONCAT(c.Owner_Name1,' ',c.Owner_Name2,' ',c.Mailing_Name)),@searchStr) "
+            + "ORDER BY c.id")
+        .WithParameter("@searchStr", searchStr);
 
         //------------------------------------------------------------------------------------------------------------------
         // Query the NoSQL container to get values
         //------------------------------------------------------------------------------------------------------------------
-        string containerId = "hoa_properties";
         List<HoaProperty> hoaPropertyList = new List<HoaProperty>();
         HoaProperty hoaProperty = new HoaProperty();
 
         CosmosClient cosmosClient = new CosmosClient(apiCosmosDbConnStr);
         Database db = cosmosClient.GetDatabase(databaseId);
-        Container container = db.GetContainer(containerId);
+        Container container = db.GetContainer("hoa_properties");
 
-        var feed = container.GetItemQueryIterator<hoa_properties>(sql);
+        var feed = container.GetItemQueryIterator<hoa_properties>(queryDefinition);
         int cnt = 0;
         while (feed.HasMoreResults)
         {

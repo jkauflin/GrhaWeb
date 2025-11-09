@@ -77,21 +77,21 @@ document.addEventListener('DOMContentLoaded', () => {
 	document.getElementById("DuesletterReport").addEventListener("click", function (event) {
 		_reportRequest(event)
 	})
-})
 
-document.body.addEventListener("click", async function (event) {
-	if (event.target.classList.contains("SalesNewOwnerProcess")) {
-		event.preventDefault()
-		const parcelId = event.target.dataset.parcelId
-		const saleDate = event.target.dataset.saleDate
-		formatUpdateOwnerSale(parcelId,saleDate)
-	} else if (event.target.classList.contains("SalesFlagUpdate")) {
-		event.preventDefault();
-		await handleSalesFlagUpdate(event.target);
-	} else if (event.target.classList.contains("DownloadReportCSV")) {
-		event.preventDefault();
-		_downloadReportCSV(event);
-	}
+	document.body.addEventListener("click", async function (event) {
+		if (event.target.classList.contains("SalesNewOwnerProcess")) {
+			event.preventDefault()
+			const parcelId = event.target.dataset.parcelId
+			const saleDate = event.target.dataset.saleDate
+			formatUpdateOwnerSale(parcelId,saleDate)
+		} else if (event.target.classList.contains("SalesFlagUpdate")) {
+			event.preventDefault();
+			await handleSalesFlagUpdate(event.target);
+		} else if (event.target.classList.contains("DownloadReportCSV")) {
+			event.preventDefault();
+			_downloadReportCSV(event);
+		}
+	})
 })
 
 // Handle clicks to SalesFlagUpdate buttons (Send/Ignore)

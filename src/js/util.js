@@ -33,13 +33,18 @@
 //=================================================================================================================
 // Variables cached from the DOM
 
-var spanSpinner = document.createElement("span")
-spanSpinner.classList.add("spinner-grow","spinner-grow-sm","me-2")
-spanSpinner.setAttribute("aria-hidden","true")
-var spanSpinnerStatus = document.createElement("span")
-spanSpinnerStatus.setAttribute("role","status")
-spanSpinnerStatus.textContent = "Loading..."
+var spanSpinner
+var spanSpinnerStatus
     
+document.addEventListener('DOMContentLoaded', () => {
+    spanSpinner = document.createElement("span")
+    spanSpinner.classList.add("spinner-grow","spinner-grow-sm","me-2")
+    spanSpinner.setAttribute("aria-hidden","true")
+    spanSpinnerStatus = document.createElement("span")
+    spanSpinnerStatus.setAttribute("role","status")
+    spanSpinnerStatus.textContent = "Loading..."
+})
+
 //=================================================================================================================
 // Module methods
 export function showLoadingSpinner(docElement) {
@@ -226,35 +231,6 @@ export function formatMoney(inAmount) {
         var tempStr = "NO";
         if (inBool) {
             tempStr = "YES";
-        }
-        return tempStr;
-    }
-    //function setCheckboxEdit(checkVal, idName) {
-    function setCheckboxEdit(idName, checkVal) {
-        var tempStr = '';
-        if (checkVal == 1) {
-            tempStr = 'checked=true';
-        }
-        return '<input id="' + idName + '" type="checkbox" ' + tempStr + '>';
-    }
-    function setInputText(idName, textVal, textSize) {
-        return '<input id="' + idName + '" name="' + idName + '" type="text" class="form-control input-sm resetval" value="' + textVal + '" size="' + textSize + '" maxlength="' + textSize + '">';
-    }
-    function setTextArea(idName, textVal, rows) {
-        return '<textarea id="' + idName + '" class="form-control input-sm" rows="' + rows + '">' + textVal + '</textarea>';
-    }
-    function setTextArea2(idName, textVal, rows, cols) {
-        return '<textarea id="' + idName + '" class="form-control input-sm" rows="' + rows + '" cols="' + cols + '">' + textVal + '</textarea>';
-    }
-    function setInputDate(idName, textVal, textSize) {
-        return '<input id="' + idName + '" type="text" class="form-control input-sm Date" value="' + textVal + '" size="' + textSize + '" maxlength="' + textSize + '" placeholder="YYYY-MM-DD">';
-    }
-    function setSelectOption(optVal, displayVal, selected, bg) {
-        var tempStr = '';
-        if (selected) {
-            tempStr = '<option class="' + bg + '" value="' + optVal + '" selected>' + displayVal + '</option>';
-        } else {
-            tempStr = '<option class="' + bg + '" value="' + optVal + '">' + displayVal + '</option>';
         }
         return tempStr;
     }

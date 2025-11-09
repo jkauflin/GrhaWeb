@@ -21,10 +21,10 @@ const imgThumbnailClass = "img-thumbnail-jjk"  // Want my own thumbnail formatti
 const thumbCheckboxClass = "thumb-checkbox"
 
 // This media gallery library counts on a "MediaPage" main element being define
-var mediaPageContainer = document.getElementById("MediaPage");
-var filterContainer = document.createElement("div")
-var thumbnailContainer = document.createElement("div")
-var editRow1 = document.createElement("div")
+var mediaPageContainer
+var filterContainer
+var thumbnailContainer
+var editRow1
 
 var mediaAdminMessage
 var mediaCategorySelect
@@ -50,55 +50,61 @@ var mediaDetailVideoList
 var currIndex = 0
 var currSelectAll = false
 
-//-------------------------------------------------------------------------------------------------------
-// Listen for clicks in containers
-//-------------------------------------------------------------------------------------------------------
-thumbnailContainer.addEventListener("click", function (event) {
-    //console.log("thumbnailContainer click, classList = "+event.target.classList)
+document.addEventListener('DOMContentLoaded', () => {
+    mediaPageContainer = document.getElementById("MediaPage");
+    filterContainer = document.createElement("div")
+    thumbnailContainer = document.createElement("div")
+    editRow1 = document.createElement("div")
 
-    // Check for specific classes
-    if (event.target && event.target.classList.contains(MediaFilterRequestClass)) {
-        // If click on a Filter Request (like Next or Prev), query the data and build the thumbnail display
-        //console.log(">>> FilterRequest data-category = "+event.target.getAttribute('data-category'))
-        //console.log(">>> FilterRequest data-startDate = "+event.target.getAttribute('data-startDate'))
+    //-------------------------------------------------------------------------------------------------------
+    // Listen for clicks in containers
+    //-------------------------------------------------------------------------------------------------------
+    thumbnailContainer.addEventListener("click", function (event) {
+        //console.log("thumbnailContainer click, classList = "+event.target.classList)
 
-        let paramData = {
-            MediaFilterMediaType: mediaType, 
-            MediaFilterCategory:  event.target.getAttribute('data-category'),
-            MediaFilterStartDate: ""
+        // Check for specific classes
+        if (event.target && event.target.classList.contains(MediaFilterRequestClass)) {
+            // If click on a Filter Request (like Next or Prev), query the data and build the thumbnail display
+            //console.log(">>> FilterRequest data-category = "+event.target.getAttribute('data-category'))
+            //console.log(">>> FilterRequest data-startDate = "+event.target.getAttribute('data-startDate'))
+
+            let paramData = {
+                MediaFilterMediaType: mediaType, 
+                MediaFilterCategory:  event.target.getAttribute('data-category'),
+                MediaFilterStartDate: ""
+            }
+                //MediaFilterStartDate: event.target.getAttribute('data-startDate')
+
+            queryMediaInfo(paramData);
+
+        } else if (event.target && event.target.classList.contains(imgThumbnailClass)) {
+            event.preventDefault();
+            // If clicking on a Thumbnail, bring up in Lightbox or FileDetail (for Edit mode)
+            let index = parseInt(event.target.getAttribute('data-index'))
+            if (typeof index !== "undefined" && index !== null) {
+                displayElementInLightbox(index)
+            }
         }
-            //MediaFilterStartDate: event.target.getAttribute('data-startDate')
-
-        queryMediaInfo(paramData);
-
-    } else if (event.target && event.target.classList.contains(imgThumbnailClass)) {
-        event.preventDefault();
-        // If clicking on a Thumbnail, bring up in Lightbox or FileDetail (for Edit mode)
-        let index = parseInt(event.target.getAttribute('data-index'))
-        if (typeof index !== "undefined" && index !== null) {
-            displayElementInLightbox(index)
-        }
-    }
+    })
 })
 
+//-------------------------------------------------------------------------------------------------------
+// Respond to Filter requests
+//-------------------------------------------------------------------------------------------------------
+function executeFilter() {
+    //console.log(">>> Execute Filter mediaFilterMediaType = "+mediaType)
+    //console.log(">>> Execute Filter mediaFilterCategory = "+mediaFilterCategory.value)
+    //console.log(">>> Filter mediaFilterStartDate = "+mediaFilterStartDate.value)
 
-    //-------------------------------------------------------------------------------------------------------
-    // Respond to Filter requests
-    //-------------------------------------------------------------------------------------------------------
-    function executeFilter() {
-        //console.log(">>> Execute Filter mediaFilterMediaType = "+mediaType)
-        //console.log(">>> Execute Filter mediaFilterCategory = "+mediaFilterCategory.value)
-        //console.log(">>> Filter mediaFilterStartDate = "+mediaFilterStartDate.value)
+    let paramData = {
+        MediaFilterMediaType: mediaType, 
+        MediaFilterCategory:  mediaFilterCategory.value,
+        MediaFilterStartDate: ""}
+        //MediaFilterStartDate: mediaFilterStartDate.value}
 
-        let paramData = {
-            MediaFilterMediaType: mediaType, 
-            MediaFilterCategory:  mediaFilterCategory.value,
-            MediaFilterStartDate: ""}
-            //MediaFilterStartDate: mediaFilterStartDate.value}
-
-        queryMediaInfo(paramData);
-        // After query has retreived data, it will kick off the display page create
-    }
+    queryMediaInfo(paramData);
+    // After query has retreived data, it will kick off the display page create
+}
 
     //------------------------------------------------------------------------------------------------------------
     // Dynamically create the DOM elements to add to the Media Page div (either regular display or EDIT mode)
