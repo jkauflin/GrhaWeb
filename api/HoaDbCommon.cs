@@ -905,6 +905,8 @@ public class HoaDbCommon
         //Container configContainer = db.GetContainer("hoa_config");
         Container container = db.GetContainer(containerId);
         //var queryDefinition = new QueryDefinition("SELECT * FROM c ORDER BY c.CreateTimestamp DESC OFFSET 0 LIMIT 200 ");
+        // "SALEDT": "01-AUG-23"
+        // Note: If you can change how SALEDT is stored (ISO yyyy-MM-dd), you can sort directly in the Cosmos query (ORDER BY c.SALEDT DESC).
         var queryDefinition = new QueryDefinition("SELECT TOP 200 * FROM c ORDER BY c.LastChangedTs DESC ");
         var feed = container.GetItemQueryIterator<hoa_sales>(queryDefinition);
         int cnt = 0;
@@ -918,6 +920,14 @@ public class HoaDbCommon
             }
         }
 
+        // Sort by SALEDT (format "dd-MMM-yy") descending. Falls back to DateTime.MinValue when parse fails.
+        hoaSalesList = hoaSalesList
+            .OrderByDescending(s =>
+                DateTime.TryParseExact(s.SALEDT, "dd-MMM-yy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt)
+                    ? dt
+                    : DateTime.MinValue)
+            .ToList();
+            
         return hoaSalesList;
     }
 
