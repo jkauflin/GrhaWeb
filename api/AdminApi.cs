@@ -258,8 +258,19 @@ namespace GrhaWeb.Function
                 }
             }
             catch (Exception ex) {
+                string errorMsg = "- check log";
                 log.LogError($"Exception in Photos upload, message: {ex.Message} {ex.StackTrace}");
-                return new BadRequestObjectResult("Error in upload of Photos - check log");
+                if (ex.Message != null) {
+                    if (ex.Message.Contains("maximum request body size")) {
+                        errorMsg = "- Uploaded files exceed maximum allowed size of 50 MB";
+                    } else if (ex.Message.Contains("The format of the file name")) {
+                        errorMsg = "- Invalid characters in file name";
+                    } else if (ex.Message.Contains("Image cannot be loaded")) {
+                        errorMsg = "- JPEG file is corrupt or invalid format";
+                    }
+                }
+                return new BadRequestObjectResult("Error in upload of Photos " + errorMsg);
+
             }
             
             return new OkObjectResult(returnMessage);
