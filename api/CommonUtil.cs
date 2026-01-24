@@ -1,5 +1,5 @@
 /*==============================================================================
-(C) Copyright 2024 John J Kauflin, All rights reserved.
+(C) Copyright 2024,2025,2026 John J Kauflin, All rights reserved.
 --------------------------------------------------------------------------------
 DESCRIPTION:  Common utility functions for Web API's
 --------------------------------------------------------------------------------
@@ -22,6 +22,8 @@ Modification History
                 un-PAID assessments (for properties that are engaged in a payment plan)
 2025-11-09 JJK - Removed the cap of 10 months on late fees - they will now accrue until paid.
                  And modified the interest calc and late fees to start from the actual due date + 1 month (as per Roy)
+2026-01-23 JJK  Removed Filing Fee interest calculation per new Treasurer (Roy)
+                and changed to have the late fees and interest calculation start from the due date, rather than due date + 1 month
 ================================================================================*/
 
 using System.Net.Mail;
@@ -146,7 +148,8 @@ namespace GrhaWeb.Function
                     //      Remove the restriction of an Open Lien to adding the interest on the unpaid assessment - it will now start adding
                     //      interest when unpaid and past the DUE DATE.
                     //      In addition, a $10 a month late fee will be added to any unpaid assessments
-                    //          *** Starting on 11/1/2024, Do it for every unpaid assessment (per year) for number of months from 11/1/FY-1
+                    //          *** Starting on 11/01/2024, Do it for every unpaid assessment (per year) for number of months from 11/1/FY-1
+                    //          *** Starting on 01/23/2024, Do it for every unpaid assessment (per year) for number of months from 10/1/FY-1
                     //          FY > 2024
                     //          if months > 10, use 10 ($100) - show a LATE FEE for every unpaid assessment
                     // 
@@ -172,7 +175,8 @@ namespace GrhaWeb.Function
                             if (assessmentRec.FY > 2024)
                             {
                                 // number of months between the due date and current date
-                                monthsApart = ((currDate.Year - dateDue.Year) * 12) + currDate.Month - dateDue.Month;
+                                //monthsApart = ((currDate.Year - dateDue.Year) * 12) + currDate.Month - dateDue.Month;
+                                monthsApart = ((currDate.Year - dateDue.Year) * 12) + currDate.Month - dateDue.Month + 1;
                                 // Ensure the number of months is non-negative
                                 monthsApart = Math.Abs(monthsApart);
                                 /*
@@ -190,7 +194,9 @@ namespace GrhaWeb.Function
                                     totalDue += totalLateFees;
                                     prevFY = assessmentRec.FY - 1;
                                     totalDuesCalcRec = new TotalDuesCalcRec();
-                                    totalDuesCalcRec.calcDesc = "$10 a Month late fee on FY " + assessmentRec.FY.ToString() + " Assessment (since " + calcDateDue + ")";
+                                    //totalDuesCalcRec.calcDesc = "$10 a Month late fee on FY " + assessmentRec.FY.ToString() + " Assessment (since " + calcDateDue + ")";
+                                    totalDuesCalcRec.calcDesc = "$10 a Month late fee on FY " + assessmentRec.FY.ToString() + " Assessment (since " + tempDateDue + ")";
+                                    
                                     totalDuesCalcRec.calcValue = totalLateFees.ToString();
                                     totalDuesCalcList.Add(totalDuesCalcRec);
                                 }
@@ -201,7 +207,9 @@ namespace GrhaWeb.Function
                         {
                             totalDue += assessmentRec.AssessmentInterest;
                             totalDuesCalcRec = new TotalDuesCalcRec();
-                            totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + calcDateDue + ")";
+                            //totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + calcDateDue + ")";
+                            totalDuesCalcRec.calcDesc = "%6 Interest on FY " + assessmentRec.FY.ToString() + " Assessment (since " + tempDateDue + ")";
+                            
                             totalDuesCalcRec.calcValue = assessmentRec.AssessmentInterest.ToString();
                             totalDuesCalcList.Add(totalDuesCalcRec);
                         }
@@ -247,6 +255,9 @@ namespace GrhaWeb.Function
                         totalDuesCalcRec.calcValue = assessmentRec.FilingFee.ToString();
                         totalDuesCalcList.Add(totalDuesCalcRec);
 
+                        // 2026-01-23 JJK  Removed Filing Fee interest calculation per new Treasurer
+                        assessmentRec.FilingFeeInterest = 0.0m;
+                        /*
                         // If still calculating interest dynamically calculate the compound interest
                         if (assessmentRec.StopInterestCalc != 1)
                         {
@@ -258,6 +269,7 @@ namespace GrhaWeb.Function
                         totalDuesCalcRec.calcDesc = "%6 Interest on Filing Fees (since " + assessmentRec.DateFiled.ToString("yyyy-MM-dd") + ")";
                         totalDuesCalcRec.calcValue = assessmentRec.FilingFeeInterest.ToString();
                         totalDuesCalcList.Add(totalDuesCalcRec);
+                        */
                     }
 
                     if (assessmentRec.ReleaseFee > 0.0m)
