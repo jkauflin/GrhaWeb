@@ -51,6 +51,7 @@
  * 2025-07-19 JJK   Moving Communications functionality here, and using a
  *                  modal instead of a tab page
  * 2025-08-07 JJK   Added create new owner functionality
+ * 2026-01-24 JJK   Removed Release Fee Interest (not used)
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
@@ -118,7 +119,7 @@ var assDateReleased
 var assLienDatePaid
 var assAmountPaid
 var assStopInterestCalc
-var assFilingFeeInterest
+//var assFilingFeeInterest
 var assAssessmentInterest
 var assInterestNotPaid
 var assBankFee
@@ -196,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     assLienDatePaid = document.getElementById("assLienDatePaid")
     assAmountPaid = document.getElementById("assAmountPaid")
     assStopInterestCalc = document.getElementById("assStopInterestCalc")
-    assFilingFeeInterest = document.getElementById("assFilingFeeInterest")
+    //assFilingFeeInterest = document.getElementById("assFilingFeeInterest")
     assAssessmentInterest = document.getElementById("assAssessmentInterest")
     assInterestNotPaid = document.getElementById("assInterestNotPaid")
     assBankFee = document.getElementById("assBankFee")
@@ -460,7 +461,7 @@ function formatUpdateAssessment(parcelId, ownerId, assessmentId, fy) {
     assLienDatePaid.value = standardizeDate(assessmentRec.lienDatePaid);
     assAmountPaid.value = formatMoney(assessmentRec.amountPaid);
     assStopInterestCalc.checked = assessmentRec.stopInterestCalc;
-    assFilingFeeInterest.value = formatMoney(assessmentRec.filingFeeInterest);
+    //assFilingFeeInterest.value = formatMoney(assessmentRec.filingFeeInterest);
     assAssessmentInterest.value = formatMoney(assessmentRec.assessmentInterest);
     assInterestNotPaid.checked = assessmentRec.interestNotPaid;
     assBankFee.value = formatMoney(assessmentRec.bankFee);

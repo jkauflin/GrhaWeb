@@ -1823,7 +1823,7 @@ public class HoaDbCommon
         assessmentRec.LienDatePaid = GetFieldValue<DateTime>(formFields, "LienDatePaid");
         assessmentRec.AmountPaid = GetFieldValueMoney(formFields, "AmountPaid");
         assessmentRec.StopInterestCalc = GetFieldValueBool(formFields, "StopInterestCalc");
-        assessmentRec.FilingFeeInterest = GetFieldValueMoney(formFields, "FilingFeeInterest");
+        //assessmentRec.FilingFeeInterest = GetFieldValueMoney(formFields, "FilingFeeInterest");
         assessmentRec.AssessmentInterest = GetFieldValueMoney(formFields, "AssessmentInterest");
         assessmentRec.InterestNotPaid = GetFieldValueBool(formFields, "InterestNotPaid");
         assessmentRec.BankFee = GetFieldValueMoney(formFields, "BankFee");
