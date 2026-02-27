@@ -24,6 +24,7 @@ Modification History
                  And modified the interest calc and late fees to start from the actual due date + 1 month (as per Roy)
 2026-01-23 JJK  Removed Filing Fee interest calculation per new Treasurer (Roy)
                 and changed to have the late fees and interest calculation start from the due date, rather than due date + 1 month
+2026-02-27 JJK  Added ParseDate function to handle parsing and formatting of date strings in a consistent way across the codebase, and updated all date parsing in the code to use this function
 ================================================================================*/
 
 using System.Net.Mail;
@@ -78,6 +79,29 @@ namespace GrhaWeb.Function
                 throw new FormatException("Invalid money format, moneyString: " + moneyString);
             }
             return result;
+        }
+
+        public string ParseDate(string inDateString, string defaultDateStr = "1900-01-01")
+        {
+            string dateString = inDateString ?? defaultDateStr;
+            if (string.IsNullOrEmpty(dateString))
+            {
+                dateString = "1900-01-01";
+            }
+            
+            dateString = dateString.Split(' ')[0];
+
+            if (DateTime.TryParse(dateString, out DateTime parsedDate))
+            {
+                dateString = parsedDate.ToString("yyyy-MM-dd");
+            }
+            else
+            {
+                // If parsing fails, return the default date
+                dateString = "1900-01-01";
+            }
+
+            return dateString;
         }
 
         //---------------------------------------------------------------------------------------------------

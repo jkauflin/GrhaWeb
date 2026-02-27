@@ -26,7 +26,7 @@ Modification History
 2025-08-21 JJK  Added function to get and update hoa_config values
 2025-09-30 JJK  Added functions to process sales upload, and for recording
                 payments
-2025-10-07 JJK  Added 
+2026-02-27 JJK  Modified to use ParseDate function for consistent date parsing and formatting across the codebase, and updated all date parsing in the code to use this function 
 ================================================================================*/
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
@@ -329,30 +329,13 @@ public class HoaDbCommon
                     continue;
                 }
 
-                if (String.IsNullOrEmpty(item.DateDue))
-                {
-                    dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
-                }
-                else
-                {
-                    var tempDateDue = item.DateDue.Split(' ')[0];
-                    dateDue = DateTime.Parse(tempDateDue);
-                }
                 // Reformat the due date to yyyy-MM-dd for consistency
-                item.DateDue = dateDue.ToString("yyyy-MM-dd");
+                item.DateDue = util.ParseDate(item.DateDue, (item.FY - 1).ToString() + "-10-01"); 
+                dateDue = DateTime.Parse(item.DateDue);
 
                 if (item.Paid == 1)
                 {
-                    if (string.IsNullOrEmpty(item.DatePaid))
-                    {
-                        item.DatePaid = item.DateDue;
-                    }
-                    var tempDatePaid = item.DatePaid.Split(' ')[0];
-
-                    // 2026-02-27 JJK - Added try/catch around the date parsing, because there are some bad dates in the data that are causing errors (and we want to be able to get the rest of the data for the property even if there is a bad date in one of the assessments)
-
-                    dateTime = DateTime.Parse(tempDatePaid);
-                    item.DatePaid = dateTime.ToString("yyyy-MM-dd");
+                    item.DatePaid = util.ParseDate(item.DatePaid,item.DateDue);
                 }
 
                 item.DuesDue = false;
@@ -472,29 +455,14 @@ public class HoaDbCommon
             foreach (var item in response)
             {
                 cnt++;
-                /*
-                if (item.DateDue is null)
-                {
-                    dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
-                }
-                else
-                {
-                    dateDue = DateTime.Parse(item.DateDue);
-                }
-                */
-                dateDue = DateTime.Parse((item.FY - 1).ToString() + "-10-01");
-                item.DateDue = dateDue.ToString("yyyy-MM-dd");
-                // If you don't need the DateTime object, you can do it in 1 line
-                //item.DateDue = DateTime.Parse(item.DateDue).ToString("yyyy-MM-dd");
+
+                // Reformat the due date to yyyy-MM-dd for consistency
+                item.DateDue = util.ParseDate(item.DateDue, (item.FY - 1).ToString() + "-10-01"); 
+                dateDue = DateTime.Parse(item.DateDue);
 
                 if (item.Paid == 1)
                 {
-                    if (string.IsNullOrWhiteSpace(item.DatePaid))
-                    {
-                        item.DatePaid = item.DateDue;
-                    }
-                    dateTime = DateTime.Parse(item.DatePaid);
-                    item.DatePaid = dateTime.ToString("yyyy-MM-dd");
+                    item.DatePaid = util.ParseDate(item.DatePaid,item.DateDue);
                 }
 
                 hoaRec2.assessmentsList.Add(item);
