@@ -348,6 +348,9 @@ public class HoaDbCommon
                         item.DatePaid = item.DateDue;
                     }
                     var tempDatePaid = item.DatePaid.Split(' ')[0];
+
+                    // 2026-02-27 JJK - Added try/catch around the date parsing, because there are some bad dates in the data that are causing errors (and we want to be able to get the rest of the data for the property even if there is a bad date in one of the assessments)
+
                     dateTime = DateTime.Parse(tempDatePaid);
                     item.DatePaid = dateTime.ToString("yyyy-MM-dd");
                 }
