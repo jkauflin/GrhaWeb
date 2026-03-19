@@ -26,7 +26,13 @@ Modification History
 2025-08-21 JJK  Added function to get and update hoa_config values
 2025-09-30 JJK  Added functions to process sales upload, and for recording
                 payments
-2026-02-27 JJK  Modified to use ParseDate function for consistent date parsing and formatting across the codebase, and updated all date parsing in the code to use this function 
+2026-02-27 JJK  Modified to use ParseDate function for consistent date parsing 
+                and formatting across the codebase, and updated all date 
+                parsing in the code to use this function 
+2026-03-17 JJK  Added calculation of online payment processing fee based on 
+                total amount due, and added to the GetHoaRec functions.
+                Modified RecordPayment to make all unpaid assessment to PAID
+                when receiving an online payment
 ================================================================================*/
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
@@ -366,12 +372,18 @@ public class HoaDbCommon
         // For now, only set payment button if just the current year dues are owed (no other years or open liens)
         if (hoaRec.totalDue > 0.0m)
         {
+            /* Old logic of only showing the online payment button if just the current year dues are owed (no other years or open liens) and a flat fee
             hoaRec.paymentInstructions = await getConfigVal(configContainer, "OfflinePaymentInstructions");
             hoaRec.paymentFee = decimal.Parse(await getConfigVal(configContainer, "paymentFee"));
             if (onlyCurrYearDue)
             {
                 hoaRec.paymentInstructions = await getConfigVal(configContainer, "OnlinePaymentInstructions");
             }
+            */
+
+            // 2026-03-17 JJK - Calculate the processing fee for electronic payments based on the total amount due
+            hoaRec.paymentFee = util.CalcProcessingFee(hoaRec.totalDue);
+            hoaRec.paymentInstructions = await getConfigVal(configContainer, "OnlinePaymentInstructions");
         }
 
         //----------------------------------- Sales -----------------------------------------------------------
@@ -483,12 +495,18 @@ public class HoaDbCommon
         // For now, only set payment button if just the current year dues are owed (no other years or open liens)
         if (hoaRec2.totalDue > 0.0m)
         {
+            /* Old logic of only showing the online payment button if just the current year dues are owed (no other years or open liens) and a flat fee
             hoaRec2.paymentInstructions = await getConfigVal(configContainer, "OfflinePaymentInstructions");
             hoaRec2.paymentFee = decimal.Parse(await getConfigVal(configContainer, "paymentFee"));
             if (onlyCurrYearDue)
             {
                 hoaRec2.paymentInstructions = await getConfigVal(configContainer, "OnlinePaymentInstructions");
             }
+            */
+            
+            // 2026-03-17 JJK - Calculate the processing fee for electronic payments based on the total amount due
+            hoaRec2.paymentFee = util.CalcProcessingFee(hoaRec2.totalDue);
+            hoaRec2.paymentInstructions = await getConfigVal(configContainer, "OnlinePaymentInstructions");
         }
 
         return hoaRec2;
@@ -2047,7 +2065,13 @@ public class HoaDbCommon
             new AzureKeyCredential(grhaSendEmailEventTopicKey)
         );
 
+        //-------------------------------------------------------------------------------------------------------------------------------------------
+        // 2026-03-17 JJK - Modified to handle multiple unpaid assessments
+        // assuming that an online/electronic pay will always be for the full amount of all unpaid assessments
+        //-------------------------------------------------------------------------------------------------------------------------------------------
+
         // First, get the Assessment record for this parcel and fiscal year to get the OwnerID (and double check info from payment source)
+        /*
         var query = new QueryDefinition("SELECT * FROM c WHERE c.Parcel_ID = @parcelId AND c.FY = @fy")
             .WithParameter("@parcelId", parcelId)
             .WithParameter("@fy", int.Parse(fiscalYear));
@@ -2067,55 +2091,56 @@ public class HoaDbCommon
         {
             throw new Exception("Assessment record not found for Parcel " + parcelId + ", FY = " + fiscalYear);
         }
+        */
 
-        // Next, check if a payment record already exists for this parcel and transaction id (idempotent check) - NO, should not have to do this
-        /*
-        query = new QueryDefinition("SELECT * FROM c WHERE c.id = @id AND c.Parcel_ID = @parcelId ")
-            .WithParameter("@id", transactionId)
+        // First, get the unpaid Assessment records for this parcel to get the OwnerID (and double check info from payment source)
+        var query = new QueryDefinition("SELECT * FROM c WHERE c.Parcel_ID = @parcelId AND c.Paid != 1 AND c.NonCollectible != 1")
             .WithParameter("@parcelId", parcelId);
-        var paymentsFeed = paymentsContainer.GetItemQueryIterator<hoa_payments>(query);
-        bool paymentExists = false;
-        hoa_payments paymentRec;
-        while (paymentsFeed.HasMoreResults)
+        var feed = assessmentsContainer.GetItemQueryIterator<hoa_assessments>(query);
+        bool exists = false;
+        hoa_assessments assessmentRec = new hoa_assessments();
+        while (feed.HasMoreResults)
         {
-            var response = await paymentsFeed.ReadNextAsync();
-
+            var response = await feed.ReadNextAsync();
             foreach (var item in response)
             {
-                paymentExists = true;
-                paymentRec = item;
+                assessmentRec = item;
+
+                if (!exists) {
+                    // Record the payment in the hoa_payments container (only need to do this once even if multiple assessments)
+                    var paymentRec = new Model.hoa_payments
+                    {
+                        id = transactionId,
+                        Parcel_ID = parcelId,
+                        OwnerID = assessmentRec.OwnerID,
+                        FY = int.Parse(fiscalYear),
+                        txn_id = transactionId,
+                        payment_date = paymentDate,
+                        payer_email = payerEmail,
+                        payment_amt = paymentAmt,
+                        payment_fee = paymentFee,
+                        LastChangedTs = currDateTime,
+                        paidEmailSent = "N"
+                    };
+                    await paymentsContainer.UpsertItemAsync(paymentRec, new PartitionKey(paymentRec.Parcel_ID));
+                }
+
+                exists = true;
+
+                // Mark the assessment as paid and update relevant fields
+                assessmentRec.Paid = 1;
+                assessmentRec.DatePaid = paymentDate;
+                assessmentRec.PaymentMethod = "Paypal";
+                assessmentRec.Comments = transactionId;
+                assessmentRec.LastChangedBy = "paypal";
+                assessmentRec.LastChangedTs = currDateTime;
+                await assessmentsContainer.ReplaceItemAsync(assessmentRec, assessmentRec.id, new PartitionKey(assessmentRec.Parcel_ID));
             }
         }
-        if (paymentExists)
+        if (!exists)
         {
-            throw new Exception("Payment record already exists for Parcel " + parcelId + ", transaction id = " + transactionId);
+            throw new Exception("Assessment record not found for Parcel " + parcelId + ", FY = " + fiscalYear);
         }
-        */
-        var paymentRec = new Model.hoa_payments
-        {
-            id = transactionId,
-            Parcel_ID = parcelId,
-            OwnerID = assessmentRec.OwnerID,
-            FY = int.Parse(fiscalYear),
-            txn_id = transactionId,
-            payment_date = paymentDate,
-            payer_email = payerEmail,
-            payment_amt = paymentAmt,
-            payment_fee = paymentFee,
-            LastChangedTs = currDateTime,
-            paidEmailSent = "N"
-        };
-        await paymentsContainer.UpsertItemAsync(paymentRec, new PartitionKey(paymentRec.Parcel_ID));
-
-        // Mark the assessment as paid and update relevant fields
-        assessmentRec.Paid = 1;
-        assessmentRec.DatePaid = paymentDate;
-        assessmentRec.PaymentMethod = "Paypal";
-        assessmentRec.Comments = transactionId;
-        assessmentRec.LastChangedBy = "paypal";
-        assessmentRec.LastChangedTs = currDateTime;
-        await assessmentsContainer.ReplaceItemAsync(assessmentRec, assessmentRec.id, new PartitionKey(assessmentRec.Parcel_ID));
-
 
         // Queue up events to send payment confirmation emails to the payer and notification to treasurer
         string treasurerEmail = await getConfigVal(configContainer, "treasurerEmail");
@@ -2147,6 +2172,7 @@ public class HoaDbCommon
         duesEmailEvent.emailAddr = payerEmail;
         duesEmailEvent.mailSubject = "GRHA Payment Confirmation";
         duesEmailEvent.htmlMessage = "<h4>GRHA Payment Confirmation</h4>" + payorInfo + paymentInfoStr;
+        
         await eventGridPublisherClient.SendEventAsync(
             new EventGridEvent(
                 subject: "DuesEmailRequest",

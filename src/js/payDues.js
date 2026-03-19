@@ -15,6 +15,11 @@
  * 2024-08-25 JJK   Convert to js module and update inputs and api calls
  *                  for migration to Azure SWA
  * 2025-09-20 JJK   Convert for .NET backend server functions
+ * 2026-03-17 JJK   Added calculation of processing fee for electronic payments 
+ *                  based on total amount due, and updated the code to use 
+ *                  this calculated fee instead of a flat fee
+ *                  (Removed restriction of allowing electronic payment only 
+ *                   if just current year dues are owed)
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,formatMoney} from './util.js';
@@ -61,8 +66,6 @@ async function startPaymentCapture(parcelId) {
 
         if (hoaRec.totalDue == 0) {
             payDuesMessage.textContent = "No Dues are currently owed on this property"
-        } else if (hoaRec.totalDue != formatMoney(hoaRec.assessmentsList[0].duesAmt)) {
-            payDuesMessage.textContent = "More than current year dues are owed on this property - contact Treasurer"
         } else {
             var paymentValue = hoaRec.totalDue + hoaRec.paymentFee;
             payDuesTitle.textContent = "Pay HOA dues for property at "+hoaRec.property.parcel_Location

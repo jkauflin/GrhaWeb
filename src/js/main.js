@@ -393,7 +393,7 @@ function formatDuesStatementResults(hoaRec) {
         // If enabled, payment button and instructions will have values, else they will be blank if online payment is not allowed
         if (hoaRec.totalDue > 0) {
             // Only offer online payment if total due is just the current assessment (i.e. prior year due needs to contact the Treasurer)
-            if (tempDuesAmt == hoaRec.totalDue) {
+            //if (tempDuesAmt == hoaRec.totalDue) {
                 let i = document.createElement("i");
                 i.classList.add('fa','fa-usd','float-start','mr-1')
                 i.textContent = ' Click HERE to make payment online'
@@ -402,7 +402,7 @@ function formatDuesStatementResults(hoaRec) {
                 a.classList.add('btn','btn-success','m-2','link-tile')
                 a.appendChild(i)
                 payDues.appendChild(a)
-            }
+            //}
             payDuesInstructions.classList.add("mb-3")
             payDuesInstructions.innerHTML = hoaRec.paymentInstructions
         }
