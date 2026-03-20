@@ -33,6 +33,8 @@ Modification History
                 total amount due, and added to the GetHoaRec functions.
                 Modified RecordPayment to make all unpaid assessment to PAID
                 when receiving an online payment
+2026-03-20 JJK  Modified CreateDuesEmailsListDB to delete any unsent
+                communications records for a parcel before creating new ones
 ================================================================================*/
 using System.Globalization;
 using Microsoft.Extensions.Configuration;
@@ -751,6 +753,18 @@ public class HoaDbCommon
         Container container = db.GetContainer(containerId);
         DateTime currDateTime = DateTime.Now;
 
+        // Delete any existing hoa_communications records with Email = 1 and SentStatus = 'N'
+        QueryDefinition deleteQuery = new QueryDefinition("SELECT * FROM c WHERE c.Email = 1 AND c.SentStatus = 'N'");
+        var deleteFeed = container.GetItemQueryIterator<hoa_communications>(deleteQuery);
+        while (deleteFeed.HasMoreResults)
+        {
+            var response = await deleteFeed.ReadNextAsync();
+            foreach (var item in response)
+            {
+                await container.DeleteItemAsync<hoa_communications>(item.id, new PartitionKey(item.Parcel_ID));
+            }
+        }
+
         // Get list of parcels that owe dues and have a valid email address
         //int cnt = 0;
         string commId = "";
@@ -779,14 +793,13 @@ public class HoaDbCommon
             {
                 continue;
             }
-
             // Create a communication record and an email send event for each valid email address for the Owner
             foreach (var emailAddr in hoaRec.emailAddrList)
             {
                 returnCnt++;
-                /*
-                log.LogWarning($"{returnCnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue}, email = {emailAddr}");
+                //log.LogWarning($"{returnCnt} Parcel = {hoaRec.property.Parcel_ID}, TotalDue = {hoaRec.totalDue}, email = {emailAddr}");
                 // >>>>>>>>>>>>>>>>>>>>>>> Limit for testing <<<<<<<<<<<<<<<<<<<<<<<
+                /*
                 if (returnCnt > 10)
                 {
                     return returnCnt;
@@ -815,9 +828,6 @@ public class HoaDbCommon
                 // Insert a new communications doc for the dues email send
                 await container.CreateItemAsync(hoa_comm, new PartitionKey(hoa_comm.Parcel_ID));
 
-                // >>>>> maybe future logic to check if there already a 'N' record for this parcel/email
-                // or delete existing 'N' records for this parcel/email before inserting new one <<<<<
-                // delete the whole set if creating a new list
             }
         }
         return returnCnt;
