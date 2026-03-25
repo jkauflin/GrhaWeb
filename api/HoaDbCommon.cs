@@ -2242,7 +2242,7 @@ public class HoaDbCommon
             if (!string.IsNullOrEmpty(category) && category != "ALL" && category != "0")
             {
                 sql += " AND CONTAINS(c.CategoryTags, @category)";
-                log.LogWarning($">>> Adding category filter: {category}");
+                //log.LogWarning($">>> Adding category filter: {category}");
             }
             if (!string.IsNullOrEmpty(startDate))
             {
@@ -2251,7 +2251,7 @@ public class HoaDbCommon
                 {
                     long dtVal = long.Parse(dt.ToString("yyyyMMddHH"));
                     sql += " AND c.MediaDateTimeVal >= @startDateVal";
-                    log.LogWarning($">>> Adding startDate filter: {startDate} ({dtVal})");
+                    //log.LogWarning($">>> Adding startDate filter: {startDate} ({dtVal})");
                 }
             }
             sql += " ORDER BY c.MediaDateTimeVal DESC ";
