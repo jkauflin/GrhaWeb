@@ -21,10 +21,12 @@ var host = new HostBuilder()
         {
             var clientId = System.Environment.GetEnvironmentVariable("PAYPAL_CLIENT_ID");
             var clientSecret = System.Environment.GetEnvironmentVariable("PAYPAL_CLIENT_SECRET");
+            var env = PaypalServerSdk.Standard.Environment.Production;
+            /*
             var env = System.Environment.GetEnvironmentVariable("PAYPAL_ENVIRONMENT") == "Production"
                 ? PaypalServerSdk.Standard.Environment.Production
                 : PaypalServerSdk.Standard.Environment.Sandbox;
-
+            */
             return new PaypalServerSdkClient.Builder()
                 .ClientCredentialsAuth(
                     new ClientCredentialsAuthModel.Builder(clientId, clientSecret).Build()
