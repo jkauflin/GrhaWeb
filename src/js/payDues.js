@@ -69,7 +69,7 @@ async function startPaymentCapture(parcelId) {
         if (hoaRec.totalDue == 0) {
             payDuesMessage.textContent = "No Dues are currently owed on this property"
         } else {
-            var paymentValue = hoaRec.totalDue + hoaRec.paymentFee;
+            var paymentValue =  formatMoney( hoaRec.totalDue + hoaRec.paymentFee)
             payDuesTitle.textContent = "Pay HOA dues for property at "+hoaRec.property.parcel_Location
             payDuesTitle2.innerHTML = `$${hoaRec.totalDue} (Dues) + $${formatMoney(hoaRec.paymentFee)} (Processing Fee) = <b>$${formatMoney(paymentValue)}</b> Total`
 
