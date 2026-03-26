@@ -20,6 +20,8 @@
  *                  this calculated fee instead of a flat fee
  *                  (Removed restriction of allowing electronic payment only 
  *                   if just current year dues are owed)
+ * 2026-03-26 JJK   Updated to use the new Paypal Web SDK (v6) and its new 
+ *                  way of rendering buttons and handling approvals
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,formatMoney} from './util.js';
@@ -48,9 +50,19 @@ document.addEventListener('DOMContentLoaded', () => {
         //console.log("parcelId = " + parcelId);
         // If needed to turn off the service for a while, can just display a message and not call the payment capture function
         payDuesMessage.textContent = 'Electronic payment of dues is currently unavailable - contact Treasurer to make payment arrangements'
+        
         //startPaymentCapture(parcelId)
+        //onPayPalWebSdkLoaded()
     }
 })
+
+/*
+window.onPayPalWebSdkLoaded = function () {
+  console.log("PayPal SDK loaded");
+  // initialize v6 here
+    onPayPalWebSdkLoaded()
+};
+*/
 
 async function startPaymentCapture(parcelId) {
     showLoadingSpinner(payDuesMessage);
@@ -127,10 +139,10 @@ async function startPaymentCapture(parcelId) {
                     payDuesMessage.textContent = "Error in payment - contact Treasurer"
                 }
             }).render('#paypal-button-container'); // Display payment options on your web page
+
         }
 
     } catch (err) {
         payDuesMessage.textContent = "Error in getting data on property, err = "+err.message
     }
-
 }
