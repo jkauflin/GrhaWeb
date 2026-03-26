@@ -2,6 +2,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using PaypalServerSdk.Standard;
 using PaypalServerSdk.Standard.Authentication;
 
@@ -21,12 +22,23 @@ var host = new HostBuilder()
         {
             var clientId = System.Environment.GetEnvironmentVariable("PAYPAL_CLIENT_ID");
             var clientSecret = System.Environment.GetEnvironmentVariable("PAYPAL_CLIENT_SECRET");
-            var env = PaypalServerSdk.Standard.Environment.Production;
-            /*
-            var env = System.Environment.GetEnvironmentVariable("PAYPAL_ENVIRONMENT") == "Production"
-                ? PaypalServerSdk.Standard.Environment.Production
-                : PaypalServerSdk.Standard.Environment.Sandbox;
-            */
+            var clientEnvironment = System.Environment.GetEnvironmentVariable("PAYPAL_ENVIRONMENT");
+            
+            if (clientEnvironment == null)
+            {
+                clientEnvironment = "Sandbox";
+            }
+            else
+            {
+                clientEnvironment = clientEnvironment.Trim();
+            }
+
+            var env = PaypalServerSdk.Standard.Environment.Sandbox;
+            if (clientEnvironment.Equals("Production", StringComparison.OrdinalIgnoreCase))
+            {
+                env = PaypalServerSdk.Standard.Environment.Production;
+            }
+            
             return new PaypalServerSdkClient.Builder()
                 .ClientCredentialsAuth(
                     new ClientCredentialsAuthModel.Builder(clientId, clientSecret).Build()

@@ -47,8 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
         let parcelId = decodeURIComponent(rawParcelId);
         //console.log("parcelId = " + parcelId);
         // If needed to turn off the service for a while, can just display a message and not call the payment capture function
-        payDuesMessage.textContent = 'Electronic payment of dues is currently unavailable - contact Treasurer to make payment arrangements'
-        //startPaymentCapture(parcelId)
+        //payDuesMessage.textContent = 'Electronic payment of dues is currently unavailable - contact Treasurer to make payment arrangements'
+        startPaymentCapture(parcelId)
     }
 })
 
