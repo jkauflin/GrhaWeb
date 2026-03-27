@@ -22,6 +22,7 @@
  *                   if just current year dues are owed)
  * 2026-03-26 JJK   Updated to use the new Paypal Web SDK (v6) and its new 
  *                  way of rendering buttons and handling approvals
+ *                  (working on it)
  *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,formatMoney} from './util.js';
@@ -49,10 +50,9 @@ document.addEventListener('DOMContentLoaded', () => {
         let parcelId = decodeURIComponent(rawParcelId);
         //console.log("parcelId = " + parcelId);
         // If needed to turn off the service for a while, can just display a message and not call the payment capture function
-        payDuesMessage.textContent = 'Electronic payment of dues is currently unavailable - contact Treasurer to make payment arrangements'
+        //payDuesMessage.textContent = 'Electronic payment of dues is currently unavailable - contact Treasurer to make payment arrangements'
         
-        //startPaymentCapture(parcelId)
-        //onPayPalWebSdkLoaded()
+        startPaymentCapture(parcelId)
     }
 })
 
