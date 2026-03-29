@@ -2133,6 +2133,11 @@ public class HoaDbCommon
                         paidEmailSent = "N"
                     };
                     await paymentsContainer.UpsertItemAsync(paymentRec, new PartitionKey(paymentRec.Parcel_ID));
+
+                    // Only set the paypal transaction id in the Comments field of the assessment record for the first record - 
+                    // this is just to have a reference to link the payment to the assessment(s) in case we need to research or troubleshoot later.  
+                    // We don't want to overwrite any existing comments on subsequent records if there are multiple assessments.
+                    assessmentRec.Comments = "TransId:" + transactionId;
                 }
 
                 exists = true;
@@ -2141,7 +2146,6 @@ public class HoaDbCommon
                 assessmentRec.Paid = 1;
                 assessmentRec.DatePaid = paymentDate;
                 assessmentRec.PaymentMethod = "Paypal";
-                assessmentRec.Comments = transactionId;
                 assessmentRec.LastChangedBy = "paypal";
                 assessmentRec.LastChangedTs = currDateTime;
                 await assessmentsContainer.ReplaceItemAsync(assessmentRec, assessmentRec.id, new PartitionKey(assessmentRec.Parcel_ID));
@@ -2156,7 +2160,7 @@ public class HoaDbCommon
         string treasurerEmail = await getConfigVal(configContainer, "treasurerEmail");
         string paymentEmailList = await getConfigVal(configContainer, "paymentEmailList");
         string payorInfo = await getConfigVal(configContainer, "paymentEmailPayorInfo");
-        string treasurerInfo = $"The following payment has been recorded and the assessment has been marked as PAID.  Payment fee was {paymentFee}";
+        string treasurerInfo = $"The following payment has been recorded and assessment(s) marked as PAID.  Payment fee was {paymentFee}";
         string paymentInfoStr = $"<br><br>Parcel Id: {parcelId}";
         paymentInfoStr += $"<br>Fiscal Year: {fiscalYear}";
         paymentInfoStr += $"<br>Transaction Id: {transactionId}";
