@@ -12,7 +12,8 @@
  * 2025-10-07 JJK   Re-factored to use new Board load api
 *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,fetchApi} from '../../js/util.js';
+//import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';  I don't think I need this one now
 
 var TrusteeId
 var Name
@@ -156,13 +157,14 @@ async function uploadFile() {
     FileUploadMessageDisplay.textContent = "Uploading file..."
 
     try {
-        const response = await fetch("/api/UploadDoc", {
+        const response = await fetchApi("UploadDoc", {
             method: "POST",
-            body: new FormData(uploadFileForm)
+            body: new FormData(uploadFileForm),
+            requireAuth: true
         })
         await checkFetchResponse(response)
         // Success
-        FileUploadMessageDisplay.textContent = await response.text();
+        FileUploadMessageDisplay.textContent = await response.json();
 
     } catch (err) {
         console.error(err)
@@ -175,13 +177,14 @@ async function uploadPhotos() {
     PhotosUploadMessageDisplay.textContent = "Uploading photos..."
 
     try {
-        const response = await fetch("/api/UploadPhotos", {
+        const response = await fetchApi("UploadPhotos", {
             method: "POST",
-            body: new FormData(uploadPhotosForm)
+            body: new FormData(uploadPhotosForm),
+            requireAuth: true
         })
         await checkFetchResponse(response)
         // Success
-        PhotosUploadMessageDisplay.textContent = await response.text();
+        PhotosUploadMessageDisplay.textContent = await response.json();
 
     } catch (err) {
         console.error(err)
@@ -192,7 +195,7 @@ async function uploadPhotos() {
 async function queryBoardInfo() {
     showLoadingSpinner(BoardMessageDisplay)
     try {
-        const response = await fetch("/api/GetTrusteeList", {
+        const response = await fetchApi("GetTrusteeList", {
             method: "GET",
             headers: { "Content-Type": "application/json" }
             //body: searchStr.value
@@ -262,11 +265,11 @@ function displayBoardInfo(trusteeList) {
 // Get the specific Trustee information and display for update
 async function getTrustee(trusteeId) {
     BoardMessageDisplay.textContent = "Fetching Board information..."
-    const endpoint = "/api/GetTrustee";
-    const response = await fetch(endpoint, {
+    const response = await fetchApi("GetTrustee", {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
-        body: trusteeId
+        body: trusteeId,
+        requireAuth: true
     })
     BoardMessageDisplay.textContent = ""
 
@@ -275,7 +278,7 @@ async function getTrustee(trusteeId) {
         //response.statusText: "Bad Request"
         let errMessage = response.statusText
         try {
-            errMessage = await response.text();
+            errMessage = await response.json();
             // Check if there is a JSON structure in the response (which contains errors)
             const result = JSON.parse(errMessage);
             if (result.errors != null) {
@@ -320,18 +323,18 @@ async function updateTrustee(trusteeId) {
         WebsiteMessage: WebsiteMessage.value
     }
 
-    const endpoint = "/api/UpdateTrustee";
-    const response = await fetch(endpoint, {
+    const response = await fetchApi("UpdateTrustee", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(paramData)
+        body: JSON.stringify(paramData),
+        requireAuth: true
     })
     if (!response.ok) {
         //response.status: 400
         //response.statusText: "Bad Request"
         let errMessage = response.statusText
         try {
-            errMessage = await response.text();
+            errMessage = await response.json();
             // Check if there is a JSON structure in the response (which contains errors)
             const result = JSON.parse(errMessage);
             if (result.errors != null) {

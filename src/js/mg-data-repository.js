@@ -25,7 +25,7 @@ Modification History
 2025-10-07 JJK  Refactored to use new function API endpoint instead of data-api 
 ================================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,fetchApi} from './util.js';
 import {createMediaPage} from './mg-create-pages.js';
 export let mediaInfo = {
     filterList: [],
@@ -133,7 +133,7 @@ export async function queryMediaInfo(paramData) {
 
     showLoadingSpinner(MediaPageMessage)
     try {
-        const response = await fetch("/api/GetMediaInfo", {
+        const response = await fetchApi("GetMediaInfo", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(paramData)

@@ -69,7 +69,8 @@
  * 2025-05-14 JJK   Added checkFetchResponse from util
 *============================================================================*/
 
-import {empty,checkFetchResponse} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,fetchApi} from '../../js/util.js';
+//import {empty,checkFetchResponse} from './util.js';
 import {} from './search.js';
 import {} from './detail.js';
 import {} from './reports.js';

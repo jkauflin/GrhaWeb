@@ -20,7 +20,8 @@
  *                  js module, and move from PHP/MySQL to Azure SWA
  *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,fetchApi} from '../../js/util.js';
+//import {standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -82,9 +83,10 @@ document.addEventListener('DOMContentLoaded', () => {
 async function getConfigList() {
 	showLoadingSpinner(ConfigListTbody);
 	try {
-		const response = await fetch('/api/GetConfigList', {
+		const response = await fetchApi("GetConfigList", {
 			method: 'POST',
-			headers: { 'Content-Type': 'application/json' }
+			headers: { 'Content-Type': 'application/json' },
+            requireAuth: true
 		});
 		await checkFetchResponse(response);
 		configList = await response.json();
@@ -154,10 +156,11 @@ async function updateConfig() {
 		configValue: updConfigValue.value
 	}
 	try {
-		const response = await fetch('/api/UpdateConfig', {
+		const response = await fetchApi("UpdateConfig", {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify(paramData)
+			body: JSON.stringify(paramData),
+            requireAuth: true
 		})
 		await checkFetchResponse(response)
 		// let hoaConfig = await response.json();

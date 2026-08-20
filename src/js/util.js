@@ -1,5 +1,5 @@
 /*==============================================================================
- * (C) Copyright 2015,2016,2017,2018,2024 John J Kauflin, All rights reserved. 
+ * (C) Copyright 2015,2017,2018,2026 John J Kauflin, All rights reserved. 
  *----------------------------------------------------------------------------
  * DESCRIPTION: 
  *----------------------------------------------------------------------------
@@ -28,10 +28,20 @@
  *                  Loading... message with a built-in Bootstrap spinner
  * 2025-05-14 JJK   Added checkFetchResponse to check status and get
  *                  error messages from a Fetch response
+ * ----------------------------------------------------------------------------
+ * 2026-08-17 JJK   Added fetchApi for local/production API calls
+ * 2026-08-17 JJK   Modified to use authConfig.js module for authentication
+ *                  configuration, and added getToken() function to retrieve token
+ *                  for local and production authentication.
+ *                  Modified fetchApi to use getToken() for local and production 
+ *                  auth, and include the set of the uri prefix for the api
+ * 
+ * 2026-08-17 JJK   Consolidated functions from Admin to this single location
+ *                  and corrected a few issues with differences between the
+ *                  Admin and Util versions of the functions.        
  *============================================================================*/
 
-//=================================================================================================================
-// Variables cached from the DOM
+import { getToken } from "./authConfig.js";
 
 var spanSpinner
 var spanSpinnerStatus
@@ -58,6 +68,19 @@ export function empty(node) {
     while (node.firstChild) {
         node.removeChild(node.firstChild)
     }
+}
+
+export async function fetchApi(url, options = {}) {
+    const headers = new Headers(options.headers || {});
+    const requireAuth = options.requireAuth || false;
+
+    if (requireAuth) {
+        const { getToken } = await import('./authConfig.js'); // unified module now
+        const token = await getToken();
+        headers.set("Authorization", `Bearer ${token}`);
+    }
+
+    return fetch(window.__APP_CONFIG__.apiBaseUrl + url, { ...options, headers });
 }
 
 export async function checkFetchResponse(response) {

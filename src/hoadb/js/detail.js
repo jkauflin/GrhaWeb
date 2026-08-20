@@ -54,7 +54,8 @@
  * 2026-01-24 JJK   Removed Release Fee Interest (not used)
  *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,fetchApi} from '../../js/util.js';
+import {standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -490,9 +491,10 @@ async function updateOwner() {
     }
 
     try {
-        const response = await fetch("/api/UpdateOwner", {
+        const response = await fetchApi("UpdateOwner", {
             method: "POST",
-            body: new FormData(UpdateOwnerForm)
+            body: new FormData(UpdateOwnerForm),
+            requireAuth: true
         })
         await checkFetchResponse(response)
         // Success
@@ -529,9 +531,10 @@ async function updateOwner() {
 async function updateAssessment() {
     UpdateAssessmentMessageDisplay.textContent = "Updating Assessment..."
     try {
-        const response = await fetch("/api/UpdateAssessment", {
+        const response = await fetchApi("UpdateAssessment", {
             method: "POST",
-            body: new FormData(UpdateAssessmentForm)
+            body: new FormData(UpdateAssessmentForm),
+            requireAuth: true
         })
         await checkFetchResponse(response)
         // Success
@@ -571,13 +574,14 @@ async function updateAssessment() {
 async function updateProperty() {
     messageDisplay.textContent = "Updating Property..."
     try {
-        const response = await fetch("/api/UpdateProperty", {
+        const response = await fetchApi("UpdateProperty", {
             method: "POST",
-            body: new FormData(UpdatePropertyForm)
+            body: new FormData(UpdatePropertyForm),
+            requireAuth: true
         })
         await checkFetchResponse(response)
         // Success
-        messageDisplay.textContent = await response.text();
+        messageDisplay.textContent = await response.json();
     } catch (err) {
         console.error(err)
         messageDisplay.textContent = `Error in Fetch: ${err.message}`
@@ -594,10 +598,11 @@ async function getCommunications(parcelId) {
     }
 
     try {
-        const response = await fetch("/api/GetCommunications", {
+        const response = await fetchApi("GetCommunications", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(paramData)
+            body: JSON.stringify(paramData),
+            requireAuth: true
         })
         await checkFetchResponse(response)
         // Success
@@ -694,10 +699,11 @@ async function getHoaRec(parcelId) {
     detailPageTab.show()
 
     try {
-        const response = await fetch("/api/GetHoaRec", {
+        const response = await fetchApi("GetHoaRec", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(paramData)
+            body: JSON.stringify(paramData),
+            requireAuth: true
             //headers: { "Content-Type": "text/plain" },
             //body: parcelId
         })
@@ -898,10 +904,11 @@ async function getDuesStatement(parcelId) {
 
     showLoadingSpinner(messageDisplay)
     try {
-        const response = await fetch("/api/GetHoaRec", {
+        const response = await fetchApi("GetHoaRec", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(paramData)
+            body: JSON.stringify(paramData),
+            requireAuth: true
         })
         await checkFetchResponse(response)
         // Success

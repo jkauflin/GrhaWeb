@@ -40,7 +40,8 @@
  * 2025-10-14 JJK   Changing to just 1 Dues Letter (combining 1st and 2nd)
  *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatDateMonth,formatMoney,setTD,setCheckbox,csvFilter,setBoolText} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,fetchApi} from '../../js/util.js';
+import {standardizeDate,formatDate,formatDateMonth,formatMoney,setTD,setCheckbox,csvFilter,setBoolText} from './util.js';
 import {formatUpdateOwnerSale} from './detail.js';
 
 // Global variable to hold CSV content for downloading
@@ -118,10 +119,11 @@ async function handleSalesFlagUpdate(button) {
 	};
 
 	try {
-		const response = await fetch("/api/UpdateSales", {
+		const response = await fetchApi("UpdateSales", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(paramData)
+			body: JSON.stringify(paramData),
+            requireAuth: true
 		});
 		await checkFetchResponse(response);
 		ReportsMessageDisplay.textContent = "Sales flag updated.";
@@ -138,9 +140,10 @@ async function salesReport(reportTitle) {
 	ReportHeader.textContent = reportTitle
 
 	try {
-		const response = await fetch("/api/GetSalesList", {
+		const response = await fetchApi("GetSalesList", {
 			method: "POST",
-			headers: { "Content-Type": "application/json" }
+			headers: { "Content-Type": "application/json" },
+            requireAuth: true
 		})
 		await checkFetchResponse(response)
 		ReportsMessageDisplay.textContent = ""
@@ -256,9 +259,10 @@ async function paidDuesCountReport(reportTitle) {
 	showLoadingSpinner(ReportsMessageDisplay)
 
 	try {
-		const response = await fetch("/api/GetPaidDuesCountList", {
+		const response = await fetchApi("GetPaidDuesCountList", {
 			method: "POST",
-			headers: { "Content-Type": "application/json" }
+			headers: { "Content-Type": "application/json" },
+            requireAuth: true
 		})
 		await checkFetchResponse(response)
 		ReportsMessageDisplay.textContent = ""
@@ -369,10 +373,11 @@ async function _reportRequest(event) {
 		//logWelcomeLetters: LogWelcomeLetters.checked
 
 	try {
-		const response = await fetch("/api/GetHoaRecList", {
+		const response = await fetchApi("GetHoaRecList", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(paramData)
+			body: JSON.stringify(paramData),
+            requireAuth: true
 		});
 		await checkFetchResponse(response);
 		// Success

@@ -68,7 +68,8 @@
  * 2025-09-11 JJK   Finished Dues Emails.  Working on Sales Upload
 *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse,standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,fetchApi} from '../../js/util.js';
+import {standardizeDate,formatDate,formatMoney,setTD,setCheckbox} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -151,14 +152,15 @@ document.addEventListener('DOMContentLoaded', () => {
 			confirmBtn.disabled = true;
 			showLoadingSpinner(errorDiv);
 			try {
-				const response = await fetch('/api/AddAssessments', {
+				const response = await fetchApi('AddAssessments', {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ DuesAmt: duesAmt, FiscalYear: fiscalYear })
+					body: JSON.stringify({ DuesAmt: duesAmt, FiscalYear: fiscalYear }),
+            requireAuth: true
 				})
 				await checkFetchResponse(response);
 				errorDiv.textContent = ''
-				const adminResultMessage = await response.text();
+				const adminResultMessage = await response.json();
 				// Hide modal and show result
 				bootstrap.Modal.getInstance(document.getElementById('AddAssessmentsConfirmModal')).hide()
 				messageDisplay.textContent = adminResultMessage
@@ -200,14 +202,15 @@ async function createDuesNoticeEmails() {
 	}
 
 	try {
-		const response = await fetch("/api/CreateDuesNoticeEmails", {
+		const response = await fetchApi("CreateDuesNoticeEmails", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(paramData)
+			body: JSON.stringify(paramData),
+            requireAuth: true
 		})
 		await checkFetchResponse(response)
 		// Success
-		//let returnMessage = await response.text();
+		//let returnMessage = await response.json();
 		//messageDisplay.textContent = returnMessage
 		//AdminRecCnt.textContent = returnMessage
 		let sentStatus="N"
@@ -227,14 +230,15 @@ async function sendDuesNoticeEmails() {
 	}
 
 	try {
-		const response = await fetch("/api/SendDuesNoticeEmails", {
+		const response = await fetchApi("SendDuesNoticeEmails", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(paramData)
+			body: JSON.stringify(paramData),
+            requireAuth: true
 		})
 		await checkFetchResponse(response)
 		// Success
-		//let returnMessage = await response.text();
+		//let returnMessage = await response.json();
 		//messageDisplay.textContent = returnMessage
 		//AdminRecCnt.textContent = returnMessage
 		let sentStatus="N"
@@ -261,10 +265,11 @@ async function getDuesNoticeEmails(sentStatus="") {
 	}
 
 	try {
-		const response = await fetch("/api/GetCommunications", {
+		const response = await fetchApi("GetCommunications", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(paramData)
+			body: JSON.stringify(paramData),
+            requireAuth: true
 		})
 		await checkFetchResponse(response)
 		// Success
@@ -380,15 +385,16 @@ async function processSalesUpload() {
 	formData.append('file', fileInput.files[0]);
 
 	try {
-		const response = await fetch('/api/SalesUpload', {
+		const response = await fetchApi('SalesUpload', {
 			method: 'POST',
-			body: formData
+			body: formData,
+            requireAuth: true
 		})
 		await checkFetchResponse(response)
 		// Success
 		fileUploadModal.hide();
 		//messageDisplay.textContent = "File processed successfully - Check Sales Report"
-		messageDisplay.textContent = await response.text()
+		messageDisplay.textContent = await response.json()
 	} catch (err) {
 		console.error(err)
 		messageDisplay.textContent = `Error in Fetch: ${err.message}`

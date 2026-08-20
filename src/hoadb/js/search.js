@@ -21,7 +21,8 @@
  * 2025-05-14 JJK   Added checkFetchResponse from util
  *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,fetchApi} from '../../js/util.js';
+//import {empty,showLoadingSpinner,checkFetchResponse} from './util.js';
 
 //=================================================================================================================
 // Variables cached from the DOM
@@ -65,11 +66,13 @@ async function getHoaPropertiesList() {
     messageDisplay.textContent = "Fetching property list..."
 
     try {
-        const response = await fetch("/api/GetPropertyList", {
+        const response = await fetchApi("GetPropertyList", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: searchStr.value
+            body: searchStr.value,
+            requireAuth: true
         })
+
         await checkFetchResponse(response)
         // Success
         const hoaPropertyRecList = await response.json();

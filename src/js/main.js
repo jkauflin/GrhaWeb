@@ -38,7 +38,7 @@
  * 2025-10-08 JJK   Checking media info load for homepage event photos
  *============================================================================*/
 
-import {empty,showLoadingSpinner,formatMoney,setCheckbox,checkFetchResponse} from './util.js'
+import {empty,showLoadingSpinner,formatMoney,setCheckbox,checkFetchResponse,fetchApi} from './util.js'
 import {} from './mediagallery.js'
 import {mediaType,setMediaType,queryMediaInfo} from './mg-data-repository.js'
   
@@ -129,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function queryBoardInfo() {
     showLoadingSpinner(BoardMessageDisplay)
     try {
-        const response = await fetch("/api/GetTrusteeList", {
+        const response = await fetchApi("GetTrusteeList", {
             method: "GET",
             headers: { "Content-Type": "application/json" }
         })
@@ -268,10 +268,9 @@ async function queryEventPhotos() {
 }
 
 async function fetchPropertiesData() {
-    const endpoint = "/api/GetPropertyList2";
     try {
         messageDisplay.textContent = "Fetching property information..."
-        const response = await fetch(endpoint, {
+        const response = await fetchApi("GetPropertyList2", {
             method: "POST",
             //headers: { "Content-Type": "application/json" },
             body: addressInput.value
@@ -283,7 +282,7 @@ async function fetchPropertiesData() {
         messageDisplay.textContent = ""
         displayPropertyList(data)
     } catch (err) {
-        console.error(`Error in Fetch to ${endpoint}, ${err}`)
+        console.error(`Error in Fetch to GetPropertyList2, ${err}`)
         messageDisplay.textContent = "Fetch data FAILED - check log"
     }
 }
@@ -330,10 +329,9 @@ function displayPropertyList(hoaPropertyRecList) {
 }
 
 async function getDuesStatement(element) {
-    const endpoint = "/api/GetHoaRec2";
     try {
         messageDisplay.textContent = "Fetching dues information..."
-        const response = await fetch(endpoint, {
+        const response = await fetchApi("GetHoaRec2", {
             method: "POST",
             //headers: { "Content-Type": "application/json" },
             body: element.getAttribute("data-parcelId")
@@ -346,7 +344,7 @@ async function getDuesStatement(element) {
         formatDuesStatementResults(data);
         new bootstrap.Modal(document.getElementById('duesStatementModal')).show();
     } catch (err) {
-        console.error(`Error in Fetch to ${endpoint}, ${err}`)
+        console.error(`Error in Fetch to GetHoaRec2, ${err}`)
         messageDisplay.textContent = "Fetch data FAILED - check log"
     }
 }

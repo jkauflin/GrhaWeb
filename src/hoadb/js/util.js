@@ -33,6 +33,7 @@
 
 //=================================================================================================================
 // Variables cached from the DOM
+/*
 var spanSpinner
 var spanSpinnerStatus
     
@@ -84,6 +85,8 @@ export async function checkFetchResponse(response) {
         throw new Error(errMessage)
     } 
 }
+*/
+
 
 //Replace every ascii character except decimal and digits with a null, and round to 2 decimal places
 var nonMoneyCharsStr = "[\x01-\x2D\x2F\x3A-\x7F]";

@@ -23,9 +23,10 @@
  * 2026-03-26 JJK   Updated to use the new Paypal Web SDK (v6) and its new 
  *                  way of rendering buttons and handling approvals
  *                  (working on it)
+ * 2026-08-19 JJK   Updated to use new fetchApi (for API Function migration)
  *============================================================================*/
 
-import {empty,showLoadingSpinner,checkFetchResponse,formatMoney} from './util.js';
+import {empty,showLoadingSpinner,checkFetchResponse,formatMoney,fetchApi} from './util.js';
 
 var payDuesTitle
 var payDuesTitle2
@@ -67,7 +68,7 @@ window.onPayPalWebSdkLoaded = function () {
 async function startPaymentCapture(parcelId) {
     showLoadingSpinner(payDuesMessage);
     try {
-        const response = await fetch('/api/GetHoaRec2', {
+        const response = await fetchApi("GetHoaRec2", {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
             body: parcelId
@@ -112,7 +113,7 @@ async function startPaymentCapture(parcelId) {
                     empty(payDuesButtons)
                     showLoadingSpinner(payDuesMessage);
 
-                    fetch('/api/HandlePayment', {
+                    fetchApi("HandlePayment", {
                         method: 'POST',
                         body: data.orderID
                     })
@@ -122,7 +123,7 @@ async function startPaymentCapture(parcelId) {
                         // Check the status of the reponse (400 or 500 errors)
                         if (response.ok) {
                             // if response and JSON are OK, return the JSON object part of the fetch response to the next promise
-                            return response.text();
+                            return response.json();
                         } else {
                             payDuesMessage.textContent = "Payment made but there was a problem updating HOA records - contact Treasurer"
                             throw new Error('Error in response from server, code = '+response.status);

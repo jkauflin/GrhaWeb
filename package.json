@@ -2,6 +2,6 @@
   "name": "grhaweb",
   "version": "3.0.0",
   "scripts": {
-    "start": "swa start http://localhost:4280"
+    "start": "swa start ./src --api-location http://localhost:7071"
   }
 }
