@@ -66,6 +66,7 @@
  *                  js module, and move from PHP/MySQL to Azure SWA
  * 2025-08-06 JJK   Working on Dues Emails
  * 2025-09-11 JJK   Finished Dues Emails.  Working on Sales Upload
+ * 2026-08-26 JJK   Added testParcelId to sendDuesNoticeEmails
 *============================================================================*/
 
 import {empty,showLoadingSpinner,checkFetchResponse,fetchApi} from '../../js/util.js';
@@ -156,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ DuesAmt: duesAmt, FiscalYear: fiscalYear }),
-            requireAuth: true
+            		requireAuth: true
 				})
 				await checkFetchResponse(response);
 				errorDiv.textContent = ''
@@ -188,9 +189,7 @@ document.addEventListener('DOMContentLoaded', () => {
 			sendDuesNoticeEmails()
 		} else if (event.target.classList.contains("TestDuesNoticeEmails")) {
 			event.preventDefault()
-
-			// add some TEST parameter to this??????????????????????????????
-			//sendDuesNoticeEmails()
+			sendDuesNoticeEmails(event.target.dataset.parcelId)
 		}
 	})
 })
@@ -223,14 +222,12 @@ async function createDuesNoticeEmails() {
 	}
 }
 
-async function sendDuesNoticeEmails() {
+async function sendDuesNoticeEmails(testParcelId="") {
 	//AdminResults.textContent = "Dues Notice Emails"
 	showLoadingSpinner(messageDisplay)
 
-	// Add check for TEST emails?
-
 	let paramData = {
-		parcelId: "DuesNoticeEmails"
+		testParcelId: testParcelId
 	}
 
 	try {
@@ -242,11 +239,8 @@ async function sendDuesNoticeEmails() {
 		})
 		await checkFetchResponse(response)
 		// Success
-		//let returnMessage = await response.json();
-		//messageDisplay.textContent = returnMessage
-		//AdminRecCnt.textContent = returnMessage
-		let sentStatus="N"
-		getDuesNoticeEmails(sentStatus)
+		let returnMessage = await response.json();
+		messageDisplay.textContent = returnMessage
 	} catch (err) {
 		console.error(err)
 		messageDisplay.textContent = `Error in Fetch: ${err.message}`
@@ -322,13 +316,13 @@ function formatCommunicationsResults(communicationsList) {
 		tr.classList.add('small')
 		
 		// 8/26/2026 - Re-add the TEST email button (to send an individual dues notice to a TEST email address)
-			button = document.createElement("button")
-			button.setAttribute('type',"button")
-			button.setAttribute('role',"button")
-			button.dataset.parcelId = commRec.parcel_ID
-			button.classList.add('btn','btn-danger','btn-sm','mb-1','me-1','shadow-none','TestDuesNoticeEmails')
-			button.innerHTML = '<i class="fa fa-envelope me-1"></i> TEST Email'
-			td = document.createElement("td"); td.appendChild(button); tr.appendChild(td)
+		button = document.createElement("button")
+		button.setAttribute('type',"button")
+		button.setAttribute('role',"button")
+		button.dataset.parcelId = commRec.parcel_ID
+		button.classList.add('btn','btn-danger','btn-sm','mb-1','me-1','shadow-none','TestDuesNoticeEmails')
+		button.innerHTML = '<i class="fa fa-envelope me-1"></i> TEST'
+		td = document.createElement("td"); td.appendChild(button); tr.appendChild(td)
 		
 		td = document.createElement("td"); td.textContent = commRec.parcel_ID; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = standardizeDate(commRec.createTs); tr.appendChild(td)
