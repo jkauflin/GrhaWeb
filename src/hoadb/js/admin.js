@@ -188,6 +188,8 @@ document.addEventListener('DOMContentLoaded', () => {
 			sendDuesNoticeEmails()
 		} else if (event.target.classList.contains("TestDuesNoticeEmails")) {
 			event.preventDefault()
+
+			// add some TEST parameter to this??????????????????????????????
 			//sendDuesNoticeEmails()
 		}
 	})
@@ -224,6 +226,8 @@ async function createDuesNoticeEmails() {
 async function sendDuesNoticeEmails() {
 	//AdminResults.textContent = "Dues Notice Emails"
 	showLoadingSpinner(messageDisplay)
+
+	// Add check for TEST emails?
 
 	let paramData = {
 		parcelId: "DuesNoticeEmails"
@@ -299,7 +303,7 @@ function formatCommunicationsResults(communicationsList) {
 	tr.classList.add('small')
 	// Append the header elements
 
-	//th = document.createElement("th"); th.textContent = "Test Email"; tr.appendChild(th)        
+	th = document.createElement("th"); th.textContent = "Test Email"; tr.appendChild(th)        
 	th = document.createElement("th"); th.textContent = "Parcel ID"; tr.appendChild(th)        
 	th = document.createElement("th"); th.textContent = "Datetime"; tr.appendChild(th)
 	th = document.createElement("th"); th.textContent = "Email Address"; tr.appendChild(th)
@@ -316,7 +320,8 @@ function formatCommunicationsResults(communicationsList) {
 
 		tr = document.createElement('tr')
 		tr.classList.add('small')
-		/*
+		
+		// 8/26/2026 - Re-add the TEST email button (to send an individual dues notice to a TEST email address)
 			button = document.createElement("button")
 			button.setAttribute('type',"button")
 			button.setAttribute('role',"button")
@@ -324,7 +329,7 @@ function formatCommunicationsResults(communicationsList) {
 			button.classList.add('btn','btn-danger','btn-sm','mb-1','me-1','shadow-none','TestDuesNoticeEmails')
 			button.innerHTML = '<i class="fa fa-envelope me-1"></i> TEST Email'
 			td = document.createElement("td"); td.appendChild(button); tr.appendChild(td)
-		*/
+		
 		td = document.createElement("td"); td.textContent = commRec.parcel_ID; tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = standardizeDate(commRec.createTs); tr.appendChild(td)
 		td = document.createElement("td"); td.textContent = commRec.emailAddr; tr.appendChild(td)
