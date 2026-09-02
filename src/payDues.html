@@ -47,15 +47,23 @@
 
     <div class="container-fluid">
         <div class="row">
-            <h5>
-            Online payment is temporarily disabled. Please contact the HOA Treasurer for payment options.
-            </h5>
-            <h5>
-            Or check tomorrow to see if the online payment system is back up and running.
-            </h5>
-            <h5>
-            Thank you for your patience.
-            </h5>
+            <div class="col-md-6 col-lg-5">
+                <h6 id="PayDuesTitle" class="mt-2"></h6>
+                <div id="PayDuesTitle2" class=""></div>
+
+                <div id="paypal-button-container" class="m-3"></div>
+                <!--
+                <paypal-payments id="paypal-buttons" style="display:block" class="m-3"></paypal-payments>
+                -->
+
+                <div id="PayDuesMessage" class="mt-1"></div>
+            </div><!-- End of col 1 -->
+
+            <div class="col-md-3 col-lg-5">
+            </div> <!-- End of col 2 -->
+
+            <div class="col-md-3 col-lg-2">
+            </div><!-- End of col 3 -->
         </div><!-- end of row -->
     </div><!-- end of main container -->
 
@@ -78,6 +86,7 @@
     -->
     <script src="https://www.paypal.com/sdk/js?client-id=AfPzVjZCh8dqc1d4pYuzGRCBlcEkS8-MySH5qxewT575KjBu3hJect0Aw3J2ZBkhexwABLk3rMgkRujv&disable-funding=credit&currency=USD&components=buttons&enable-funding=venmo,card"></script>
     <script src="js/payDues.js" type="module"></script>
+    
 
 </body>
 </html>
